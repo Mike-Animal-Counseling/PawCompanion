@@ -1,0 +1,20 @@
+node_modules/
+.env
+.env.*
+!.env.example
+
+logs/
+*.log
+
+dist/
+build/
+coverage/
+
+# If you use runtime uploads locally
+uploads/
+tmp/
+
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
