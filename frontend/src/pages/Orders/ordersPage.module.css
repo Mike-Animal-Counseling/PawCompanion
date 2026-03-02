@@ -1,0 +1,169 @@
+.ordersContainer {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.ordersContainer h1 {
+  font-size: 28px;
+  margin-bottom: 30px;
+  color: #333;
+}
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.orderCard {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+
+.orderCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.orderId {
+  font-weight: 600;
+  color: #333;
+  font-size: 16px;
+}
+
+.status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.statusDelivered {
+  background: #d4edda;
+  color: #155724;
+}
+
+.statusTransit {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.statusCancelled {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.orderContent {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  align-items: center;
+}
+
+.orderImage {
+  flex-shrink: 0;
+}
+
+.orderImage img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.orderDetails {
+  flex: 1;
+}
+
+.orderDetails h3 {
+  margin: 0 0 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.orderDate {
+  margin: 0;
+  font-size: 13px;
+  color: #999;
+}
+
+.orderPrice {
+  text-align: right;
+}
+
+.price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 0;
+}
+
+.orderActions {
+  display: flex;
+  gap: 10px;
+  padding: 0 20px 20px 20px;
+  justify-content: flex-end;
+}
+
+.viewBtn,
+.reorderBtn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.viewBtn {
+  background: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.viewBtn:hover {
+  background: #e8e8e8;
+}
+
+.reorderBtn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.reorderBtn:hover {
+  opacity: 0.9;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  background: #f9f9f9;
+  border-radius: 8px;
+}
+
+.emptyState p {
+  font-size: 18px;
+  color: #666;
+  margin: 0 0 10px 0;
+}
+
+.emptySubtext {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+}

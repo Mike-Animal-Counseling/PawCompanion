@@ -1,0 +1,173 @@
+.bookingContainer {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 24px;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+}
+
+.bookingContainer h2 {
+    margin: 0 0 20px 0;
+    color: #333;
+    font-size: 24px;
+}
+
+.successMessage {
+    padding: 16px;
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.successMessage p {
+    margin: 8px 0;
+}
+
+.bookingId {
+    font-size: 12px;
+    opacity: 0.9;
+    margin-top: 4px;
+}
+
+.errorMessage {
+    padding: 12px 16px;
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.input,
+.textarea {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+
+.input:focus,
+.textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+}
+
+.textarea {
+    resize: vertical;
+}
+
+.costSection {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
+
+.costBtn {
+    padding: 10px 16px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.costBtn:hover:not(:disabled) {
+    background: #218838;
+}
+
+.costBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.costDisplay {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.label {
+    font-weight: 600;
+    color: #666;
+}
+
+.price {
+    font-size: 20px;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.submitBtn {
+    padding: 14px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.submitBtn:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.submitBtn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}
+
+.infoBox {
+    padding: 16px;
+    background: #f0f8ff;
+    border-left: 4px solid #007bff;
+    border-radius: 6px;
+}
+
+.infoBox h3 {
+    margin: 0 0 12px 0;
+    color: #333;
+    font-size: 16px;
+}
+
+.infoBox p {
+    margin: 8px 0;
+    color: #666;
+    font-size: 14px;
+}
