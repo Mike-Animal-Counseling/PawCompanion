@@ -74,14 +74,17 @@ router.post("/chat", async (req, res) => {
       });
 
       // --- SAFETY (already exists) ---
+      const safetyStartTime = Date.now();
       const risk = await detectSelfHarm(message);
+      const safetyDuration = Date.now() - safetyStartTime;
+      console.log(`⏱️  detectSelfHarm(): ${safetyDuration}ms`);
       console.log("Safety risk:", risk);
 
       // --- USER-LEVEL RISK SCORING (long-term rolling windows) ---
       await recordRiskEventAndUpdateProfile({ userId, animalId, risk }).catch(
         (err) => {
           console.error("Risk profile update failed:", err?.message || err);
-        }
+        },
       );
 
       if (risk.flagged) {
@@ -105,6 +108,9 @@ router.post("/chat", async (req, res) => {
       }
 
       // --- SMART MODE ROUTING (LLM router) + HYSTERESIS ---
+      const chatProcessingStart = Date.now();
+      console.log("\n=== Chat Processing Started ===");
+
       // detectMode returns { mode: "support"|"play", confidence: 0..1, rationale?: string }
       const routing = await detectMode(animal, chatMemory.messages, message, {
         signal: undefined, // optionally pass AbortController.signal from client
@@ -200,6 +206,21 @@ router.post("/chat", async (req, res) => {
       // Save updated memory
       await chatMemory.save();
 
+      // Fetch updated user risk profile for response
+      let userProfile = null;
+      try {
+        const UserRiskProfile = (await import("../models/UserRiskProfile.js"))
+          .default;
+        userProfile = await UserRiskProfile.findOne({ userId });
+      } catch (err) {
+        console.debug("Could not fetch user profile:", err.message);
+      }
+
+      const chatProcessingEnd = Date.now();
+      const totalDuration = chatProcessingEnd - chatProcessingStart;
+      console.log(`✅ Chat Processing Complete: ${totalDuration}ms`);
+      console.log("=== Chat Processing Ended ===\n");
+
       // Return response
       return res.json({
         response: cleanedResponse,
@@ -211,6 +232,18 @@ router.post("/chat", async (req, res) => {
           confidence,
           rationale: routing?.rationale || "",
         },
+        userProfile: userProfile
+          ? {
+              status: userProfile.status,
+              score7d: userProfile.score7d,
+              score30d: userProfile.score30d,
+              events7d: userProfile.events7d,
+              events30d: userProfile.events30d,
+              maxLevel30d: userProfile.maxLevel30d,
+              lastRiskAt: userProfile.lastRiskAt,
+              flagReason: userProfile.flagReason,
+            }
+          : null,
       });
     } catch (mongoError) {
       // Re-throw - let main error handler deal with it
@@ -284,6 +317,71 @@ router.delete("/memory/:userId/:animalId", async (req, res) => {
     });
   } catch (error) {
     console.error("Error in DELETE /api/ai/memory:", error.message);
+    return res.status(500).json({
+      error: "Internal server error",
+      message: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/ai/risk-profile/:userId
+ * Get user's risk profile and recent events
+ * Useful for testing and monitoring
+ */
+router.get("/risk-profile/:userId", async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const UserRiskProfile = (await import("../models/UserRiskProfile.js"))
+      .default;
+    const RiskEvent = (await import("../models/RiskEvent.js")).default;
+
+    const profile = await UserRiskProfile.findOne({ userId });
+    if (!profile) {
+      return res.status(404).json({
+        error: "No risk profile found for this user",
+        userId,
+      });
+    }
+
+    // Get recent risk events (last 10)
+    const recentEvents = await RiskEvent.find({ userId })
+      .sort({ timestamp: -1 })
+      .limit(10);
+
+    return res.json({
+      profile: {
+        userId: profile.userId,
+        status: profile.status,
+        flagReason: profile.flagReason,
+        score7d: profile.score7d,
+        score30d: profile.score30d,
+        events7d: profile.events7d,
+        events30d: profile.events30d,
+        maxLevel30d: profile.maxLevel30d,
+        lastRiskAt: profile.lastRiskAt,
+        lastActiveAt: profile.lastActiveAt,
+        createdAt: profile.createdAt,
+        updatedAt: profile.updatedAt,
+      },
+      recentEvents: recentEvents.map((e) => ({
+        timestamp: e.timestamp,
+        animalId: e.animalId,
+        level: e.level,
+        score: e.score,
+        source: e.source,
+      })),
+      summary: {
+        isFlagged: profile.status === "flagged",
+        isOnWatch: profile.status === "watch",
+        riskTrend: profile.score30d > profile.score7d ? "increasing" : "stable",
+        lastEventAgo: profile.lastRiskAt
+          ? `${Math.round((Date.now() - profile.lastRiskAt) / 1000 / 60)} minutes ago`
+          : "never",
+      },
+    });
+  } catch (error) {
+    console.error("Error in GET /api/ai/risk-profile:", error.message);
     return res.status(500).json({
       error: "Internal server error",
       message: error.message,
