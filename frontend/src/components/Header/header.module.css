@@ -55,6 +55,26 @@
     width: 100%;
     min-width: 8rem;
 }
+
+.logoutBtn {
+    width: 100%;
+    min-width: 8rem;
+    padding: 1rem;
+    display: block;
+    background: none;
+    border: none;
+    color: black;
+    cursor: pointer;
+    text-align: left;
+    font-size: inherit;
+    font-family: inherit;
+}
+
+.logoutBtn:hover {
+    background: #e72929;
+    color: white;
+}
+
 .cart_count {
     background-color: #ff4d4d;
     color: white;

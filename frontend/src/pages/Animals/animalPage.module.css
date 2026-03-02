@@ -14,8 +14,12 @@
     border-radius: 3rem;
     flex: 1 0;
     object-fit: cover;
+    object-position: center;
     height: 35rem;
+    width: 100%;
+    max-width: 35rem;
     margin: 1rem;
+    background-color: #f5f5f5;
 }
 
 .details{
@@ -81,6 +85,56 @@
 .price::before{
     content: 'Price: ';
     color: #555555;
+}
+
+.actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.actions button {
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: 100%;
+}
+
+.chatBtn {
+    background-color: #007bff;
+}
+
+.chatBtn:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+}
+
+.bookingBtn {
+    background-color: #28a745;
+}
+
+.bookingBtn:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.cartBtn {
+    background-color: #FFA500;
+}
+
+.cartBtn:hover {
+    background-color: #FF8C00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 165, 0, 0.3);
+    opacity: 1;
 }
 
 .container button{
