@@ -42,7 +42,7 @@ const seedAnimals = [
     tags: ["China"],
   },
   {
-    name: "North Dog",
+    name: "Hello Dog",
     price: 60,
     favorite: false,
     origins: ["Unknown"],
@@ -52,7 +52,7 @@ const seedAnimals = [
     tags: ["China"],
   },
   {
-    name: "Hello Dog",
+    name: "North Dog",
     price: 30,
     favorite: false,
     origins: ["Unknown"],
