@@ -1,4 +1,4 @@
-# AI pet Companion Platform
+# AI Pet Companion Platform
 
 > A full-stack web app powered by AI — featuring smart emotional support chat, safety risk scoring, and a seamless booking experience, which servers the people who are diagnosed with mental health problems.
 
