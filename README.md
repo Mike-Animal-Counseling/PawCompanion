@@ -6,7 +6,7 @@
 
 ## Demo
 
-> Screenshots below — replace image paths with your actual screenshots or hosted images.
+> Screenshots below
 
 ### Home Page — Browse & Filter Pets
 
