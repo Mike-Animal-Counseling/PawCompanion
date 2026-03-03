@@ -6,27 +6,35 @@
 
 ## Demo
 
-> Screenshots below
-
 ### Home Page — Browse & Filter Pets
 
-![Home Page](./docs/screenshots/AI-Pet-HomePage.PNG)
+<img src="./docs/screenshots/AI-Pet-HomePage.PNG" width="100%" alt="Home Page" />
 
-### AI Chat — Play Mode & Support Mode
+---
 
-![AI Chat (text)](./docs/screenshots/AI-Pet-ChatModes+Safety.PNG)
-![AI Chat (image)](./docs/screenshots/AI-Pet-ImageGeneration.PNG)
+### AI Chat — Play Mode, Support Mode & Image Generation
+
+| Chat Modes + Safety                                                                        | Image Generation                                                                                |
+| ------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| <img src="./docs/screenshots/AI-Pet-ChatModes+Safety.PNG" width="100%" alt="Chat Modes" /> | <img src="./docs/screenshots/Ai-Pet-ImageGeneration.PNG" width="100%" alt="Image Generation" /> |
+
+---
 
 ### Booking & Checkout Flow
 
-![Options](./docs/screenshots/Ai-Pet-Cards.PNG)
-![Booking](./docs/screenshots/Ai-Pet-Booking-Checkout.PNG)
-![Shopping Cart](./docs/screenshots/Ai-Pet-ShoppingCart.PNG)
-![Payment](./docs/screenshots/Ai-Pet-Payment.PNG)
+| Pet Cards                                                                      | Booking & Checkout                                                                      |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
+| <img src="./docs/screenshots/Ai-Pet-Cards.PNG" width="100%" alt="Pet Cards" /> | <img src="./docs/screenshots/Ai-Pet-Booking-Checkout.PNG" width="100%" alt="Booking" /> |
+
+| Shopping Cart                                                                             | Payment                                                                        |
+| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| <img src="./docs/screenshots/AI-Pet-ShoppingCart.PNG" width="100%" alt="Shopping Cart" /> | <img src="./docs/screenshots/Ai-Pet-Payment.PNG" width="100%" alt="Payment" /> |
+
+---
 
 ### Risk Profile (Admin / Developer View)
 
-![Risk Profile](./docs/screenshots/Ai-Pet-RiskScoreSystem.png)
+<img src="./docs/screenshots/Ai-Pet-RiskScoreSystem.PNG" width="100%" alt="Risk Profile" />
 
 ---
 
