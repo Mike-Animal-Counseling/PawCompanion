@@ -22,12 +22,29 @@
 
 ### Booking & Checkout Flow
 
-| Pet Cards                                                                            | Booking & Checkout                                                                           | Shopping Cart                                                                             |
-| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| <img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="100%" alt="Pet Cards" /> | <img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="100%" alt="Booking" />           | <img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="100%" alt="Shopping Cart" /> |
-| Payment                                                                              | Checkout Successful                                                                          | My Orders                                                                                 |
-| -------------------------------------------------------------------------------      | ------------------------------------------------------------------------------------         | --------------------------------------------------------------------------------          |
-| <img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="100%" alt="Payment" />      | <img src="./docs/screenshots/AI-Pet-Checkout2.PNG" width="100%" alt="Checkout Successful" /> | <img src="./docs/screenshots/AI-Pet-MyOrders.PNG" width="100%" alt="My Orders" />         |
+#### 1. Pet Cards
+
+<img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="100%" alt="Pet Cards" />
+
+#### 2. Booking Details
+
+<img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="100%" alt="Booking Details" />
+
+#### 3. Shopping Cart
+
+<img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="100%" alt="Shopping Cart" />
+
+#### 4. Payment
+
+<img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="100%" alt="Payment" />
+
+#### 5. Checkout Successful
+
+<img src="./docs/screenshots/AI-Pet-Checkout2.PNG" width="100%" alt="Checkout Successful" />
+
+#### 6. My Orders
+
+<img src="./docs/screenshots/AI-Pet-MyOrders.PNG" width="100%" alt="My Orders" />
 
 ---
 
