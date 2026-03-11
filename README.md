@@ -1,6 +1,6 @@
 # AI Pet Companion Platform
 
-> A full-stack web app powered by AI — featuring smart emotional support chat, safety risk scoring, and a seamless booking experience, which servers the people who are diagnosed with mental health problems.
+> An AI-powered full-stack web app with emotional support chat, safety risk scoring, and a seamless booking experience for people with mental health needs.
 
 ---
 
@@ -22,21 +22,14 @@
 
 ### Booking & Checkout Flow
 
-#### Core flow
-
-|                                      Pet Cards                                       |                                      Booking Details                                       |
-| :----------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
-| <img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="100%" alt="Pet Cards" /> | <img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="100%" alt="Booking Details" /> |
-
-|                                       Shopping Cart                                       |                                     Payment                                     |
-| :---------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: |
-| <img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="100%" alt="Shopping Cart" /> | <img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="100%" alt="Payment" /> |
-
-#### After checkout
-
-|                                     Checkout Successful                                      |                                     My Orders                                     |
-| :------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------: |
-| <img src="./docs/screenshots/AI-Pet-Checkout2.PNG" width="100%" alt="Checkout Successful" /> | <img src="./docs/screenshots/AI-Pet-MyOrders.PNG" width="100%" alt="My Orders" /> |
+|                                                                                             |                                                                                           |
+| :-----------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------: |
+|                                        **Pet Cards**                                        |                                    **Booking Details**                                    |
+|     <img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="92%" alt="Pet Cards" />     | <img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="92%" alt="Booking Details" /> |
+|                                      **Shopping Cart**                                      |                                        **Payment**                                        |
+|  <img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="92%" alt="Shopping Cart" />   |      <img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="92%" alt="Payment" />       |
+|                                   **Checkout Successful**                                   |                                       **My Orders**                                       |
+| <img src="./docs/screenshots/AI-Pet-Checkout2.PNG" width="92%" alt="Checkout Successful" /> |     <img src="./docs/screenshots/AI-Pet-MyOrders.PNG" width="92%" alt="My Orders" />      |
 
 ---
 
