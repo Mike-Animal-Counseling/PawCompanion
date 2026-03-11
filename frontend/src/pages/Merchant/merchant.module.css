@@ -1,0 +1,330 @@
+.page {
+  max-width: 1180px;
+  margin: 2.5rem auto;
+  padding: 0 1.25rem 3rem;
+}
+
+.hero {
+  background: linear-gradient(135deg, #edf8f6 0%, #eaf3ff 100%);
+  border: 1px solid #d7e7ea;
+  border-radius: 24px;
+  padding: 1.75rem;
+  box-shadow: 0 16px 40px rgba(71, 98, 130, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 2rem;
+  color: #23425d;
+}
+
+.heroText {
+  margin: 0.75rem 0 0;
+  color: #5c7085;
+  line-height: 1.6;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.primaryButton,
+.secondaryButton,
+.subtleButton,
+.dangerButton {
+  border: none;
+  border-radius: 14px;
+  padding: 0.85rem 1.15rem;
+  font-size: 0.98rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  transition: box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.primaryButton {
+  color: white;
+  background: linear-gradient(135deg, #a8dadc 0%, #7aa7d9 100%);
+  box-shadow: 0 8px 20px rgba(122, 167, 217, 0.28);
+}
+
+.secondaryButton {
+  color: white;
+  background: linear-gradient(135deg, #a5d6a7 0%, #63b38a 100%);
+  box-shadow: 0 8px 20px rgba(99, 179, 138, 0.24);
+}
+
+.subtleButton {
+  color: #2c4f72;
+  background: #eef6ff;
+  border: 1px solid #d7e5f3;
+}
+
+.dangerButton {
+  color: #8e4f4f;
+  background: #fff0ee;
+  border: 1px solid #ffd3cd;
+}
+
+.primaryButton:hover,
+.secondaryButton:hover,
+.subtleButton:hover,
+.dangerButton:hover {
+  filter: brightness(1.03);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.statCard,
+.card,
+.formCard {
+  background: white;
+  border: 1px solid #e5edf5;
+  border-radius: 20px;
+  padding: 1.25rem;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.statLabel {
+  color: #6a7f92;
+  font-size: 0.92rem;
+}
+
+.statValue {
+  margin-top: 0.35rem;
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1f3d59;
+}
+
+.list {
+  display: grid;
+  gap: 1rem;
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #23384f;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #eef6ff;
+  color: #476b8f;
+}
+
+.badgeMuted {
+  background: #f5f7f9;
+  color: #687a8d;
+}
+
+.badgeDanger {
+  background: #fff0ee;
+  color: #a05c57;
+}
+
+.meta {
+  color: #5e7183;
+  margin: 0.3rem 0;
+  line-height: 1.5;
+}
+
+.emptyState,
+.errorBox,
+.successBox {
+  border-radius: 18px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+}
+
+.emptyState {
+  background: #f8fbff;
+  border: 1px dashed #cfe0f3;
+  color: #5a6f84;
+}
+
+.errorBox {
+  background: #fff0ee;
+  color: #8a4a46;
+  border: 1px solid #ffd6d0;
+}
+
+.successBox {
+  background: #edf7ef;
+  color: #2d6240;
+  border: 1px solid #cde7d6;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fullWidth {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #38516b;
+}
+
+.input,
+.textarea,
+.select {
+  border: 1px solid #d6e0ea;
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  font-size: 0.98rem;
+  color: #243447;
+  background: #fcfdff;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  outline: none;
+  border-color: #7aa7d9;
+  box-shadow: 0 0 0 4px rgba(122, 167, 217, 0.12);
+}
+
+.textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.slotCard {
+  border-radius: 16px;
+  border: 1px solid #d7e5f3;
+  background: #f8fbff;
+  padding: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggle {
+  width: 46px;
+  height: 28px;
+  border-radius: 999px;
+  border: none;
+  position: relative;
+  background: #d6dfe8;
+  cursor: pointer;
+}
+
+.toggleEnabled {
+  background: linear-gradient(135deg, #a5d6a7 0%, #63b38a 100%);
+}
+
+.toggle::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.2s ease;
+}
+
+.toggleEnabled::after {
+  transform: translateX(18px);
+}
+
+.bookingCardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+}
+
+.smallText {
+  font-size: 0.9rem;
+  color: #60768b;
+}
+
+.imagePreview {
+  width: 100%;
+  max-width: 280px;
+  border-radius: 14px;
+  border: 1px solid #d6e0ea;
+  margin-top: 0.35rem;
+  object-fit: cover;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.inlineForm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.inlineForm .input {
+  min-width: 180px;
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 0 1rem 2rem;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .heroTitle {
+    font-size: 1.6rem;
+  }
+}

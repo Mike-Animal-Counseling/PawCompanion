@@ -1,6 +1,8 @@
 import "dotenv/config.js";
-import connectDB, { disconnectDB } from "./config/db.js";
-import Animal from "./models/Animal.js";
+import bcrypt from "bcryptjs";
+import connectDB, { disconnectDB } from "../config/db.js";
+import Animal from "../models/Animal.js";
+import Merchant from "../models/Merchant.js";
 
 /**
  * Sample animal data for seeding the database
@@ -161,6 +163,24 @@ async function seed() {
   try {
     await connectDB();
 
+    let merchant = await Merchant.findOne({
+      email: "demo-merchant@example.com",
+    });
+    if (!merchant) {
+      merchant = await Merchant.create({
+        name: "Demo Merchant",
+        businessType: "Pet Cafe & Shelter",
+        email: "demo-merchant@example.com",
+        passwordHash: await bcrypt.hash("merchant123", 10),
+      });
+      console.log(
+        "Created demo merchant: demo-merchant@example.com / merchant123",
+      );
+    } else if (!merchant.toObject().businessType) {
+      merchant.businessType = "Pet Cafe & Shelter";
+      await merchant.save();
+    }
+
     // Check if collection already has data
     const count = await Animal.countDocuments();
     if (count > 0) {
@@ -172,7 +192,12 @@ async function seed() {
     }
 
     console.log("Seeding database with sample animals...");
-    const result = await Animal.insertMany(seedAnimals);
+    const result = await Animal.insertMany(
+      seedAnimals.map((animal) => ({
+        ...animal,
+        merchantId: merchant._id,
+      })),
+    );
     console.log(
       `Successfully seeded ${result.length} animals into the database`,
     );

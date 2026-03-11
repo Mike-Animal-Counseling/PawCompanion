@@ -1,14 +1,14 @@
 import React from "react";
 import classes from "./header.module.css";
 import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../../hooks/useCart";
+import { useBookingList } from "../../hooks/useBookingList";
 import { useUser } from "../../context/UserContext";
 
 export default function Header() {
   const navigate = useNavigate();
-  const { user, logout: logoutUser } = useUser();
+  const { user, logout: logoutUser, isMerchant } = useUser();
 
-  const { cart } = useCart();
+  const { bookingList } = useBookingList();
 
   const logout = () => {
     logoutUser();
@@ -28,7 +28,7 @@ export default function Header() {
                 <Link to="/profile">{user.name}</Link>
                 <div className={classes.menu}>
                   <Link to="/profile">Profile</Link>
-                  <Link to="/orders">Orders</Link>
+                  {!isMerchant && <Link to="/orders">Orders</Link>}
                   <button onClick={logout} className={classes.logoutBtn}>
                     Logout
                   </button>
@@ -38,14 +38,28 @@ export default function Header() {
               <Link to="/login">Login</Link>
             )}
 
-            <li>
-              <Link to="/cart">
-                Cart
-                {cart.totalCount > 0 && (
-                  <span className={classes.cart_count}>{cart.totalCount}</span>
-                )}
-              </Link>
-            </li>
+            {isMerchant ? (
+              <li>
+                <Link to="/merchant">Merchant Portal</Link>
+              </li>
+            ) : (
+              <li>
+                <Link to="/booking-list">
+                  Bookings
+                  {bookingList.length > 0 && (
+                    <span className={classes.cart_count}>
+                      {bookingList.length}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            )}
+
+            {!isMerchant && (
+              <li>
+                <Link to="/merchant/login">For Merchants</Link>
+              </li>
+            )}
           </ul>
         </nav>
       </div>
