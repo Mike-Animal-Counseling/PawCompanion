@@ -38,11 +38,9 @@ export default function LoginPage() {
         return;
       }
 
-      // TODO: Call backend API for authentication
-      // For now, mock successful login
+      // Temporary local login flow until backend auth endpoint is wired here.
       console.log("Login attempt:", formData.email);
 
-      // Simulate successful login
       const userData = {
         name: formData.email.split("@")[0],
         email: formData.email,

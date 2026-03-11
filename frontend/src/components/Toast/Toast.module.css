@@ -42,15 +42,15 @@
 }
 
 .toast.success {
-    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    background: linear-gradient(135deg, #c8e6c9 0%, #a5d6a7 100%);
 }
 
 .toast.error {
-    background: linear-gradient(135deg, #dc3545 0%, #ff6b6b 100%);
+    background: linear-gradient(135deg, #ffb4ab 0%, #ffa59e 100%);
 }
 
 .toast.info {
-    background: linear-gradient(135deg, #007bff 0%, #0d6efd 100%);
+    background: linear-gradient(135deg, #a8dadc 0%, #7aa7d9 100%);
 }
 
 .toast.warning {

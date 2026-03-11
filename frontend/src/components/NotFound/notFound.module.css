@@ -10,12 +10,13 @@
 
 .container a{
     font-size: 1.15rem;
-    background-color: red;
+    background: linear-gradient(135deg, #a8dadc 0%, #7aa7d9 100%);
     color: white;
     border-radius: 10rem;
     padding: 0.7rem 1rem;
     margin: 2rem;
-    opacity: 0.8;
+    opacity: 0.9;
+    box-shadow: 0 4px 12px rgba(122, 167, 217, 0.3);
 }
 
 .container a:hover{

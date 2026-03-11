@@ -1,7 +1,6 @@
 /**
- * Booking Service (Mock)
- * TODO: Add real external booking system credentials if needed
- * This service handles pet delivery bookings and logistics
+ * Booking service used in local/dev flows.
+ * Keep response shape stable so frontend work can continue while provider integration is pending.
  */
 
 /**
@@ -9,13 +8,10 @@
  */
 export const createBooking = async (userId, animalId, bookingDetails) => {
   console.log(
-    `[MOCK] Creating booking: userId=${userId}, animalId=${animalId}, details=${JSON.stringify(bookingDetails)}`,
+    `[booking:stub] create booking userId=${userId} animalId=${animalId} details=${JSON.stringify(bookingDetails)}`,
   );
 
-  // TODO: Real implementation with delivery system
-  // - Call real logistics API (e.g., Shippo, Stripe-Shipments)
-  // - Create tracking number
-  // - Register with fulfillment partner
+  // Replace with provider call once shipping integration is finalized.
 
   return {
     bookingId: `bk_mock_${Date.now()}`,
@@ -30,12 +26,9 @@ export const createBooking = async (userId, animalId, bookingDetails) => {
  * Update booking status
  */
 export const updateBookingStatus = async (bookingId, status) => {
-  console.log(`[MOCK] Updating booking ${bookingId} status to: ${status}`);
+  console.log(`[booking:stub] update booking=${bookingId} status=${status}`);
 
-  // TODO: Real implementation
-  // - Update delivery tracking
-  // - Notify fulfillment partner
-  // - Send customer updates
+  // Replace with persisted status transition + outbound notification hooks.
 
   return {
     bookingId,
@@ -48,12 +41,9 @@ export const updateBookingStatus = async (bookingId, status) => {
  * Get booking details
  */
 export const getBookingDetails = async (bookingId) => {
-  console.log(`[MOCK] Fetching booking details for ${bookingId}`);
+  console.log(`[booking:stub] fetch booking details booking=${bookingId}`);
 
-  // TODO: Real implementation
-  // - Fetch from booking database
-  // - Get real tracking info
-  // - Return delivery status
+  // Replace with provider tracking lookup and DB-backed status history.
 
   return {
     bookingId,
@@ -69,12 +59,9 @@ export const getBookingDetails = async (bookingId) => {
  * Cancel booking
  */
 export const cancelBooking = async (bookingId, reason) => {
-  console.log(`[MOCK] Cancelling booking ${bookingId}, reason: ${reason}`);
+  console.log(`[booking:stub] cancel booking=${bookingId} reason=${reason}`);
 
-  // TODO: Real implementation
-  // - Cancel with fulfillment partner
-  // - Process refund
-  // - Update inventory
+  // Replace with cancellation workflow (provider cancel + refund orchestration).
 
   return {
     bookingId,
@@ -89,12 +76,10 @@ export const cancelBooking = async (bookingId, reason) => {
  */
 export const calculateDeliveryCost = async (origin, destination, weight) => {
   console.log(
-    `[MOCK] Calculating delivery cost: origin=${origin}, destination=${destination}, weight=${weight}`,
+    `[booking:stub] calculate cost origin=${origin} destination=${destination} weight=${weight}`,
   );
 
-  // TODO: Real implementation
-  // - Call real shipping API (Shippo, FedEx, UPS, etc.)
-  // - Calculate based on real rates
+  // Replace with live carrier quote calculation when rate API is wired.
 
   const baseCost = 10;
   const distanceFactor = 1.5;

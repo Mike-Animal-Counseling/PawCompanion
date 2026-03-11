@@ -24,7 +24,7 @@ export default function ProfilePage() {
   const handleSave = () => {
     setProfile(formData);
     setIsEditing(false);
-    // TODO: Save to backend API
+    // Next step: persist profile edits through the user profile API.
   };
 
   const handleCancel = () => {

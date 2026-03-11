@@ -1,27 +1,23 @@
 /**
- * Notification Service (Mock)
- * TODO: Add real API credentials:
- * - Twilio: process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN
- * - SendGrid: process.env.SENDGRID_API_KEY
- * Never call real APIs without valid credentials
+ * Notification service used by local/dev flows.
+ * Swap these stubs with real providers when credentials are configured.
  */
 
-// TODO: Initialize real Twilio client when credentials are available
+// Twilio wiring placeholder for production rollout.
 // import twilio from 'twilio';
 // const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
-// TODO: Initialize real SendGrid when API key is available
+// SendGrid wiring placeholder for production rollout.
 // import sgMail from '@sendgrid/mail';
 // sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 /**
- * Send SMS notification
- * TODO: Integrate with real Twilio API when credentials are available
+ * Send SMS notification (stub).
  */
 export const sendSMS = async (phoneNumber, message) => {
-  console.log(`[MOCK] Sending SMS to ${phoneNumber}: "${message}"`);
+  console.log(`[notify:stub] sms to=${phoneNumber} message="${message}"`);
 
-  // TODO: Real implementation
+  // Replace with Twilio send call once credentials are available.
   // const result = await twilioClient.messages.create({
   //     body: message,
   //     from: process.env.TWILIO_PHONE_NUMBER,
@@ -37,13 +33,12 @@ export const sendSMS = async (phoneNumber, message) => {
 };
 
 /**
- * Send email notification
- * TODO: Integrate with real SendGrid API when credentials are available
+ * Send email notification (stub).
  */
 export const sendEmail = async (to, subject, html) => {
-  console.log(`[MOCK] Sending email to ${to}: "${subject}"`);
+  console.log(`[notify:stub] email to=${to} subject="${subject}"`);
 
-  // TODO: Real implementation
+  // Replace with SendGrid send call once credentials are available.
   // const msg = {
   //     to,
   //     from: process.env.SENDGRID_FROM_EMAIL,
@@ -61,15 +56,14 @@ export const sendEmail = async (to, subject, html) => {
 };
 
 /**
- * Send push notification
- * TODO: Integrate with Firebase Cloud Messaging or similar when configured
+ * Send push notification (stub).
  */
 export const sendPushNotification = async (userId, title, body, data = {}) => {
   console.log(
-    `[MOCK] Sending push notification to user ${userId}: "${title}" - "${body}"`,
+    `[notify:stub] push user=${userId} title="${title}" body="${body}"`,
   );
 
-  // TODO: Real implementation with FCM
+  // Replace with FCM provider call when push tokens are stored.
   // const message = {
   //     notification: { title, body },
   //     data,
@@ -95,7 +89,7 @@ export const sendOrderConfirmation = async (
   animalName,
 ) => {
   console.log(
-    `[MOCK] Sending order confirmation for ${orderId} (${animalName}) to ${email}`,
+    `[notify:stub] order confirmation order=${orderId} animal=${animalName} email=${email}`,
   );
 
   return {

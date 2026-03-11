@@ -4,7 +4,7 @@
   align-items: center;
   min-height: calc(100vh - 100px);
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a8dadc 0%, #7aa7d9 100%);
 }
 
 .loginCard {
@@ -52,8 +52,8 @@
 
 .formGroup input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: #7aa7d9;
+  box-shadow: 0 0 0 3px rgba(122, 167, 217, 0.1);
 }
 
 .formGroup input:disabled {
@@ -71,7 +71,7 @@
 }
 
 .loginBtn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a8dadc 0%, #7aa7d9 100%);
   color: white;
   border: none;
   padding: 12px;
@@ -106,13 +106,13 @@
 }
 
 .loginFooter a {
-  color: #667eea;
+  color: #7aa7d9;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.2s;
 }
 
 .loginFooter a:hover {
-  color: #764ba2;
+  color: #6395c7;
   text-decoration: underline;
 }

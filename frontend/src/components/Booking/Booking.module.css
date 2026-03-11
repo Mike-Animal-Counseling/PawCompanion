@@ -72,8 +72,8 @@
 .input:focus,
 .textarea:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: #7aa7d9;
+    box-shadow: 0 0 0 3px rgba(122, 167, 217, 0.1);
 }
 
 .textarea {
@@ -92,7 +92,7 @@
 
 .costBtn {
     padding: 10px 16px;
-    background: #28a745;
+    background: #63b38a;
     color: white;
     border: none;
     border-radius: 6px;
@@ -128,12 +128,12 @@
 .price {
     font-size: 20px;
     font-weight: 700;
-    color: #28a745;
+    color: #63b38a;
 }
 
 .submitBtn {
     padding: 14px;
-    background: #007bff;
+    background: #7aa7d9;
     color: white;
     border: none;
     border-radius: 6px;
@@ -144,7 +144,7 @@
 }
 
 .submitBtn:hover:not(:disabled) {
-    background: #0056b3;
+    background: #6395c7;
 }
 
 .submitBtn:disabled {
@@ -155,7 +155,7 @@
 .infoBox {
     padding: 16px;
     background: #f0f8ff;
-    border-left: 4px solid #007bff;
+    border-left: 4px solid #7aa7d9;
     border-radius: 6px;
 }
 

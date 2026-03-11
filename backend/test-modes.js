@@ -77,7 +77,7 @@ const TEST_MESSAGES = {
  * Send a chat message and log the response
  */
 async function sendMessage(message, label) {
-  const startTime = Date.now(); // ⬅️ 添加这行
+  const startTime = Date.now();
   try {
     console.log(`\n📤 Sending: "${message}"`);
 
@@ -104,8 +104,8 @@ async function sendMessage(message, label) {
       log.profile(response.data.userProfile);
     }
 
-    const duration = Date.now() - startTime; // ⬅️ 添加这行
-    console.log(`⏱️  Response time: ${duration}ms`); // ⬅️ 添加这行
+    const duration = Date.now() - startTime;
+    console.log(`⏱️  Response time: ${duration}ms`);
 
     return response.data;
   } catch (error) {

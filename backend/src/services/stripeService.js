@@ -1,22 +1,20 @@
 /**
- * Stripe Payment Service (Mock)
- * TODO: Add real Stripe API key from process.env.STRIPE_API_KEY
- * Never call real Stripe API without valid credentials
+ * Stripe service stub for local/dev testing.
+ * Keep return payloads aligned with expected payment fields until live Stripe wiring lands.
  */
 
-// TODO: Initialize real Stripe client when API key is available
+// Stripe client placeholder for production wiring.
 // const stripe = require('stripe')(process.env.STRIPE_API_KEY);
 
 /**
- * Create a payment intent
- * TODO: Integrate with real Stripe API when credentials are available
+ * Create a payment intent (stub).
  */
 export const createPaymentIntent = async (animalId, userId, amount) => {
   console.log(
-    `[MOCK] Creating payment intent: animalId=${animalId}, userId=${userId}, amount=${amount}`,
+    `[payment:stub] create intent animalId=${animalId} userId=${userId} amount=${amount}`,
   );
 
-  // TODO: Real implementation
+  // Replace with stripe.paymentIntents.create when API key and webhook flow are ready.
   // const paymentIntent = await stripe.paymentIntents.create({
   //     amount: Math.round(amount * 100),
   //     currency: 'usd',
@@ -33,15 +31,14 @@ export const createPaymentIntent = async (animalId, userId, amount) => {
 };
 
 /**
- * Process a payment
- * TODO: Integrate with real Stripe API when credentials are available
+ * Confirm a payment intent (stub).
  */
 export const processPayment = async (paymentIntentId, paymentMethod) => {
   console.log(
-    `[MOCK] Processing payment: paymentIntentId=${paymentIntentId}, paymentMethod=${paymentMethod}`,
+    `[payment:stub] confirm intent=${paymentIntentId} method=${paymentMethod}`,
   );
 
-  // TODO: Real implementation
+  // Replace with stripe.paymentIntents.confirm once card flow is fully integrated.
   // const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
   //     payment_method: paymentMethod,
   // });
@@ -55,15 +52,14 @@ export const processPayment = async (paymentIntentId, paymentMethod) => {
 };
 
 /**
- * Refund a payment
- * TODO: Integrate with real Stripe API when credentials are available
+ * Refund a payment (stub).
  */
 export const refundPayment = async (paymentIntentId, amount) => {
   console.log(
-    `[MOCK] Refunding payment: paymentIntentId=${paymentIntentId}, amount=${amount}`,
+    `[payment:stub] refund intent=${paymentIntentId} amount=${amount}`,
   );
 
-  // TODO: Real implementation
+  // Replace with stripe.refunds.create when refund policy and webhook handling are in place.
   // const refund = await stripe.refunds.create({
   //     payment_intent: paymentIntentId,
   //     amount: Math.round(amount * 100),

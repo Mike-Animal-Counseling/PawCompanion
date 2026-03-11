@@ -115,7 +115,7 @@
 }
 
 .message.user .content {
-    background: #007bff;
+    background: #7aa7d9;
     color: white;
     border-bottom-right-radius: 2px;
 }
@@ -176,7 +176,7 @@
 }
 
 .input:focus {
-    border-color: #007bff;
+    border-color: #7aa7d9;
 }
 
 .input:disabled {
@@ -186,7 +186,7 @@
 
 .sendBtn {
     padding: 10px 20px;
-    background: #007bff;
+    background: #7aa7d9;
     color: white;
     border: none;
     border-radius: 6px;
@@ -197,7 +197,7 @@
 }
 
 .sendBtn:hover:not(:disabled) {
-    background: #0056b3;
+    background: #6395c7;
 }
 
 .sendBtn:disabled {

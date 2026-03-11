@@ -9,7 +9,7 @@
 }
 
 .header a:hover{
-    background: #e72929;
+    background: #a8dadc;
     color: white;
     cursor: pointer;
 }
@@ -45,6 +45,8 @@
     z-index: 1;
     background-color: whitesmoke;
     display: none;
+    min-width: 12rem;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
 }
 
 .menu_container:hover .menu {
@@ -71,12 +73,12 @@
 }
 
 .logoutBtn:hover {
-    background: #e72929;
+    background: #a8dadc;
     color: white;
 }
 
 .cart_count {
-    background-color: #ff4d4d;
+    background-color: #7aa7d9;
     color: white;
     padding: 0.1rem 0.45rem;
     border-radius: 100rem;
