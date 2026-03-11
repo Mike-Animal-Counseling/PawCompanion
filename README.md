@@ -22,19 +22,24 @@
 
 ### Booking & Checkout Flow
 
-| Pet Cards                                                                      | Booking & Checkout                                                                      |
-| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------- |
-| <img src="./docs/screenshots/Ai-Pet-Cards.PNG" width="100%" alt="Pet Cards" /> | <img src="./docs/screenshots/Ai-Pet-Booking-Checkout.PNG" width="100%" alt="Booking" /> |
+| Pet Cards                                                                            | Booking & Checkout                                                                           | Shopping Cart                                                                             |
+| ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| <img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="100%" alt="Pet Cards" /> | <img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="100%" alt="Booking" />           | <img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="100%" alt="Shopping Cart" /> |
+| Payment                                                                              | Checkout Successful                                                                          | My Orders                                                                                 |
+| -------------------------------------------------------------------------------      | ------------------------------------------------------------------------------------         | --------------------------------------------------------------------------------          |
+| <img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="100%" alt="Payment" />      | <img src="./docs/screenshots/AI-Pet-Checkout2.PNG" width="100%" alt="Checkout Successful" /> | <img src="./docs/screenshots/AI-Pet-MyOrders.PNG" width="100%" alt="My Orders" />         |
 
-| Shopping Cart                                                                             | Payment                                                                        |
-| ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| <img src="./docs/screenshots/AI-Pet-ShoppingCart.PNG" width="100%" alt="Shopping Cart" /> | <img src="./docs/screenshots/Ai-Pet-Payment.PNG" width="100%" alt="Payment" /> |
+---
+
+### Merchant Portal
+
+|<img src="./docs/screenshots/AI-Pet-MerchantPortal.PNG" width="100%" alt="Merchant Portal Login Page" /> | <img src="./docs/screenshots/AI-Pet-MerchantPortal2.PNG" width="100%" alt="Merchant Portal Dashboard" /> |
 
 ---
 
 ### Risk Profile (Admin / Developer View)
 
-<img src="./docs/screenshots/Ai-Pet-RiskScoreSystem.PNG" width="100%" alt="Risk Profile" />
+<img src="./docs/screenshots/AI-Pet-RiskScoreSystem.PNG" width="100%" alt="Risk Profile" />
 
 ---
 
