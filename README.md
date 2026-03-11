@@ -22,6 +22,8 @@
 
 ### Booking & Checkout Flow
 
+#### Core flow
+
 |                                      Pet Cards                                       |                                      Booking Details                                       |
 | :----------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------: |
 | <img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="100%" alt="Pet Cards" /> | <img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="100%" alt="Booking Details" /> |
@@ -29,6 +31,8 @@
 |                                       Shopping Cart                                       |                                     Payment                                     |
 | :---------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------: |
 | <img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="100%" alt="Shopping Cart" /> | <img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="100%" alt="Payment" /> |
+
+#### After checkout
 
 |                                     Checkout Successful                                      |                                     My Orders                                     |
 | :------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------: |
