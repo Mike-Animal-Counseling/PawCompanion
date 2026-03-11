@@ -22,29 +22,39 @@
 
 ### Booking & Checkout Flow
 
-#### 1. Pet Cards
+#### Core Flow (2 x 2)
 
-<img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="100%" alt="Pet Cards" />
+<table>
+        <tr>
+                <td><strong>1. Pet Cards</strong></td>
+                <td><strong>2. Booking Details</strong></td>
+        </tr>
+        <tr>
+                <td><img src="./docs/screenshots/AI-Pet-AnimalsCard.PNG" width="100%" alt="Pet Cards" /></td>
+                <td><img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="100%" alt="Booking Details" /></td>
+        </tr>
+        <tr>
+                <td><strong>3. Shopping Cart</strong></td>
+                <td><strong>4. Payment</strong></td>
+        </tr>
+        <tr>
+                <td><img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="100%" alt="Shopping Cart" /></td>
+                <td><img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="100%" alt="Payment" /></td>
+        </tr>
+</table>
 
-#### 2. Booking Details
+#### After Checkout (1 x 2)
 
-<img src="./docs/screenshots/AI-Pet-BookingCard.PNG" width="100%" alt="Booking Details" />
-
-#### 3. Shopping Cart
-
-<img src="./docs/screenshots/AI-Pet-BookingCard2.PNG" width="100%" alt="Shopping Cart" />
-
-#### 4. Payment
-
-<img src="./docs/screenshots/AI-Pet-Checkout.PNG" width="100%" alt="Payment" />
-
-#### 5. Checkout Successful
-
-<img src="./docs/screenshots/AI-Pet-Checkout2.PNG" width="100%" alt="Checkout Successful" />
-
-#### 6. My Orders
-
-<img src="./docs/screenshots/AI-Pet-MyOrders.PNG" width="100%" alt="My Orders" />
+<table>
+        <tr>
+                <td><strong>5. Checkout Successful</strong></td>
+                <td><strong>6. My Orders</strong></td>
+        </tr>
+        <tr>
+                <td><img src="./docs/screenshots/AI-Pet-Checkout2.PNG" width="100%" alt="Checkout Successful" /></td>
+                <td><img src="./docs/screenshots/AI-Pet-MyOrders.PNG" width="100%" alt="My Orders" /></td>
+        </tr>
+</table>
 
 ---
 
