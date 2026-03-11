@@ -1,103 +1,31 @@
 import React, { useState } from "react";
 import classes from "./Checkout.module.css";
-import {
-  createPaymentIntent,
-  processPayment,
-} from "../../services/paymentService";
-import { sendOrderConfirmation } from "../../services/notificationService";
+import axiosConfig from "../../axiosConfig";
+import { resolveAnimalImageUrl } from "../../utils/imageUrl";
 
-export default function Checkout({
-  cartItems,
-  userId,
-  userEmail = "user@example.com",
-}) {
+export default function Checkout({ bookingList = [], userId }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [paymentData, setPaymentData] = useState({
+  const [receipts, setReceipts] = useState(null);
+  const [formData, setFormData] = useState({
+    address: "",
+    phoneNumber: "",
     cardNumber: "",
     expiryDate: "",
     cvv: "",
-    billingAddress: "",
   });
 
-  const calculateTotal = () => {
-    if (!Array.isArray(cartItems)) return 0;
-    return cartItems.reduce((sum, item) => sum + (item.price || 0), 0);
-  };
+  const totalPrice = bookingList.reduce(
+    (sum, item) => sum + item.totalPrice,
+    0,
+  );
 
-  const handlePaymentInputChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setPaymentData((prev) => ({
+    setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-  };
-
-  const handleSubmitPayment = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSuccess("");
-
-    if (cartItems.length === 0) {
-      setError("Your cart is empty");
-      return;
-    }
-
-    if (
-      !paymentData.cardNumber ||
-      !paymentData.expiryDate ||
-      !paymentData.cvv
-    ) {
-      setError("Please fill in all payment details");
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const total = calculateTotal();
-
-      // Create payment intent
-      const intentResponse = await createPaymentIntent(
-        cartItems[0].animal.id,
-        userId,
-        total,
-      );
-
-      // Process payment
-      const paymentResponse = await processPayment(intentResponse.id, {
-        cardNumber: paymentData.cardNumber,
-        expiryDate: paymentData.expiryDate,
-        cvv: paymentData.cvv,
-      });
-
-      if (
-        paymentResponse.status === "mock_succeeded" ||
-        paymentResponse.status === "succeeded"
-      ) {
-        // Send order confirmation
-        await sendOrderConfirmation(
-          userId,
-          userEmail,
-          intentResponse.id,
-          cartItems.map((item) => item.animal.name).join(", "),
-        );
-
-        setPaymentData({
-          cardNumber: "",
-          expiryDate: "",
-          cvv: "",
-          billingAddress: "",
-        });
-      } else {
-        setError("Payment processing failed");
-      }
-    } catch (err) {
-      setError("Payment failed. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
   };
 
   const formatCardNumber = (value) => {
@@ -115,24 +43,142 @@ export default function Checkout({
     return cleaned;
   };
 
-  const total = calculateTotal();
+  const handleSubmitPayment = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    // Validate form
+    if (
+      !formData.address ||
+      !formData.phoneNumber ||
+      !formData.cardNumber ||
+      !formData.expiryDate ||
+      !formData.cvv
+    ) {
+      setError("Please fill in all required fields");
+      return;
+    }
+
+    if (bookingList.length === 0) {
+      setError("No bookings to process");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const bookingIds = bookingList.map((item) => item.bookingId);
+
+      const response = await axiosConfig.post("/api/booking/checkout", {
+        userId,
+        bookingIds,
+        address: formData.address,
+        phoneNumber: formData.phoneNumber,
+        paymentDetails: {
+          cardNumber: formData.cardNumber,
+          expiryDate: formData.expiryDate,
+          cvv: formData.cvv,
+        },
+      });
+
+      setReceipts(response.data);
+    } catch (err) {
+      console.error("Payment error:", err);
+      setError(
+        err.response?.data?.error ||
+          "Payment processing failed. Please try again.",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Display receipts after successful payment
+  if (receipts) {
+    const animalNames = [
+      ...new Set(
+        (receipts.bookingReceipts || []).map((item) => item.animalName),
+      ),
+    ];
+
+    return (
+      <div className={classes.receiptsContainer}>
+        <div className={classes.paymentReceipt}>
+          <div className={classes.receiptHeader}>Payment Received</div>
+          <p className={classes.receiptSubtext}>
+            You are all set. Take a breath, your booking is confirmed and safely
+            saved.
+          </p>
+          <div className={classes.receiptContent}>
+            <div className={classes.receiptRow}>
+              <span className={classes.label}>Sessions:</span>
+              <span className={classes.value}>
+                {receipts.paymentReceipt.sessionsCount}
+              </span>
+            </div>
+            <div className={classes.receiptRow}>
+              <span className={classes.label}>Date:</span>
+              <span className={classes.value}>
+                {receipts.paymentReceipt.date}
+              </span>
+            </div>
+            <div className={classes.receiptRow}>
+              <span className={classes.label}>Total Paid:</span>
+              <span className={classes.valueBold}>
+                ${receipts.paymentReceipt.totalPaid.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <p className={classes.receiptHint}>
+            Full session details and references are available in My Orders.
+          </p>
+        </div>
+
+        <div className={classes.bookingReceipt}>
+          <div className={classes.receiptHeader}>Visit Scheduled</div>
+          <p className={classes.receiptSubtext}>
+            Our team will be ready for your companion session. You are in good
+            hands.
+          </p>
+          <div className={classes.receiptContent}>
+            <div className={classes.receiptRowStack}>
+              <span className={classes.label}>Pets in this booking:</span>
+              <div className={classes.nameChips}>
+                {animalNames.map((name) => (
+                  <span key={name} className={classes.nameChip}>
+                    {name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className={classes.successMessage}>
+          Thank you for booking! Check your orders page to manage your visits.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={classes.checkoutContainer}>
       <div className={classes.orderSummary}>
-        <h2>Order Summary</h2>
+        <h2>Booking Summary</h2>
         <div className={classes.itemsList}>
-          {cartItems.map((item, index) => (
+          {bookingList.map((item, index) => (
             <div key={index} className={classes.item}>
               <div className={classes.itemInfo}>
                 <span className={classes.itemName}>{item.animal.name}</span>
+                <span className={classes.itemDate}>
+                  {item.date} {item.startTime}-{item.endTime}
+                </span>
                 <span className={classes.itemPrice}>
-                  ${item.price?.toFixed(2)}
+                  ${item.totalPrice.toFixed(2)}
                 </span>
               </div>
               {item.animal.imageUrl && (
                 <img
-                  src={`/animals/${item.animal.imageUrl}`}
+                  src={resolveAnimalImageUrl(item.animal.imageUrl)}
                   alt={item.animal.name}
                   className={classes.itemImage}
                 />
@@ -142,17 +188,48 @@ export default function Checkout({
         </div>
         <div className={classes.totalBox}>
           <span className={classes.totalLabel}>Total Amount:</span>
-          <span className={classes.totalPrice}>${total.toFixed(2)}</span>
+          <span className={classes.totalPrice}>${totalPrice.toFixed(2)}</span>
         </div>
       </div>
 
       <div className={classes.paymentForm}>
-        <h2>Payment Details</h2>
+        <h2>Delivery & Payment Details</h2>
 
-        {success && <div className={classes.successMessage}>{success}</div>}
         {error && <div className={classes.errorMessage}>{error}</div>}
 
         <form onSubmit={handleSubmitPayment}>
+          <div className={classes.sectionTitle}>Delivery Information</div>
+
+          <div className={classes.formGroup}>
+            <label htmlFor="address">Delivery Address</label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              placeholder="Your delivery address"
+              value={formData.address}
+              onChange={handleInputChange}
+              className={classes.input}
+              required
+            />
+          </div>
+
+          <div className={classes.formGroup}>
+            <label htmlFor="phoneNumber">Phone Number</label>
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              placeholder="Your phone number"
+              value={formData.phoneNumber}
+              onChange={handleInputChange}
+              className={classes.input}
+              required
+            />
+          </div>
+
+          <div className={classes.sectionTitle}>Payment Information</div>
+
           <div className={classes.formGroup}>
             <label htmlFor="cardNumber">Card Number</label>
             <input
@@ -161,14 +238,15 @@ export default function Checkout({
               name="cardNumber"
               placeholder="1234 5678 9012 3456"
               maxLength="19"
-              value={paymentData.cardNumber}
+              value={formData.cardNumber}
               onChange={(e) => {
                 const formatted = formatCardNumber(e.target.value);
-                handlePaymentInputChange({
+                handleInputChange({
                   target: { name: "cardNumber", value: formatted },
                 });
               }}
               className={classes.input}
+              required
             />
           </div>
 
@@ -181,14 +259,15 @@ export default function Checkout({
                 name="expiryDate"
                 placeholder="MM/YY"
                 maxLength="5"
-                value={paymentData.expiryDate}
+                value={formData.expiryDate}
                 onChange={(e) => {
                   const formatted = formatExpiryDate(e.target.value);
-                  handlePaymentInputChange({
+                  handleInputChange({
                     target: { name: "expiryDate", value: formatted },
                   });
                 }}
                 className={classes.input}
+                required
               />
             </div>
 
@@ -200,9 +279,9 @@ export default function Checkout({
                 name="cvv"
                 placeholder="123"
                 maxLength="4"
-                value={paymentData.cvv}
+                value={formData.cvv}
                 onChange={(e) => {
-                  handlePaymentInputChange({
+                  handleInputChange({
                     target: {
                       name: "cvv",
                       value: e.target.value.replace(/\D/g, ""),
@@ -210,21 +289,9 @@ export default function Checkout({
                   });
                 }}
                 className={classes.input}
+                required
               />
             </div>
-          </div>
-
-          <div className={classes.formGroup}>
-            <label htmlFor="billingAddress">Billing Address</label>
-            <input
-              type="text"
-              id="billingAddress"
-              name="billingAddress"
-              placeholder="Your billing address"
-              value={paymentData.billingAddress}
-              onChange={handlePaymentInputChange}
-              className={classes.input}
-            />
           </div>
 
           <div className={classes.disclaimer}>
@@ -234,10 +301,10 @@ export default function Checkout({
 
           <button
             type="submit"
-            disabled={loading || cartItems.length === 0}
+            disabled={loading || bookingList.length === 0}
             className={classes.submitBtn}
           >
-            {loading ? "Processing..." : `Pay $${total.toFixed(2)}`}
+            {loading ? "Processing..." : `Pay $${totalPrice.toFixed(2)}`}
           </button>
         </form>
 

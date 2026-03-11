@@ -4,6 +4,7 @@ import AiChat from "../../components/AiChat/AiChat";
 import { getById } from "../../services/animalService";
 import { useUser } from "../../context/UserContext";
 import classes from "./ChatPage.module.css";
+import { resolveAnimalImageUrl } from "../../utils/imageUrl";
 
 export default function ChatPage() {
   const { id } = useParams();
@@ -32,12 +33,17 @@ export default function ChatPage() {
     <div className={classes.container}>
       <div className={classes.header}>
         <img
-          src={`/animals/${animal.imageUrl}`}
+          src={resolveAnimalImageUrl(animal.imageUrl)}
           alt={animal.name}
           className={classes.image}
         />
         <div className={classes.info}>
           <h1>{animal.name}</h1>
+          {animal.merchant && (
+            <p className={classes.personality}>
+              Hosted by {animal.merchant.name} · {animal.merchant.businessType}
+            </p>
+          )}
           <p className={classes.personality}>{animal.personality}</p>
           <div className={classes.tags}>
             {animal.tags?.map((tag, idx) => (

@@ -57,7 +57,7 @@
 }
 
 .itemPrice {
-    color: #007bff;
+    color: #7aa7d9;
     font-size: 14px;
     font-weight: 600;
 }
@@ -79,7 +79,7 @@
     padding: 16px;
     background: #f0f8ff;
     border-radius: 8px;
-    border: 2px solid #007bff;
+    border: 2px solid #7aa7d9;
 }
 
 .totalLabel {
@@ -91,7 +91,7 @@
 .totalPrice {
     font-size: 24px;
     font-weight: 700;
-    color: #007bff;
+    color: #7aa7d9;
 }
 
 .paymentForm {
@@ -150,8 +150,8 @@
 
 .input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: #7aa7d9;
+    box-shadow: 0 0 0 3px rgba(122, 167, 217, 0.1);
 }
 
 .formRow {
@@ -182,7 +182,7 @@
 .submitBtn {
     width: 100%;
     padding: 14px;
-    background: #007bff;
+    background: #7aa7d9;
     color: white;
     border: none;
     border-radius: 6px;
@@ -194,7 +194,7 @@
 }
 
 .submitBtn:hover:not(:disabled) {
-    background: #0056b3;
+    background: #6395c7;
 }
 
 .submitBtn:disabled {
@@ -210,4 +210,130 @@
     padding: 12px;
     background: #fafafa;
     border-radius: 6px;
+}
+
+.sectionTitle {
+    font-weight: 600;
+    color: #333;
+    font-size: 16px;
+    margin: 20px 0 12px 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 8px;
+}
+
+.receiptsContainer {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+}
+
+.paymentReceipt,
+.bookingReceipt {
+    padding: 24px;
+    background: #ffffff;
+    color: #1f2937;
+    border-radius: 12px;
+    border: 1px solid #e6ebf2;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.06);
+    margin-bottom: 20px;
+}
+
+.paymentReceipt {
+    border-left: 5px solid #63b38a;
+}
+
+.bookingReceipt {
+    border-left: 5px solid #7aa7d9;
+}
+
+.receiptHeader {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: 0.01em;
+}
+
+.receiptSubtext {
+    margin: 0 0 16px 0;
+    color: #5b6576;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.receiptHint {
+    margin: 12px 0 0 0;
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.receiptContent {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #f8fbff;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e9eef5;
+}
+
+.receiptRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.receiptRowStack {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 14px;
+}
+
+.nameChips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nameChip {
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #eef6ff;
+    border: 1px solid #d6e6f7;
+    color: #2c4f72;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.label {
+    color: #617086;
+}
+
+.value {
+    font-weight: 500;
+    color: #243447;
+}
+
+.valueBold {
+    font-weight: 700;
+    font-size: 15px;
+    color: #152033;
+}
+
+.successMessage {
+    text-align: center;
+    padding: 20px;
+    background: #edf7ef;
+    color: #275d3b;
+    border: 1px solid #cce7d3;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-weight: 600;
+}
+
+.itemDate {
+    font-size: 13px;
+    color: #999;
+    margin-bottom: 4px;
 }

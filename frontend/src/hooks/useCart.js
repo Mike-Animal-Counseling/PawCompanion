@@ -1,52 +1,53 @@
-import React, { Children, createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState } from "react";
 
-const CartContext = createContext(null)
-const CART_KEY = 'cart';
+const CartContext = createContext(null);
+const CART_KEY = "cart";
 const EMPTY_CART = {
   items: [],
   totalPrice: 0,
   totalCount: 0,
 };
 
-
-export default function CartProvider({children}) {
+export default function CartProvider({ children }) {
   const initCart = getCartFromLocalStorage();
   const [cartItems, setCartItems] = useState(initCart.items);
   const [totalPrice, setTotalPrice] = useState(initCart.totalPrice);
   const [totalCount, setTotalCount] = useState(initCart.totalCount);
-  
+
   useEffect(() => {
-    const totalPrice = sum(cartItems.map(item => item.price));
-    const totalCount = sum(cartItems.map(item => item.quantity));
+    const totalPrice = sum(cartItems.map((item) => item.price));
+    const totalCount = sum(cartItems.map((item) => item.quantity));
     setTotalPrice(totalPrice);
     setTotalCount(totalCount);
 
-    localStorage.setItem(CART_KEY, JSON.stringify({
-      items: cartItems,
-      totalPrice,
-      totalCount,
-    }))
+    localStorage.setItem(
+      CART_KEY,
+      JSON.stringify({
+        items: cartItems,
+        totalPrice,
+        totalCount,
+      }),
+    );
   }, [cartItems]);
-
 
   function getCartFromLocalStorage() {
     const storedCart = localStorage.getItem(CART_KEY);
-    return storedCart? JSON.parse(storedCart) : EMPTY_CART;
-  };
-
-
-
-  const sum = items => {
-    return items.reduce((prevValue, curValue) => prevValue + curValue, 0);
+    return storedCart ? JSON.parse(storedCart) : EMPTY_CART;
   }
 
-  const removeFromCart = animalId => {
-    const filteredCartItems = cartItems.filter(item=>item.animal.id !== animalId);
+  const sum = (items) => {
+    return items.reduce((prevValue, curValue) => prevValue + curValue, 0);
+  };
+
+  const removeFromCart = (animalId) => {
+    const filteredCartItems = cartItems.filter(
+      (item) => item.animal.id !== animalId,
+    );
     setCartItems(filteredCartItems);
   };
 
   const changeQuantity = (cartItem, newQuantity) => {
-    const {animal} = cartItem;
+    const { animal } = cartItem;
 
     const changeCartItem = {
       ...cartItem,
@@ -55,27 +56,34 @@ export default function CartProvider({children}) {
     };
 
     setCartItems(
-      cartItems.map(item => item.animal.id === animal.id? changeCartItem : item)
+      cartItems.map((item) =>
+        item.animal.id === animal.id ? changeCartItem : item,
+      ),
     );
   };
 
-  const addToCart = animal => {
-    const cartItem = cartItems.find(item => item.animal.id === animal.id);
+  const addToCart = (animal) => {
+    const cartItem = cartItems.find((item) => item.animal.id === animal.id);
     if (cartItem) {
       changeQuantity(cartItem, cartItem.quantity + 1);
-    } else
-    {
-      setCartItems([...cartItems, {animal, quantity:1, price:animal.price}]);
+    } else {
+      setCartItems([
+        ...cartItems,
+        { animal, quantity: 1, price: animal.price },
+      ]);
     }
   };
 
-
-
-
-  return (<CartContext.Provider value={{cart:{items:cartItems,totalPrice,totalCount},
-    removeFromCart, changeQuantity, addToCart,
-  }}>
-    {children}
+  return (
+    <CartContext.Provider
+      value={{
+        cart: { items: cartItems, totalPrice, totalCount },
+        removeFromCart,
+        changeQuantity,
+        addToCart,
+      }}
+    >
+      {children}
     </CartContext.Provider>
   );
 }

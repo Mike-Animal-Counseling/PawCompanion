@@ -66,10 +66,12 @@ export const calculateDeliveryCost = async (origin, destination, weight) => {
   }
 };
 
-export default {
+const bookingService = {
   createBooking,
   getBookingDetails,
   updateBookingStatus,
   cancelBooking,
   calculateDeliveryCost,
 };
+
+export default bookingService;

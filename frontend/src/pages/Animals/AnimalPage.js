@@ -5,24 +5,18 @@ import { getById } from "../../services/animalService";
 import StarRating from "../../components/StarRating/StarRating";
 import Tags from "../../components/Tags/Tags";
 import Price from "../../components/Price/Price";
-import { useCart } from "../../hooks/useCart";
 import NotFound from "../../components/NotFound/NotFound";
+import { resolveAnimalImageUrl } from "../../utils/imageUrl";
 
 export default function AnimalPage() {
   const [animal, setAnimal] = useState({});
   const { id } = useParams();
-  const { addToCart } = useCart();
-
   const navigate = useNavigate();
-
-  const handleAddToCart = () => {
-    addToCart(animal);
-    navigate("/cart");
-  };
 
   useEffect(() => {
     getById(id).then(setAnimal);
   }, [id]);
+
   return (
     <>
       {!animal ? (
@@ -31,7 +25,7 @@ export default function AnimalPage() {
         <div className={classes.container}>
           <img
             className={classes.image}
-            src={`/animals/${animal.imageUrl}`}
+            src={resolveAnimalImageUrl(animal.imageUrl)}
             alt={animal.name}
             width={350}
             height={300}
@@ -45,6 +39,17 @@ export default function AnimalPage() {
                 ♥
               </span>
             </div>
+            {animal.merchant && (
+              <div className={classes.providerCard}>
+                <span className={classes.providerLabel}>Hosted by</span>
+                <span className={classes.providerName}>
+                  {animal.merchant.name}
+                </span>
+                <span className={classes.providerType}>
+                  {animal.merchant.businessType}
+                </span>
+              </div>
+            )}
             <div className={classes.rating}>
               <StarRating stars={animal.stars} size={55} />
             </div>
@@ -73,6 +78,7 @@ export default function AnimalPage() {
             <div className={classes.price}>
               <Price price={animal.price} />
               /hr
+              <span className={classes.priceNote}>(2 hrs min)</span>
             </div>
 
             <div className={classes.actions}>
@@ -86,10 +92,7 @@ export default function AnimalPage() {
                 className={classes.bookingBtn}
                 onClick={() => navigate(`/booking/${id}`)}
               >
-                🚚 Book Delivery
-              </button>
-              <button className={classes.cartBtn} onClick={handleAddToCart}>
-                🛒 Add To Cart
+                📅 Book a Visit
               </button>
             </div>
           </div>

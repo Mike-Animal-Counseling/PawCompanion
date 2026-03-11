@@ -42,7 +42,7 @@
 
 .emptyCart button {
     padding: 12px 24px;
-    background: #007bff;
+    background: #7aa7d9;
     color: white;
     border: none;
     border-radius: 6px;
@@ -53,5 +53,5 @@
 }
 
 .emptyCart button:hover {
-    background: #0056b3;
+    background: #6395c7;
 }

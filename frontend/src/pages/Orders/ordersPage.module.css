@@ -10,6 +10,20 @@
   color: #333;
 }
 
+.loading,
+.error {
+  text-align: center;
+  padding: 40px;
+  font-size: 16px;
+  color: #666;
+}
+
+.error {
+  background-color: #fee;
+  color: #c33;
+  border-radius: 8px;
+}
+
 .ordersList {
   display: flex;
   flex-direction: column;
@@ -40,23 +54,24 @@
 .orderId {
   font-weight: 600;
   color: #333;
-  font-size: 16px;
+  font-size: 14px;
+  font-family: monospace;
 }
 
 .status {
-  padding: 5px 12px;
+  padding: 6px 12px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
 }
 
-.statusDelivered {
+.statusConfirmed {
   background: #d4edda;
   color: #155724;
 }
 
-.statusTransit {
+.statusPending {
   background: #fff3cd;
   color: #856404;
 }
@@ -96,9 +111,39 @@
 }
 
 .orderDate {
-  margin: 0;
+  margin: 0 0 4px 0;
   font-size: 13px;
   color: #999;
+}
+
+.orderTime {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.metaRow {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  color: #4f5b6d;
+  line-height: 1.45;
+}
+
+.metaLabel {
+  color: #2f3f56;
+  font-weight: 600;
+}
+
+.rescheduleNote {
+  margin: 8px 0 0 0;
+  font-size: 12px;
+  color: #5a4f7a;
+  background: #f5f1ff;
+  border: 1px solid #e2d9fb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  line-height: 1.45;
 }
 
 .orderPrice {
@@ -108,45 +153,180 @@
 .price {
   font-size: 20px;
   font-weight: 700;
-  color: #667eea;
+  color: #7aa7d9;
   margin: 0;
 }
 
-.orderActions {
-  display: flex;
-  gap: 10px;
-  padding: 0 20px 20px 20px;
-  justify-content: flex-end;
+.paymentInfo {
+  padding: 12px 20px;
+  background: #f5f5f5;
+  font-size: 12px;
+  color: #666;
+  border-top: 1px solid #e0e0e0;
+  font-family: monospace;
 }
 
-.viewBtn,
-.reorderBtn {
-  padding: 8px 16px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+.actionRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px 16px 20px;
+  border-top: 1px solid #eef1f5;
+}
+
+.rescheduleButton {
+  border: 1px solid #d8c8f0;
+  background: #fbf8ff;
+  color: #5f4b8b;
+  border-radius: 999px;
+  padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  transition: opacity 0.2s;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.viewBtn {
-  background: #f0f0f0;
-  color: #333;
-  border: 1px solid #ddd;
+.rescheduleButton:hover {
+  background: #f3ecff;
+  border-color: #c9b2ee;
 }
 
-.viewBtn:hover {
-  background: #e8e8e8;
+.supportButton {
+  border: 1px solid #c7d7ea;
+  background: #f7fbff;
+  color: #24527a;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.reorderBtn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.supportButton:hover {
+  background: #e9f4ff;
+  border-color: #aac8e7;
+}
+
+.reschedulePanel {
+  margin: 0 20px 20px 20px;
+  padding: 14px;
+  border: 1px solid #e8eaf1;
+  border-radius: 10px;
+  background: #fafcff;
+}
+
+.rescheduleTitle {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2f3f56;
+}
+
+.rescheduleError {
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  background: #fff1f1;
+  border: 1px solid #f3d0d0;
+  color: #8a2d2d;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.rescheduleLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #4f5b6d;
+}
+
+.rescheduleInput {
+  width: 100%;
+  max-width: 260px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid #d8deea;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.rescheduleHint {
+  color: #6b7280;
+  font-size: 12px;
+  margin: 6px 0;
+}
+
+.slotsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0 12px 0;
+}
+
+.slotButton {
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid #d8deea;
+  background: white;
+  color: #334155;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.slotUnavailable {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.slotSelected {
+  border-color: #6d8fc9;
+  background: #edf4ff;
+  color: #1e3a5f;
+  font-weight: 600;
+}
+
+.rescheduleActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.cancelButton,
+.confirmButton {
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.cancelButton {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #4b5563;
+}
+
+.confirmButton {
+  border: 1px solid #4c77b6;
+  background: #5f88c6;
   color: white;
 }
 
-.reorderBtn:hover {
-  opacity: 0.9;
+.confirmButton:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.emptyState {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.emptyState p {
+  margin: 10px 0;
+  font-size: 16px;
 }
 
 .emptyState {
