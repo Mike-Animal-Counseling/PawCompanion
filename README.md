@@ -38,7 +38,9 @@
 
 ### Merchant Portal
 
-|<img src="./docs/screenshots/AI-Pet-MerchantPortal.PNG" width="100%" alt="Merchant Portal Login Page" /> | <img src="./docs/screenshots/AI-Pet-MerchantPortal2.PNG" width="100%" alt="Merchant Portal Dashboard" /> |
+|                                          Merchant Portal Login                                           |                                        Merchant Portal Dashboard                                         |
+| :------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------: |
+| <img src="./docs/screenshots/AI-Pet-MerchantPortal.PNG" width="100%" alt="Merchant Portal Login Page" /> | <img src="./docs/screenshots/AI-Pet-MerchantPortal2.PNG" width="100%" alt="Merchant Portal Dashboard" /> |
 
 ---
 
