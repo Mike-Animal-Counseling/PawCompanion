@@ -1,28 +1,9 @@
 import mongoose from "mongoose";
-
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://localhost:27017/pet-ai-dev";
-
 export const connectDB = async () => {
-  try {
-    await mongoose.connect(MONGO_URI);
-    console.log("MongoDB connected successfully at", MONGO_URI);
-    return true;
-  } catch (error) {
-    console.warn("MongoDB connection warning:", error.message);
-    console.warn("Continuing without MongoDB. Some features will be limited.");
-    return false;
-  }
+  if (!process.env.MONGO_URI) throw new Error("MONGO_URI required");
+  await mongoose.connect(process.env.MONGO_URI, { serverSelectionTimeoutMS: 5000 });
+  console.log("Database connected");
+  return true;
 };
-
-export const disconnectDB = async () => {
-  try {
-    await mongoose.disconnect();
-    console.log("MongoDB disconnected");
-  } catch (error) {
-    console.error("MongoDB disconnection error:", error.message);
-    process.exit(1);
-  }
-};
-
+export const disconnectDB = () => mongoose.disconnect();
 export default connectDB;

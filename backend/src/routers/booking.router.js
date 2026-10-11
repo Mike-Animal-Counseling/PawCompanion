@@ -1,3 +1,4 @@
+import { customerAccess } from "../middleware/customer.js";
 import mongoose from "mongoose";
 import { Router } from "express";
 import Animal from "../models/Animal.js";
@@ -5,6 +6,7 @@ import Booking from "../models/Booking.js";
 import AnimalAvailability from "../models/AnimalAvailability.js";
 
 const router = Router();
+router.use(customerAccess({ publicSlots: true }));
 
 const AVAILABLE_SLOTS = ["09:00", "11:00", "13:00", "15:00", "17:00"];
 const SLOT_DURATION = 2; // hours
@@ -145,7 +147,7 @@ router.get("/slots/:animalId", async (req, res) => {
     console.error("Error fetching available slots:", error.message);
     return res.status(500).json({
       error: "Failed to fetch available slots",
-      message: error.message,
+
     });
   }
 });
@@ -259,7 +261,7 @@ router.post("/create", async (req, res) => {
     console.error("Error creating booking:", error.message);
     return res.status(500).json({
       error: "Failed to create booking",
-      message: error.message,
+
     });
   }
 });
@@ -357,7 +359,7 @@ router.post("/checkout", async (req, res) => {
     console.error("Error processing checkout:", error.message);
     return res.status(500).json({
       error: "Failed to process checkout",
-      message: error.message,
+
     });
   }
 });
@@ -382,7 +384,7 @@ router.get("/my/:userId", async (req, res) => {
     console.error("Error fetching user bookings:", error.message);
     return res.status(500).json({
       error: "Failed to fetch bookings",
-      message: error.message,
+
     });
   }
 });
@@ -514,7 +516,7 @@ router.patch("/:bookingId/reschedule", async (req, res) => {
     console.error("Error rescheduling booking:", error.message);
     return res.status(500).json({
       error: "Failed to reschedule booking",
-      message: error.message,
+
     });
   }
 });
@@ -526,7 +528,7 @@ router.patch("/:bookingId/reschedule", async (req, res) => {
 router.delete("/:bookingId", async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { userId } = req.query;
+    const userId = req.auth.sub;
 
     if (!userId) {
       return res.status(400).json({
@@ -561,7 +563,7 @@ router.delete("/:bookingId", async (req, res) => {
     console.error("Error deleting booking:", error.message);
     return res.status(500).json({
       error: "Failed to delete booking",
-      message: error.message,
+
     });
   }
 });

@@ -257,3 +257,7 @@ detectSelfHarm(message)          <- in-memory analysis, no DB required
 | Payment processing  | Mock only — no real payment gateway          |
 | Animal data         | Seeded static data — no admin CMS            |
 | Image generation    | Requires active HuggingFace API key          |
+
+## Security and deployment
+
+Read the [security policy](SECURITY.md) and [production requirements](docs/PRODUCTION_SECURITY.md) before deployment.

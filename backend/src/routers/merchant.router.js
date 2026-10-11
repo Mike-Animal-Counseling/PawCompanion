@@ -7,6 +7,7 @@ import Animal from "../models/Animal.js";
 import Booking from "../models/Booking.js";
 import AnimalAvailability from "../models/AnimalAvailability.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
+import { storeImage, ownsImage } from "../services/secureImage.js";
 
 const router = Router();
 
@@ -21,19 +22,8 @@ const ACTIVE_BOOKING_STATUSES = [
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
 
-const uploadStorage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
-    cb(null, UPLOADS_DIR);
-  },
-  filename: (_req, file, cb) => {
-    const extension = path.extname(file.originalname || "").toLowerCase();
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`);
-  },
-});
-
 const upload = multer({
-  storage: uploadStorage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
@@ -136,7 +126,7 @@ const ensureMerchantBooking = async (bookingId, merchantId) => {
 router.use(requireAuth, requireRole("merchant"));
 
 router.post("/upload-image", (req, res) => {
-  upload.single("image")(req, res, (error) => {
+  upload.single("image")(req, res, async (error) => {
     if (error) {
       return res
         .status(400)
@@ -147,8 +137,10 @@ router.post("/upload-image", (req, res) => {
       return res.status(400).json({ error: "Image file is required" });
     }
 
-    const imageUrl = `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`;
-    return res.status(201).json({ imageUrl, fileName: req.file.filename });
+    try {
+      const filename = await storeImage(req.file.buffer, req.auth.sub, UPLOADS_DIR);
+      return res.status(201).json({ imageUrl: `/uploads/${filename}`, fileName: filename });
+    } catch { return res.status(400).json({ error: "Image could not be processed" }); }
   });
 });
 
@@ -160,6 +152,8 @@ router.delete("/upload-image", (req, res) => {
       .status(400)
       .json({ error: "Only locally uploaded images can be deleted" });
   }
+
+  if (!ownsImage(path.basename(filePath), req.auth.sub)) return res.status(403).json({ error: "Access denied" });
 
   try {
     if (fs.existsSync(filePath)) {

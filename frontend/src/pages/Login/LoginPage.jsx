@@ -1,10 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import api from "../../axiosConfig";
 import { useUser } from "../../context/UserContext";
 import classes from "./loginPage.module.css";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isRegister, setIsRegister] = useState(false);
   const { login } = useUser();
   const [formData, setFormData] = useState({
     email: "",
@@ -38,20 +41,12 @@ export default function LoginPage() {
         return;
       }
 
-      // Temporary local login flow until backend auth endpoint is wired here.
-      console.log("Login attempt:", formData.email);
-
-      const userData = {
-        name: formData.email.split("@")[0],
-        email: formData.email,
-      };
-      login(userData);
-
-      setTimeout(() => {
-        navigate("/");
-      }, 500);
+      const { data } = await api.post(`/api/auth/customer/${isRegister ? "register" : "login"}`, { ...formData, name: formData.email.split("@")[0].slice(0, 80) });
+      login(data);
+      const destination = location.state?.from?.pathname;
+      navigate(destination?.startsWith("/") && !destination.startsWith("//") ? destination : "/", { replace: true });
     } catch (err) {
-      setError("Login failed. Please try again.");
+      setError(err.response?.data?.error || "Unable to sign in. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -60,7 +55,7 @@ export default function LoginPage() {
   return (
     <div className={classes.loginContainer}>
       <div className={classes.loginCard}>
-        <h1>Login to Your Account</h1>
+        <h1>{isRegister ? "Create your account" : "Login to Your Account"}</h1>
 
         <form onSubmit={handleSubmit} className={classes.loginForm}>
           {error && <div className={classes.errorMessage}>{error}</div>}
@@ -82,6 +77,8 @@ export default function LoginPage() {
             <label htmlFor="password">Password</label>
             <input
               type="password"
+              minLength={isRegister ? 12 : undefined}
+              maxLength={72}
               id="password"
               name="password"
               value={formData.password}
@@ -92,16 +89,13 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className={classes.loginBtn} disabled={loading}>
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Please wait..." : isRegister ? "Create account" : "Login"}
           </button>
         </form>
 
         <div className={classes.loginFooter}>
           <p>
-            Don't have an account? <a href="#signup">Sign up here</a>
-          </p>
-          <p>
-            <a href="#forgot">Forgot your password?</a>
+            <button type="button" onClick={() => { setIsRegister(value => !value); setError(""); }}>{isRegister ? "Already registered? Sign in" : "Create an account"}</button>
           </p>
         </div>
       </div>

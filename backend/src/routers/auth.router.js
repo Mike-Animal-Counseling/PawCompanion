@@ -18,7 +18,7 @@ router.post("/merchant/register", async (req, res) => {
   try {
     const { name, businessType, email, password } = req.body;
 
-    if (!name || !email || !password) {
+    if (typeof name !== "string" || !name.trim() || name.length > 80 || typeof email !== "string" || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || typeof password !== "string" || password.length < 12 || Buffer.byteLength(password) > 72) {
       return res
         .status(400)
         .json({ error: "Name, email, and password are required" });
@@ -63,7 +63,7 @@ router.post("/merchant/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (typeof email !== "string" || email.length > 254 || typeof password !== "string" || Buffer.byteLength(password) > 72) {
       return res.status(400).json({ error: "Email and password are required" });
     }
 

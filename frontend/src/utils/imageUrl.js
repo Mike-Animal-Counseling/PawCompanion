@@ -11,7 +11,7 @@ export const resolveAnimalImageUrl = (imageUrl) => {
 
   if (imageUrl.startsWith("/uploads/") || imageUrl.startsWith("uploads/")) {
     const normalized = imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`;
-    return `${process.env.NODE_ENV !== "production" ? "http://localhost:5000" : ""}${normalized}`;
+    return `${import.meta.env.DEV ? "http://localhost:5000" : ""}${normalized}`;
   }
 
   if (imageUrl.startsWith("/animals/")) {

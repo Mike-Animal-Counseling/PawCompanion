@@ -1,3 +1,4 @@
+import RequireCustomer from "./components/Auth/RequireCustomer";
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 import AnimalPage from "./pages/Animals/AnimalPage";
@@ -24,12 +25,12 @@ export default function AppRoutes() {
       <Route path="/search/:searchTerm" element={<HomePage />} />
       <Route path="/tag/:tag" element={<HomePage />} />
       <Route path="/animals/:id" element={<AnimalPage />} />
-      <Route path="/chat/:id" element={<ChatPage />} />
-      <Route path="/booking/:id" element={<BookingPage />} />
-      <Route path="/checkout" element={<CheckoutPage />} />
-      <Route path="/booking-list" element={<BookingListPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/orders" element={<OrdersPage />} />
+      <Route path="/chat/:id" element={<RequireCustomer><ChatPage /></RequireCustomer>} />
+      <Route path="/booking/:id" element={<RequireCustomer><BookingPage /></RequireCustomer>} />
+      <Route path="/checkout" element={<RequireCustomer><CheckoutPage /></RequireCustomer>} />
+      <Route path="/booking-list" element={<RequireCustomer><BookingListPage /></RequireCustomer>} />
+      <Route path="/profile" element={<RequireCustomer><ProfilePage /></RequireCustomer>} />
+      <Route path="/orders" element={<RequireCustomer><OrdersPage /></RequireCustomer>} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/merchant/login" element={<MerchantLoginPage />} />
       <Route

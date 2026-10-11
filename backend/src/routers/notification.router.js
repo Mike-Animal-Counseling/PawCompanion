@@ -24,7 +24,7 @@ router.post("/sms", async (req, res) => {
     console.error("Error sending SMS:", error.message);
     return res.status(500).json({
       error: "Failed to send SMS",
-      message: error.message,
+
     });
   }
 });
@@ -50,7 +50,7 @@ router.post("/email", async (req, res) => {
     console.error("Error sending email:", error.message);
     return res.status(500).json({
       error: "Failed to send email",
-      message: error.message,
+
     });
   }
 });
@@ -81,7 +81,7 @@ router.post("/push", async (req, res) => {
     console.error("Error sending push notification:", error.message);
     return res.status(500).json({
       error: "Failed to send push notification",
-      message: error.message,
+
     });
   }
 });
@@ -112,7 +112,7 @@ router.post("/order-confirmation", async (req, res) => {
     console.error("Error sending order confirmation:", error.message);
     return res.status(500).json({
       error: "Failed to send order confirmation",
-      message: error.message,
+
     });
   }
 });
