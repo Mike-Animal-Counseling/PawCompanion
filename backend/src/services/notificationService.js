@@ -15,9 +15,8 @@
  * Send SMS notification (stub).
  */
 export const sendSMS = async (phoneNumber, message) => {
-  console.log(`[notify:stub] sms to=${phoneNumber} message="${message}"`);
 
-  // Replace with Twilio send call once credentials are available.
+// Replace with Twilio send call once credentials are available.
   // const result = await twilioClient.messages.create({
   //     body: message,
   //     from: process.env.TWILIO_PHONE_NUMBER,
@@ -36,9 +35,8 @@ export const sendSMS = async (phoneNumber, message) => {
  * Send email notification (stub).
  */
 export const sendEmail = async (to, subject, html) => {
-  console.log(`[notify:stub] email to=${to} subject="${subject}"`);
 
-  // Replace with SendGrid send call once credentials are available.
+// Replace with SendGrid send call once credentials are available.
   // const msg = {
   //     to,
   //     from: process.env.SENDGRID_FROM_EMAIL,
@@ -59,11 +57,8 @@ export const sendEmail = async (to, subject, html) => {
  * Send push notification (stub).
  */
 export const sendPushNotification = async (userId, title, body, data = {}) => {
-  console.log(
-    `[notify:stub] push user=${userId} title="${title}" body="${body}"`,
-  );
 
-  // Replace with FCM provider call when push tokens are stored.
+// Replace with FCM provider call when push tokens are stored.
   // const message = {
   //     notification: { title, body },
   //     data,
@@ -88,11 +83,8 @@ export const sendOrderConfirmation = async (
   orderId,
   animalName,
 ) => {
-  console.log(
-    `[notify:stub] order confirmation order=${orderId} animal=${animalName} email=${email}`,
-  );
 
-  return {
+return {
     sms: await sendSMS("+1234567890", `Order ${orderId} confirmed!`),
     email: await sendEmail(
       email,

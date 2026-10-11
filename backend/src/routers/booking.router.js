@@ -23,7 +23,7 @@ const createDefaultSlots = () =>
     const endHour =
       Number.parseInt(startTime.split(":")[0], 10) + SLOT_DURATION;
     return {
-      startTime,
+      startTime: String(startTime),
       endTime: `${String(endHour).padStart(2, "0")}:00`,
       enabled: true,
     };
@@ -66,7 +66,7 @@ const getAnimalWithAccessCheck = async (animalId) => {
 const getSlotsForDate = async (animalId, date) => {
   const availability = await AnimalAvailability.findOne({
     animalId,
-    date,
+    date: String(date),
   }).lean();
   return availability?.slots?.length
     ? availability.slots
@@ -112,7 +112,7 @@ router.get("/slots/:animalId", async (req, res) => {
 
     const bookings = await Booking.find({
       animalId: animal._id,
-      date,
+      date: String(date),
       status: { $in: ACTIVE_BOOKING_STATUSES },
     });
 
@@ -213,8 +213,8 @@ router.post("/create", async (req, res) => {
 
     const existingBooking = await Booking.findOne({
       animalId: animal._id,
-      date,
-      startTime,
+      date: String(date),
+      startTime: String(startTime),
       status: { $in: ACTIVE_BOOKING_STATUSES },
     });
 
@@ -227,7 +227,7 @@ router.post("/create", async (req, res) => {
     // Check daily 4-hour limit
     const dailyBookings = await Booking.find({
       animalId: animal._id,
-      date,
+      date: String(date),
       status: { $in: ACTIVE_BOOKING_STATUSES },
     });
 
@@ -244,8 +244,8 @@ router.post("/create", async (req, res) => {
       userId,
       animalId: animal._id,
       merchantId: animal.merchantId,
-      date,
-      startTime,
+      date: String(date),
+      startTime: String(startTime),
       endTime: selectedSlot.endTime,
       totalPrice: animal.price * 2,
       status: "pending",
@@ -288,10 +288,13 @@ router.post("/checkout", async (req, res) => {
     }
 
     // Validate all bookings belong to user and are pending
-    const bookings = await Booking.find({ _id: { $in: bookingIds } }).populate(
+    if (!bookingIds.length || bookingIds.length > 10 || bookingIds.some(id => typeof id !== 'string' || !/^[a-f\d]{24}$/i.test(id))) return res.status(400).json({ error: 'Invalid booking identifiers' });
+    const bookings = await Booking.find({ _id: { $in: bookingIds.map(id => String(id)) }, userId: req.auth.sub }).populate(
       "animalId",
       "name imageUrl price",
     );
+
+    if (bookings.length !== new Set(bookingIds).size) return res.status(404).json({ error: 'Booking not found' });
 
     for (const booking of bookings) {
       if (booking.userId !== userId) {
@@ -315,8 +318,8 @@ router.post("/checkout", async (req, res) => {
       Booking.findByIdAndUpdate(
         booking._id,
         {
-          address,
-          phoneNumber,
+          address: String(address),
+          phoneNumber: String(phoneNumber),
           paymentId,
           status: "confirmed",
         },
@@ -475,8 +478,8 @@ router.patch("/:bookingId/reschedule", async (req, res) => {
     const existingBooking = await Booking.findOne({
       _id: { $ne: booking._id },
       animalId: booking.animalId,
-      date,
-      startTime,
+      date: String(date),
+      startTime: String(startTime),
       status: { $in: ACTIVE_BOOKING_STATUSES },
     });
 
@@ -490,7 +493,7 @@ router.patch("/:bookingId/reschedule", async (req, res) => {
     const dailyBookings = await Booking.find({
       _id: { $ne: booking._id },
       animalId: booking.animalId,
-      date,
+      date: String(date),
       status: { $in: ACTIVE_BOOKING_STATUSES },
     });
 

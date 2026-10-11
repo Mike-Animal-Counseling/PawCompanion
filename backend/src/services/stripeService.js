@@ -10,11 +10,8 @@
  * Create a payment intent (stub).
  */
 export const createPaymentIntent = async (animalId, userId, amount) => {
-  console.log(
-    `[payment:stub] create intent animalId=${animalId} userId=${userId} amount=${amount}`,
-  );
 
-  // Replace with stripe.paymentIntents.create when API key and webhook flow are ready.
+// Replace with stripe.paymentIntents.create when API key and webhook flow are ready.
   // const paymentIntent = await stripe.paymentIntents.create({
   //     amount: Math.round(amount * 100),
   //     currency: 'usd',
@@ -34,11 +31,8 @@ export const createPaymentIntent = async (animalId, userId, amount) => {
  * Confirm a payment intent (stub).
  */
 export const processPayment = async (paymentIntentId, paymentMethod) => {
-  console.log(
-    `[payment:stub] confirm intent=${paymentIntentId} method=${paymentMethod}`,
-  );
 
-  // Replace with stripe.paymentIntents.confirm once card flow is fully integrated.
+// Replace with stripe.paymentIntents.confirm once card flow is fully integrated.
   // const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId, {
   //     payment_method: paymentMethod,
   // });
@@ -55,11 +49,8 @@ export const processPayment = async (paymentIntentId, paymentMethod) => {
  * Refund a payment (stub).
  */
 export const refundPayment = async (paymentIntentId, amount) => {
-  console.log(
-    `[payment:stub] refund intent=${paymentIntentId} amount=${amount}`,
-  );
 
-  // Replace with stripe.refunds.create when refund policy and webhook handling are in place.
+// Replace with stripe.refunds.create when refund policy and webhook handling are in place.
   // const refund = await stripe.refunds.create({
   //     payment_intent: paymentIntentId,
   //     amount: Math.round(amount * 100),

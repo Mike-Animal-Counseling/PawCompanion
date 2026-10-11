@@ -24,6 +24,14 @@ export function createApp({ budgets, config = loadSecurity() }) {
   // Per-process overload protection complements the cross-instance Redis budgets.
   app.use(expressRateLimit({ windowMs: 60000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false }));
   app.use(rateLimit(budgets, 'ip', 120)); app.use(express.json({ limit: '16kb', strict: true }));
+  app.use((req, res, next) => {
+    if (Object.values(req.query).some(value => typeof value !== 'string')) return res.status(400).json({ error: 'Query values must be strings' });
+    const scalars = ['date', 'startTime', 'endTime', 'animalId', 'bookingId', 'userId', 'merchantId', 'address', 'phoneNumber', 'email', 'password', 'name', 'status'];
+    if (req.body && scalars.some(key => req.body[key] !== undefined && req.body[key] !== null && !['string', 'number', 'boolean'].includes(typeof req.body[key]))) return res.status(400).json({ error: 'Invalid scalar input' });
+    const date = req.body?.date || req.query.date;
+    if (date !== undefined && (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !Number.isFinite(Date.parse(date)) || new Date(date).toISOString().slice(0, 10) !== date)) return res.status(400).json({ error: 'Invalid date' });
+    next();
+  });
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
   app.use('/api/auth', rateLimit(budgets, 'auth-ip', 10, 900000), rateLimit(budgets, 'auth-account', 10, 900000, req => typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase().slice(0, 254) : req.ip));
   app.use('/api/auth/customer', customerRouter); app.use('/api/auth', authRouter);
