@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
 import sharp from 'sharp';
+import bcrypt from 'bcryptjs';
 process.env.JWT_SECRET = 'testing-only-' + 'a'.repeat(64);
 process.env.NODE_ENV = 'test';
 const { createApp } = await import('../src/app.js');
@@ -64,4 +65,23 @@ test('decodes and re-encodes actual images; refuses HTML and cross-owner deletes
 test('shared budget failure closes access', async () => {
   const failed = createApp({ config, budgets: { take: async () => { throw new Error('offline'); } } });
   assert.equal((await request(failed).get('/api/health')).status, 503);
+});
+
+test('merchant input validation cannot skip database identity or password verification', async () => {
+  const find = Merchant.findOne, create = Merchant.create;
+  const password = 'Synthetic-long-test-password';
+  const merchant = { ...owner, role: 'merchant', passwordHash: await bcrypt.hash(password, 12) };
+  Merchant.findOne = async () => merchant;
+  Merchant.create = async data => ({ ...merchant, ...data });
+  try {
+    for (const body of [{ name: '', email: owner.email, password }, { name: 'Test', email: 'x'.repeat(255), password }, { name: 'Test', email: owner.email, password: 'short' }, { name: { $ne: null }, email: owner.email, password }]) {
+      assert.equal((await request(app).post('/api/auth/merchant/register').send(body)).status, 400);
+    }
+    assert.equal((await request(app).post('/api/auth/merchant/login').send({ email: 'x'.repeat(255), password })).status, 400);
+    assert.equal((await request(app).post('/api/auth/merchant/login').send({ email: owner.email, password: 'incorrect-password' })).status, 401);
+    const response = await request(app).post('/api/auth/merchant/login').send({ email: owner.email, password, role: 'admin', sub: 'b'.repeat(24) });
+    assert.equal(response.status, 200);
+    const claims = jwt.verify(response.body.token, process.env.JWT_SECRET, { algorithms: ['HS256'], issuer: 'pawcompanion', audience: 'pawcompanion' });
+    assert.equal(claims.sub, merchant._id); assert.equal(claims.role, 'merchant');
+  } finally { Merchant.findOne = find; Merchant.create = create; }
 });
