@@ -29,7 +29,9 @@ router.use(customerAccess());
  */
 router.post("/chat", async (req, res) => {
     try {
-        const { userId, animalId, message } = req.body;
+        const userId = req.auth.sub;
+        const animalId = String(req.body.animalId || '');
+        const message = req.body.message;
         // Validate input
         if (!userId || !animalId || !message) {
             return res.status(400).json({
@@ -204,7 +206,8 @@ router.post("/chat", async (req, res) => {
  */
 router.get("/memory/:userId/:animalId", async (req, res) => {
     try {
-        const { userId, animalId } = req.params;
+        const userId = req.auth.sub, animalId = String(req.params.animalId);
+        if (!/^[a-f\d]{24}$/i.test(animalId)) return res.status(400).json({ error: 'Invalid animal' });
         const chatMemory = await ChatMemory.findOne({ userId, animalId });
         if (!chatMemory) {
             return res.status(404).json({
@@ -228,7 +231,8 @@ router.get("/memory/:userId/:animalId", async (req, res) => {
  */
 router.delete("/memory/:userId/:animalId", async (req, res) => {
     try {
-        const { userId, animalId } = req.params;
+        const userId = req.auth.sub, animalId = String(req.params.animalId);
+        if (!/^[a-f\d]{24}$/i.test(animalId)) return res.status(400).json({ error: 'Invalid animal' });
         const result = await ChatMemory.deleteOne({ userId, animalId });
         if (result.deletedCount === 0) {
             return res.status(404).json({
@@ -252,7 +256,7 @@ router.delete("/memory/:userId/:animalId", async (req, res) => {
  */
 router.get("/risk-profile/:userId", async (req, res) => {
     try {
-        const { userId } = req.params;
+        const userId = req.auth.sub;
         const UserRiskProfile = (await import("../models/UserRiskProfile.js"))
             .default;
         const RiskEvent = (await import("../models/RiskEvent.js")).default;

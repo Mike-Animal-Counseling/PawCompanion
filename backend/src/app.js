@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'node:path';
+import { rateLimit as expressRateLimit } from 'express-rate-limit';
 import { loadSecurity, securityHeaders, rateLimit } from './security.js';
 import { requireAuth, requireRole } from './middleware/auth.js';
 import animalRouter from './routers/animal.router.js';
@@ -20,6 +21,8 @@ export function createApp({ budgets, config = loadSecurity() }) {
     if (origin && !config.origins.includes(origin)) return res.status(403).json({ error: 'Origin not allowed' }); next();
   });
   app.use(cors({ origin: config.origins, methods: ['GET', 'POST', 'PATCH', 'DELETE'], allowedHeaders: ['Authorization', 'Content-Type'] }));
+  // Per-process overload protection complements the cross-instance Redis budgets.
+  app.use(expressRateLimit({ windowMs: 60000, limit: 120, standardHeaders: 'draft-8', legacyHeaders: false }));
   app.use(rateLimit(budgets, 'ip', 120)); app.use(express.json({ limit: '16kb', strict: true }));
   app.get('/api/health', (_req, res) => res.json({ ok: true }));
   app.use('/api/auth', rateLimit(budgets, 'auth-ip', 10, 900000), rateLimit(budgets, 'auth-account', 10, 900000, req => typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase().slice(0, 254) : req.ip));

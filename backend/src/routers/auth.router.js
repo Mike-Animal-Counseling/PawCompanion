@@ -31,7 +31,7 @@ router.post("/merchant/register", async (req, res) => {
       return res.status(409).json({ error: "Merchant account already exists" });
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await bcrypt.hash(password, 12);
     const merchant = await Merchant.create({
       name: name.trim(),
       businessType:

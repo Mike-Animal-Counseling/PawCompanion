@@ -58,6 +58,9 @@ function riskToPoints(risk) {
  * @returns {Promise<Object>} Updated UserRiskProfile (or existing profile when level is none)
  */
 export async function recordRiskEventAndUpdateProfile({ userId, animalId, risk, }) {
+    if (typeof userId !== 'string' || !/^[a-f\d]{24}$/i.test(userId) || typeof animalId !== 'string' || !/^[a-f\d]{24}$/i.test(animalId)) throw new TypeError('Invalid risk profile identity');
+    userId = String(userId);
+    animalId = String(animalId);
     const now = new Date();
     let profile = await UserRiskProfile.findOne({ userId });
     if (!profile) {
