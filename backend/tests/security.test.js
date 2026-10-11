@@ -34,6 +34,9 @@ test('customer cannot impersonate another user through URL or JSON identifiers',
 test('NoSQL-shaped and malformed conversation identifiers fail before database access', async () => {
   assert.equal((await request(app).post('/api/ai/chat').auth(token, { type: 'bearer' }).send({ animalId: { $ne: null }, message: 'synthetic' })).status, 400);
   assert.equal((await request(app).get('/api/ai/memory/' + owner._id + '/invalid').auth(token, { type: 'bearer' })).status, 400);
+  assert.equal((await request(app).get('/api/booking/slots/' + 'b'.repeat(24)).query({ date: ['2026-11-01', '2026-11-02'] })).status, 400);
+  assert.equal((await request(app).post('/api/booking/create').auth(token, { type: 'bearer' }).send({ date: { $ne: null } })).status, 400);
+  assert.equal((await request(app).post('/api/booking/create').auth(token, { type: 'bearer' }).send({ date: '2026-99-99' })).status, 400);
 });
 test('rejects legacy forged merchant tokens and wrong-role access', async () => {
   const forged = jwt.sign({ sub: owner._id, role: 'merchant' }, 'merchant-portal-dev-secret');

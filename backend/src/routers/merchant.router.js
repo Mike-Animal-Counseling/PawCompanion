@@ -19,6 +19,7 @@ const ACTIVE_BOOKING_STATUSES = [
   "merchant_accepted",
   "rescheduled",
 ];
+const VALID_BOOKING_STATUSES = [...ACTIVE_BOOKING_STATUSES, 'merchant_rejected', 'cancelled', 'completed'];
 const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
 const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
 
@@ -67,7 +68,7 @@ const createDefaultSlots = () =>
     const endHour =
       Number.parseInt(startTime.split(":")[0], 10) + SLOT_DURATION;
     return {
-      startTime,
+      startTime: String(startTime),
       endTime: `${String(endHour).padStart(2, "0")}:00`,
       enabled: true,
     };
@@ -349,11 +350,11 @@ router.get("/animals/:animalId/availability", async (req, res) => {
 
     const availability = await AnimalAvailability.findOne({
       animalId: animal._id,
-      date,
+      date: String(date),
     }).lean();
 
     return res.json({
-      date,
+      date: String(date),
       animalId: animal._id.toString(),
       slots: availability?.slots?.length
         ? availability.slots
@@ -388,8 +389,8 @@ router.put("/animals/:animalId/availability", async (req, res) => {
     }));
 
     const availability = await AnimalAvailability.findOneAndUpdate(
-      { animalId: animal._id, date },
-      { animalId: animal._id, date, slots: sanitizedSlots },
+      { animalId: animal._id, date: String(date) },
+      { animalId: animal._id, date: String(date), slots: sanitizedSlots },
       { upsert: true, new: true, setDefaultsOnInsert: true },
     );
 
@@ -408,7 +409,8 @@ router.get("/bookings", async (req, res) => {
   try {
     const query = { merchantId: req.auth.sub };
     if (req.query.status) {
-      query.status = req.query.status;
+      if (typeof req.query.status !== 'string' || !VALID_BOOKING_STATUSES.includes(req.query.status)) return res.status(400).json({ error: 'Invalid status' });
+      query.status = String(req.query.status);
     }
 
     const bookings = await Booking.find(query)
@@ -486,7 +488,7 @@ router.patch("/bookings/:bookingId/reschedule", async (req, res) => {
 
     const availability = await AnimalAvailability.findOne({
       animalId: booking.animalId._id,
-      date,
+      date: String(date),
     }).lean();
     const baseSlots = availability?.slots?.length
       ? availability.slots
@@ -504,8 +506,8 @@ router.patch("/bookings/:bookingId/reschedule", async (req, res) => {
     const collision = await Booking.findOne({
       _id: { $ne: booking._id },
       animalId: booking.animalId._id,
-      date,
-      startTime,
+      date: String(date),
+      startTime: String(startTime),
       status: { $in: ACTIVE_BOOKING_STATUSES },
     });
 
