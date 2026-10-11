@@ -4,9 +4,10 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/server.js",
+    "dev": "node --watch src/server.js",
     "seed": "node src/scripts/seed.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tests/*.test.js",
+    "start": "node src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -18,11 +19,18 @@
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^8.0.0",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "redis": "^6.3.0",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "supertest": "^7.3.1"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

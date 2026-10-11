@@ -26,10 +26,10 @@ router.post("/intent", async (req, res) => {
 
     return res.json(paymentIntent);
   } catch (error) {
-    console.error("Error creating payment intent:", error.message);
+    console.error("Error creating payment intent:");
     return res.status(500).json({
       error: "Failed to create payment intent",
-      message: error.message,
+
     });
   }
 });
@@ -55,10 +55,10 @@ router.post("/process", async (req, res) => {
 
     return res.json(result);
   } catch (error) {
-    console.error("Error processing payment:", error.message);
+    console.error("Error processing payment:");
     return res.status(500).json({
       error: "Failed to process payment",
-      message: error.message,
+
     });
   }
 });
@@ -81,10 +81,10 @@ router.post("/refund", async (req, res) => {
 
     return res.json(result);
   } catch (error) {
-    console.error("Error refunding payment:", error.message);
+    console.error("Error refunding payment:");
     return res.status(500).json({
       error: "Failed to refund payment",
-      message: error.message,
+
     });
   }
 });
