@@ -39,7 +39,7 @@ router.get("/", async (req, res) => {
       .lean();
     res.json(animals.map(serializeAnimal));
   } catch (error) {
-    console.error("Animals list error:", error.message);
+    console.error("Animals list error:");
     res.status(500).json({ error: "Failed to load animals" });
   }
 });
@@ -57,7 +57,7 @@ router.get("/tags", async (req, res) => {
     const totalCount = await Animal.countDocuments(publicFilter);
     res.json([{ name: "All", count: totalCount }, ...tagCounts]);
   } catch (error) {
-    console.error("Animal tags error:", error.message);
+    console.error("Animal tags error:");
     res.status(500).json({ error: "Failed to load tags" });
   }
 });
@@ -75,7 +75,7 @@ router.get("/search/:searchTerm", async (req, res) => {
 
     res.json(animals.map(serializeAnimal));
   } catch (error) {
-    console.error("Animal search error:", error.message);
+    console.error("Animal search error:");
     res.status(500).json({ error: "Failed to search animals" });
   }
 });
@@ -93,7 +93,7 @@ router.get("/tag/:tag", async (req, res) => {
 
     res.json(animals.map(serializeAnimal));
   } catch (error) {
-    console.error("Animal tag filter error:", error.message);
+    console.error("Animal tag filter error:");
     res.status(500).json({ error: "Failed to filter animals by tag" });
   }
 });
@@ -119,7 +119,7 @@ router.get("/:animalId", async (req, res) => {
 
     res.json(serializeAnimal(animal));
   } catch (error) {
-    console.error("Animal detail error:", error.message);
+    console.error("Animal detail error:");
     res.status(500).json({ error: "Failed to load animal" });
   }
 });

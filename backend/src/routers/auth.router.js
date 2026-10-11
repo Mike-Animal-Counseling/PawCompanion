@@ -54,7 +54,7 @@ router.post("/merchant/register", async (req, res) => {
 
     return res.status(201).json({ token, user });
   } catch (error) {
-    console.error("Merchant register error:", error.message);
+    console.error("Merchant register error:");
     return res.status(500).json({ error: "Failed to register merchant" });
   }
 });
@@ -71,19 +71,13 @@ router.post("/merchant/login", async (req, res) => {
       email: email.toLowerCase().trim(),
     });
 
-    if (!merchant) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
-
-    if (merchant.status !== "active") {
-      return res.status(403).json({ error: "Merchant account is not active" });
-    }
-
+    // Always run bcrypt, including unknown/disabled accounts.
+    const dummyHash = '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYJYGRklB.kAEOWBQVjnWEZWVjx7njcK';
     const isPasswordValid = await bcrypt.compare(
       password,
-      merchant.passwordHash,
+      merchant?.passwordHash || dummyHash,
     );
-    if (!isPasswordValid) {
+    if (!merchant || merchant.status !== 'active' || !isPasswordValid) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
@@ -96,7 +90,7 @@ router.post("/merchant/login", async (req, res) => {
 
     return res.json({ token, user });
   } catch (error) {
-    console.error("Merchant login error:", error.message);
+    console.error("Merchant login error:");
     return res.status(500).json({ error: "Failed to login merchant" });
   }
 });
@@ -115,7 +109,7 @@ router.get(
 
       return res.json({ user: serializeMerchant(merchant) });
     } catch (error) {
-      console.error("Merchant me error:", error.message);
+      console.error("Merchant me error:");
       return res.status(500).json({ error: "Failed to load merchant profile" });
     }
   },

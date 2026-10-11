@@ -21,7 +21,7 @@ router.post("/sms", async (req, res) => {
 
     return res.json(result);
   } catch (error) {
-    console.error("Error sending SMS:", error.message);
+    console.error("Error sending SMS:");
     return res.status(500).json({
       error: "Failed to send SMS",
 
@@ -47,7 +47,7 @@ router.post("/email", async (req, res) => {
 
     return res.json(result);
   } catch (error) {
-    console.error("Error sending email:", error.message);
+    console.error("Error sending email:");
     return res.status(500).json({
       error: "Failed to send email",
 
@@ -78,7 +78,7 @@ router.post("/push", async (req, res) => {
 
     return res.json(result);
   } catch (error) {
-    console.error("Error sending push notification:", error.message);
+    console.error("Error sending push notification:");
     return res.status(500).json({
       error: "Failed to send push notification",
 
@@ -109,7 +109,7 @@ router.post("/order-confirmation", async (req, res) => {
 
     return res.json(result);
   } catch (error) {
-    console.error("Error sending order confirmation:", error.message);
+    console.error("Error sending order confirmation:");
     return res.status(500).json({
       error: "Failed to send order confirmation",
 

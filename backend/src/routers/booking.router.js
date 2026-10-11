@@ -144,7 +144,7 @@ router.get("/slots/:animalId", async (req, res) => {
 
     return res.json(availableSlots);
   } catch (error) {
-    console.error("Error fetching available slots:", error.message);
+    console.error("Error fetching available slots:");
     return res.status(500).json({
       error: "Failed to fetch available slots",
 
@@ -258,7 +258,7 @@ router.post("/create", async (req, res) => {
 
     return res.status(201).json(bookingWithAnimal);
   } catch (error) {
-    console.error("Error creating booking:", error.message);
+    console.error("Error creating booking:");
     return res.status(500).json({
       error: "Failed to create booking",
 
@@ -356,7 +356,7 @@ router.post("/checkout", async (req, res) => {
       bookingReceipts,
     });
   } catch (error) {
-    console.error("Error processing checkout:", error.message);
+    console.error("Error processing checkout:");
     return res.status(500).json({
       error: "Failed to process checkout",
 
@@ -381,7 +381,7 @@ router.get("/my/:userId", async (req, res) => {
 
     return res.json(bookingsWithAnimals);
   } catch (error) {
-    console.error("Error fetching user bookings:", error.message);
+    console.error("Error fetching user bookings:");
     return res.status(500).json({
       error: "Failed to fetch bookings",
 
@@ -513,7 +513,7 @@ router.patch("/:bookingId/reschedule", async (req, res) => {
     const updatedBooking = serializeBooking(booking.toObject());
     return res.json(updatedBooking);
   } catch (error) {
-    console.error("Error rescheduling booking:", error.message);
+    console.error("Error rescheduling booking:");
     return res.status(500).json({
       error: "Failed to reschedule booking",
 
@@ -560,7 +560,7 @@ router.delete("/:bookingId", async (req, res) => {
 
     return res.json({ message: "Booking deleted successfully" });
   } catch (error) {
-    console.error("Error deleting booking:", error.message);
+    console.error("Error deleting booking:");
     return res.status(500).json({
       error: "Failed to delete booking",
 

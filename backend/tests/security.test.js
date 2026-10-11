@@ -29,6 +29,11 @@ test('customer cannot impersonate another user through URL or JSON identifiers',
   assert.equal((await request(app).post('/api/booking/create').auth(token, { type: 'bearer' }).send({ userId: other })).status, 403);
   assert.equal((await request(app).delete('/api/booking/' + 'd'.repeat(24)).query({ userId: other }).auth(token, { type: 'bearer' })).status, 403);
 });
+
+test('NoSQL-shaped and malformed conversation identifiers fail before database access', async () => {
+  assert.equal((await request(app).post('/api/ai/chat').auth(token, { type: 'bearer' }).send({ animalId: { $ne: null }, message: 'synthetic' })).status, 400);
+  assert.equal((await request(app).get('/api/ai/memory/' + owner._id + '/invalid').auth(token, { type: 'bearer' })).status, 400);
+});
 test('rejects legacy forged merchant tokens and wrong-role access', async () => {
   const forged = jwt.sign({ sub: owner._id, role: 'merchant' }, 'merchant-portal-dev-secret');
   assert.equal((await request(app).get('/api/merchant/dashboard').auth(forged, { type: 'bearer' })).status, 401);
@@ -45,6 +50,7 @@ test('production never confirms simulated checkout or payments', async () => {
   process.env.NODE_ENV = 'production'; process.env.REDIS_URL = 'rediss://example.invalid'; process.env.CORS_ORIGIN = 'https://example.invalid';
   try {
     assert.equal((await request(productionApp).post('/api/booking/create').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
+    assert.equal((await request(productionApp).patch('/api/booking/' + 'b'.repeat(24) + '/reschedule').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
     assert.equal((await request(productionApp).post('/api/booking/checkout').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
     assert.equal((await request(productionApp).post('/api/payment/process').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
   } finally { process.env.NODE_ENV = 'test'; delete process.env.REDIS_URL; delete process.env.CORS_ORIGIN; }

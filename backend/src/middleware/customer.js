@@ -13,7 +13,7 @@ export function customerAccess({ publicSlots = false } = {}) {
         if (req.body.message !== undefined && typeof req.body.message !== 'string') return res.status(400).json({ error: 'Invalid message' });
         if (typeof req.body.message === 'string' && req.body.message.length > 4000) return res.status(413).json({ error: 'Message too long' });
       }
-      if (process.env.NODE_ENV === 'production' && ['/create', '/checkout'].includes(req.path)) return res.status(503).json({ error: 'Checkout is temporarily unavailable' });
+      if (process.env.NODE_ENV === 'production' && (['/create', '/checkout'].includes(req.path) || req.path.endsWith('/reschedule'))) return res.status(503).json({ error: 'Booking changes are temporarily unavailable' });
       next();
     }));
   };

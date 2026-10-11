@@ -191,7 +191,7 @@ router.get("/dashboard", async (req, res) => {
       confirmedBookings,
     });
   } catch (error) {
-    console.error("Merchant dashboard error:", error.message);
+    console.error("Merchant dashboard error:");
     return res.status(500).json({ error: "Failed to load merchant dashboard" });
   }
 });
@@ -203,7 +203,7 @@ router.get("/animals", async (req, res) => {
     });
     return res.json(animals.map(serializeAnimal));
   } catch (error) {
-    console.error("Merchant animals list error:", error.message);
+    console.error("Merchant animals list error:");
     return res.status(500).json({ error: "Failed to load merchant animals" });
   }
 });
@@ -221,7 +221,7 @@ router.get("/animals/:animalId", async (req, res) => {
 
     return res.json(serializeAnimal(animal));
   } catch (error) {
-    console.error("Merchant animal detail error:", error.message);
+    console.error("Merchant animal detail error:");
     return res.status(500).json({ error: "Failed to load animal" });
   }
 });
@@ -260,7 +260,7 @@ router.post("/animals", async (req, res) => {
 
     return res.status(201).json(serializeAnimal(animal));
   } catch (error) {
-    console.error("Merchant animal create error:", error.message);
+    console.error("Merchant animal create error:");
     return res.status(500).json({ error: "Failed to create animal" });
   }
 });
@@ -304,7 +304,7 @@ router.put("/animals/:animalId", async (req, res) => {
 
     return res.json(serializeAnimal(animal));
   } catch (error) {
-    console.error("Merchant animal update error:", error.message);
+    console.error("Merchant animal update error:");
     return res.status(500).json({ error: "Failed to update animal" });
   }
 });
@@ -326,7 +326,7 @@ router.delete("/animals/:animalId", async (req, res) => {
 
     return res.json({ message: "Animal archived successfully" });
   } catch (error) {
-    console.error("Merchant animal archive error:", error.message);
+    console.error("Merchant animal archive error:");
     return res.status(500).json({ error: "Failed to archive animal" });
   }
 });
@@ -360,7 +360,7 @@ router.get("/animals/:animalId/availability", async (req, res) => {
         : createDefaultSlots(),
     });
   } catch (error) {
-    console.error("Merchant availability read error:", error.message);
+    console.error("Merchant availability read error:");
     return res.status(500).json({ error: "Failed to load availability" });
   }
 });
@@ -399,7 +399,7 @@ router.put("/animals/:animalId/availability", async (req, res) => {
       slots: availability.slots,
     });
   } catch (error) {
-    console.error("Merchant availability save error:", error.message);
+    console.error("Merchant availability save error:");
     return res.status(500).json({ error: "Failed to save availability" });
   }
 });
@@ -418,7 +418,7 @@ router.get("/bookings", async (req, res) => {
 
     return res.json(bookings.map(serializeBooking));
   } catch (error) {
-    console.error("Merchant bookings list error:", error.message);
+    console.error("Merchant bookings list error:");
     return res.status(500).json({ error: "Failed to load merchant bookings" });
   }
 });
@@ -440,7 +440,7 @@ router.patch("/bookings/:bookingId/accept", async (req, res) => {
 
     return res.json(serializeBooking(booking.toObject()));
   } catch (error) {
-    console.error("Merchant accept booking error:", error.message);
+    console.error("Merchant accept booking error:");
     return res.status(500).json({ error: "Failed to accept booking" });
   }
 });
@@ -462,12 +462,13 @@ router.patch("/bookings/:bookingId/reject", async (req, res) => {
 
     return res.json(serializeBooking(booking.toObject()));
   } catch (error) {
-    console.error("Merchant reject booking error:", error.message);
+    console.error("Merchant reject booking error:");
     return res.status(500).json({ error: "Failed to reject booking" });
   }
 });
 
 router.patch("/bookings/:bookingId/reschedule", async (req, res) => {
+  if (process.env.NODE_ENV === 'production') return res.status(503).json({ error: 'Booking changes are temporarily unavailable' });
   try {
     const booking = await ensureMerchantBooking(
       req.params.bookingId,
@@ -527,7 +528,7 @@ router.patch("/bookings/:bookingId/reschedule", async (req, res) => {
 
     return res.json(serializeBooking(booking.toObject()));
   } catch (error) {
-    console.error("Merchant reschedule booking error:", error.message);
+    console.error("Merchant reschedule booking error:");
     return res.status(500).json({ error: "Failed to reschedule booking" });
   }
 });
