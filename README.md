@@ -1,8 +1,8 @@
-# AI Pet Companion Platform
+# PawCompanion — AI Pet Companion Platform
 
 > An AI-powered full-stack web app with emotional support chat, safety risk scoring, and a seamless booking experience for people with mental health needs.
 
----
+[Demo](#demo) · [Features](#key-features) · [Run Locally](#getting-started) · [Documentation](#documentation)
 
 ## Demo
 
@@ -11,6 +11,9 @@
 <img src="./docs/screenshots/AI-Pet-HomePage.PNG" width="100%" alt="Home Page" />
 
 ---
+
+<details>
+<summary>Explore AI chat, booking, checkout, merchant tools, and risk profiles</summary>
 
 ### AI Chat — Play Mode, Support Mode & Image Generation
 
@@ -46,6 +49,8 @@
 <img src="./docs/screenshots/AI-Pet-RiskScoreSystem.PNG" width="100%" alt="Risk Profile" />
 
 ---
+
+</details>
 
 ## What This App Does
 
@@ -102,7 +107,7 @@ This app lets users browse, search, and book the delivery of adoptable pets. Eac
 
 | Layer            | Technology                                          |
 | ---------------- | --------------------------------------------------- |
-| Frontend         | React (Create React App), React Router, CSS Modules |
+| Frontend         | React, Vite, React Router, CSS Modules |
 | State            | React Context API                                   |
 | HTTP             | Axios                                               |
 | Backend          | Node.js, Express.js                                 |
@@ -116,7 +121,7 @@ This app lets users browse, search, and book the delivery of adoptable pets. Eac
 ## Project Structure
 
 ```
-Cat delivery app/
+PawCompanion/
 ├── README.md                  ← You are here
 ├── Architecture.md            ← Full technical review and design notes
 ├── frontend/                  ← React app
@@ -144,18 +149,18 @@ Cat delivery app/
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 24+
 - npm
 - MongoDB (local or Atlas) — required for AI Chat and risk scoring
-- HuggingFace API key — required for AI responses and image generation
+- HuggingFace API key — required when enabling AI responses and image generation
 
 ---
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repo-url>
-cd "Cat delivery app"
+git clone https://github.com/Mike-Animal-Counseling/PawCompanion.git
+cd PawCompanion
 ```
 
 ### 2. Configure the Backend
@@ -165,19 +170,20 @@ cd backend
 cp .env.example .env
 ```
 
-Open `.env` and fill in:
+Use [`backend/.env.example`](backend/.env.example) as the source of truth. Set `MONGO_URI` to your MongoDB connection string and generate a fresh `JWT_SECRET`:
 
-```env
-MONGODB_URI=mongodb://localhost:27017/cat-delivery
-HUGGINGFACE_API_KEY=your_key_here
-PORT=5000
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
 ```
+
+Paste the output into `JWT_SECRET` in `backend/.env`. Keep `CORS_ORIGIN=http://localhost:3000` for local use. To try AI features, set `ENABLE_AI=true` and supply `HUGGINGFACE_API_KEY`.
 
 ### 3. Start the Backend
 
+Continue in the `backend` directory:
+
 ```bash
-cd backend
-npm install
+npm ci
 npm run seed      # optional: populate the database with sample animals
 npm run dev
 ```
@@ -186,9 +192,11 @@ Backend runs at: `http://localhost:5000`
 
 ### 4. Start the Frontend
 
+In a second terminal, from the repository root:
+
 ```bash
 cd frontend
-npm install
+npm ci
 npm start
 ```
 
@@ -253,8 +261,8 @@ detectSelfHarm(message)          <- in-memory analysis, no DB required
 
 | Area                | Status                                       |
 | ------------------- | -------------------------------------------- |
-| User authentication | UI only — no backend auth or JWT implemented |
-| Payment processing  | Mock only — no real payment gateway          |
+| User authentication | Backend JWT authentication with account ownership and role checks |
+| Payment processing  | Prototype only; production checkout and booking changes are disabled until real payments and atomic reservations are integrated |
 | Animal data         | Seeded static data — no admin CMS            |
 | Image generation    | Requires active HuggingFace API key          |
 
