@@ -1,6 +1,6 @@
 # PawCompanion — AI Pet Companion Platform
 
-**Emotional-support chat, safety risk scoring, and pet delivery booking in one full-stack app.**
+**Emotional-support chat, safety risk scoring, and pet visit booking in one full-stack app.**
 
 [Run locally](#run-locally) · [Features](#features) · [Safety](#safety-and-risk-scoring) · [Documentation](#documentation)
 
@@ -8,19 +8,19 @@
 
 ## What it does
 
-Browse adoptable pets, chat with each pet's AI personality, and book a delivery.
+Browse adoptable pets, chat with each pet's AI personality, and book a 2-hour visit session.
 Conversations are scanned for self-harm signals and feed a time-decayed risk profile
 that can surface crisis resources. Payments and checkout are simulated.
 
 ## Features
 
 - **Pet browsing** — search by name, filter by location tag, and open pet detail pages.
-- **Cart** — add multiple pets, adjust quantities, and keep the cart across refreshes.
+- **Booking list** — keep selected pets in a list that persists across refreshes (localStorage).
 - **AI chat** — per-pet personalities, **play** and **support** modes (STF-N), automatic
   mode switching, per-user history, and image generation.
-- **Booking** — delivery date and address, calculated delivery cost, and tracking number.
-- **Safety** — self-harm signal detection, 7-day and 30-day risk scores, crisis helpline
-  responses, and a background scanner for high-risk users.
+- **Booking** — pick a date and 2-hour time slot; price is the pet's rate × 2, and the address is entered at checkout.
+- **Safety** — self-harm signal detection, 7-day and 30-day risk scores, and crisis helpline
+  responses.
 - **Merchant portal** — merchant login, listings, and order views.
 
 <details>
