@@ -16,7 +16,7 @@ Environment (`.env.example`):
 ```ini
 VITE_API_URL=
 VITE_API_TARGET=http://127.0.0.1:5000
-VITE_SHOW_DEMO_CREDENTIALS=false
+VITE_SHOW_DEMO_ACCOUNTS=false
 ```
 
 Keep `VITE_API_URL` empty when the web app and API share an origin. The Vite proxy is development-only.

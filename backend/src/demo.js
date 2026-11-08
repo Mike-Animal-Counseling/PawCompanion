@@ -66,7 +66,7 @@ if (!skipWeb) {
     shell: process.platform === 'win32',
     env: {
       ...process.env,
-      VITE_SHOW_DEMO_CREDENTIALS: 'true',
+      VITE_SHOW_DEMO_ACCOUNTS: 'true',
       VITE_API_TARGET: `http://127.0.0.1:${process.env.PORT}`,
     },
   });

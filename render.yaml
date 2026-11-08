@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: paw-companion-demo
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile.render
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: HOST
+        value: 0.0.0.0
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_DEMO
+        value: true
+      - key: ALLOW_SEED_IN_PRODUCTION
+        value: true
+      - key: PAYMENTS_MODE
+        value: sandbox
+      - key: ALLOW_SANDBOX_PAYMENTS
+        value: true
+      - key: ENABLE_AI
+        value: false
+      - key: DEMO_MODE
+        value: true
+      - key: LOG_LEVEL
+        value: info
+      - key: TRUST_PROXY
+        value: 1

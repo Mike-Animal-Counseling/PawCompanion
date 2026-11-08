@@ -1,4 +1,4 @@
-﻿# PawCompanion
+# PawCompanion
 
 ### A companionship app for pet people — online and offline.
 
@@ -173,7 +173,7 @@ npm run check:privacy # scan tracked files for local paths / key material
 - **Rate limits:** shared Redis budgets when configured, bounded memory fallback for a single-instance demo.
 - **Data integrity:** partial unique booking index, one check-in per day, one review per visit, one conversation per companion.
 - **Frontend:** design tokens + CSS Modules, auth gate before route mount, route-level lazy loading, accessible dialogs/pickers, PWA service worker.
-- **Deployment:** backend/frontend Dockerfiles, nginx same-origin proxy, compose demo, health/readiness, graceful shutdown.
+- **Deployment:** backend/frontend Dockerfiles, a full-stack Render image, nginx same-origin proxy, compose demo, health/readiness, graceful shutdown.
 - **Docs:** [case study](docs/CASE_STUDY.md), [architecture](Architecture.md), [API](docs/API.md), [safety](docs/SAFETY.md), [deployment](docs/DEPLOYMENT.md), [publishing](docs/PUBLISHING.md).
 
 ### Repository map
@@ -230,6 +230,7 @@ The recommended setup is **one public code repo + one private deployment repo**:
 | [docs/DIGITAL_PET.md](docs/DIGITAL_PET.md) | Digital pet state, behaviour planner, sound/text contract |
 | [docs/SOUND_CREDITS.md](docs/SOUND_CREDITS.md) | Licensed animal sound sources |
 | [docs/IMAGES.md](docs/IMAGES.md) | Merchant image pipeline, limits, demo-asset policy |
+| [docs/DEPLOYMENT_SUPPORT.md](docs/DEPLOYMENT_SUPPORT.md) | Render + Atlas setup, required values, live-demo checklist |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker, production configuration, operations |
 | [docs/PUBLISHING.md](docs/PUBLISHING.md) | Public/private repo strategy and privacy audit |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Local setup, tests, conventions |

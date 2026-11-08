@@ -1,0 +1,31 @@
+# Full-stack demo image: Vite build + API in one same-origin container.
+# The frontend is copied to /app/public and served by Express.
+
+FROM node:24-alpine AS web
+WORKDIR /web
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+ARG VITE_SHOW_DEMO_ACCOUNTS=true
+ENV VITE_SHOW_DEMO_ACCOUNTS=$VITE_SHOW_DEMO_ACCOUNTS
+RUN npm run build
+
+FROM node:24-alpine
+WORKDIR /app
+ENV NODE_ENV=production
+
+COPY backend/package.json backend/package-lock.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY backend/src ./src
+COPY backend/scripts/render-start.sh ./render-start.sh
+COPY --from=web /web/dist ./public
+
+RUN chmod +x render-start.sh && mkdir -p uploads && chown -R node:node /app
+USER node
+EXPOSE 5000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:5000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+
+CMD ["sh", "render-start.sh"]

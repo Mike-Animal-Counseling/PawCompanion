@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import mongoose from 'mongoose';
 import { rateLimit as expressRateLimit } from 'express-rate-limit';
@@ -182,6 +183,48 @@ export function createApp({ config, budgets = noopBudgets }) {
       },
     }),
   );
+
+  // A full-stack container copies the Vite build to ./public. In development
+  // this directory is absent, so the API remains API-only.
+  const publicDir = path.resolve(process.cwd(), 'public');
+  const publicIndex = path.join(publicDir, 'index.html');
+  if (existsSync(publicIndex)) {
+    const webCsp = [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' https: data: blob:",
+      "font-src 'self' data:",
+      "connect-src 'self'",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+    ].join('; ');
+    app.use((req, res, next) => {
+      if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
+        res.setHeader('Content-Security-Policy', webCsp);
+      }
+      next();
+    });
+    app.use(
+      express.static(publicDir, {
+        index: false,
+        dotfiles: 'deny',
+        setHeaders(res, filePath) {
+          if (filePath.includes(`${path.sep}assets${path.sep}`)) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          } else {
+            res.setHeader('Cache-Control', 'no-cache');
+          }
+        },
+      }),
+    );
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next();
+      return res.sendFile(publicIndex);
+    });
+  }
 
   app.use(notFoundHandler);
   app.use(errorHandler);

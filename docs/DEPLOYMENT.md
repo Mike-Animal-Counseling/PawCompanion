@@ -1,5 +1,7 @@
 # Deployment
 
+For the one-service Render + MongoDB Atlas demo, including the exact values to provide, see [DEPLOYMENT_SUPPORT.md](DEPLOYMENT_SUPPORT.md). The blueprint is `render.yaml`; the full-stack image is `Dockerfile.render`.
+
 ## Demo stack (Docker Compose)
 
 ```bash

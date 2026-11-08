@@ -1,0 +1,16 @@
+.git
+.github
+node_modules
+**/node_modules
+backend/.cache
+backend/uploads
+frontend/dist
+frontend/build
+.npm-cache
+.cache
+docs/screenshots
+playwright-report
+test-results
+.env
+.env.*
+!.env.example
