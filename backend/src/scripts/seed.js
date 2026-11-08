@@ -565,10 +565,7 @@ if (isDirectRun) {
     await connectDB(process.env.MONGO_URI);
     const result = await seedDatabase({ reset });
     if (result.credentials) {
-      console.log('\nDemo accounts');
-      console.log('  customer:', result.credentials.customer.email, '/', result.credentials.customer.password);
-      console.log('  merchant:', result.credentials.merchant.email, '/', result.credentials.merchant.password);
-      console.log('  admin:   ', result.credentials.admin.email, '/', result.credentials.admin.password);
+      console.log('\nDemo accounts seeded. See README.md for the demo credentials.');
     }
     await disconnectDB();
     process.exit(0);

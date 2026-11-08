@@ -8,7 +8,7 @@
  * files.
  */
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
@@ -54,7 +54,6 @@ try {
 
 for (const file of files) {
   const absolute = path.join(root, file);
-  if (!existsSync(absolute)) continue;
 
   if (sensitiveFilePattern.test(file) && !file.endsWith('.env.example')) {
     findings.push({ file, line: 0, pattern: 'sensitive path is tracked', excerpt: file });
@@ -63,7 +62,6 @@ for (const file of files) {
 
   const extension = path.extname(file).toLowerCase();
   if (skippedExtensions.has(extension)) continue;
-  if (statSync(absolute).size > 512 * 1024) continue;
 
   let content;
   try {
@@ -71,6 +69,7 @@ for (const file of files) {
   } catch {
     continue;
   }
+  if (content.length > 512 * 1024) continue;
   if (content.includes(0)) continue;
   const text = content.toString('utf8');
 

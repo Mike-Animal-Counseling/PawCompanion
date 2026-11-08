@@ -53,9 +53,7 @@ console.log('  API      http://127.0.0.1:' + process.env.PORT);
 console.log('  Web      http://localhost:3000');
 console.log('');
 if (seed.credentials) {
-  console.log('  Customer ' + seed.credentials.customer.email + '  /  ' + seed.credentials.customer.password);
-  console.log('  Partner  ' + seed.credentials.merchant.email + '  /  ' + seed.credentials.merchant.password);
-  console.log('  Admin    ' + seed.credentials.admin.email + '  /  ' + seed.credentials.admin.password);
+  console.log('  Demo accounts seeded. See README.md for the demo credentials.');
   console.log('');
 }
 
