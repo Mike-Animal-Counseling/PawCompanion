@@ -23,4 +23,4 @@ export const DEMO_CREDENTIALS = {
   admin: { email: 'admin@pawcompanion.app', password: 'AdminDemo!2026', label: 'Operator demo' },
 };
 
-export const SHOW_DEMO_CREDENTIALS = import.meta.env.VITE_SHOW_DEMO_CREDENTIALS === 'true';
+export const SHOW_DEMO_CREDENTIALS = import.meta.env.VITE_SHOW_DEMO_ACCOUNTS === 'true';
