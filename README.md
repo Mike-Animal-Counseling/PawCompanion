@@ -1,50 +1,99 @@
-﻿# PawCompanion
+# PawCompanion
 
-**An online + in-person pet companionship product.**
-Chat with a companion's AI personality, check in with yourself every day, and book a real visit 閳?a home visit, a walk, a caf鑼?meetup or a short video call.
+### A companionship app for pet people — online and offline.
 
-[Quick start](#quick-start) 璺?[Product](#the-product) 璺?[Architecture](#architecture) 璺?[Testing](#engineering) 璺?[Documentation](#documentation)
+PawCompanion is a full-stack consumer product, not a pet marketplace. It combines an AI companion you can talk to every day with real, bookable visits from verified shelters, cafés and trainers. One relationship, two delivery tracks, and a safety layer that treats a bad day as a product requirement.
+
+[Demo](#demo) · [Product tour](#product-tour) · [How it works](#how-it-works) · [Engineering](#engineering) · [Case study](docs/CASE_STUDY.md) · [Publishing strategy](docs/PUBLISHING.md)
 
 ![PawCompanion member home](docs/screenshots/v2/app-home-member.webp)
 
-## The product
+> **Status:** portfolio-ready demo. The product is complete enough to review end to end; payments are sandboxed, AI is optional, and the safety operations are not a 24/7 clinical service. I would not put real users on this build without the launch work listed at the bottom.
 
-Most pet apps stop at a listing. PawCompanion is built as a companionship service with two tracks that share one relationship:
+**Stack:** React 19 · Vite 8 · Express 4 · MongoDB · Zod · JWT sessions · Playwright · Docker · GitHub Actions
 
-| | Online companionship | In-person companionship |
-| --- | --- | --- |
-| **What it is** | An AI companion with a consistent personality, memory and a safety-aware support mode | Two-hour visits, walks, caf鑼?meetups and 30-minute video calls with a real companion and host |
-| **When** | Any time, especially between visits | Booked in advance, confirmed by the host |
-| **Core systems** | Daily check-ins, mood journal, conversation memory, companion bond, crisis screening, risk profiles | Service catalogue, availability, atomic slot booking, sandbox payments/refunds, host decisions, rescheduling, reviews |
-| **Where it lives** | `/check-in`, `/chat/:id`, `/chats` | `/companions/:id`, `/book/:id`, `/visits` |
+**Proof:** 41 backend tests · 9-step browser E2E · 0 audit vulnerabilities · route-level code splitting · PWA
 
-### Online track
+---
 
-- **Daily check-in and journal.** A 30-second mood/energy check-in with optional tags and a private note. The chosen companion replies, the check-in joins the same conversation thread, and a streak plus a seven-day mood chart make the relationship visible without turning it into a score.
-- **AI companion chat.** Each animal has a personality profile, a tone and a memory. The app works without an API key via a local persona fallback; adding `HUGGINGFACE_API_KEY` upgrades the same flows to a hosted model.
-- **Support mode.** Distress is detected locally before any model call. The companion switches to a slower STF-N style, asks one question at a time and never claims to be a therapist.
-- **Safety, not a disclaimer.** High-risk language interrupts the conversation with crisis resources. Derived risk events (level + timestamp, never raw text) feed a decaying profile that operators can review.
-- **Bond and continuity.** Messages, completed visits and favourites accumulate into a private bond level on the companion profile.
+## The idea
 
-### In-person track
+Most apps for lonely pet lovers stop at a listing or a feed. The actual need is a relationship that shows up between visits.
 
-- **Four service types.** Home visit, walk & talk, caf鑼?meetup and a 30-minute online video call 閳?priced from the companion's hourly rate with a transparent service fee.
-- **Real booking mechanics.** Atomic slot reservation (one live booking per companion/date/time), two-booking daily limit, host confirmation, rescheduling more than 24 hours ahead, cancellation with automatic sandbox refund.
-- **Visit lifecycle.** `pending 閳?confirmed 閳?completed`, or `cancelled`/`declined`; a status timeline, receipt, host notes and guest notes travel with every visit.
-- **Reviews that close the loop.** Only completed visits can be reviewed, once. Ratings recompute the companion and host aggregates; hosts can reply publicly.
-- **Merchant operations.** Listings, photo upload, 21-day availability calendar, visit decisions, review replies, business profile and a 30-day dashboard split into online/in-person channels.
-- **Operator console.** Safety queue, partner suspension, listing/review moderation and an append-only audit trail.
+PawCompanion makes that relationship concrete:
+
+- **Online:** a daily check-in, a private journal, an AI companion with a personality and memory, a support mode when the day is heavy, and a visible bond that grows from messages and visits.
+- **Offline:** a home visit, a walk, a café meetup or a 30-minute video call. Real availability, a real host decision, a real refund path.
+- **Around it:** browsing, favourites, notifications, bookings, reviews, a partner console and an operator safety queue.
+
+The design constraints were deliberate: low pressure, no engagement dark patterns, no diagnosis language, and no pretending that a sandbox payment is real.
+
+![Guest discovery](docs/screenshots/v2/guest-home.webp)
+
+---
+
+## Product tour
+
+### 1. A member home that is about today, not a catalogue
+
+The signed-in home starts with a check-in, the next visit, the conversations you can continue, and a small set of recommendations. Discovery is below, not the first thing you see.
+
+### 2. Online companionship: check in, talk, keep a thread
+
+| Daily check-in | AI companion chat |
+| --- | --- |
+| ![Daily check-in](docs/screenshots/v2/app-checkin.webp) | ![Chat with a companion](docs/screenshots/v2/app-chat.webp) |
+
+- One check-in per day: mood, energy, tags and an optional private note.
+- A companion replies, the check-in joins the same conversation, and a seven-day chart plus streak make the relationship visible without turning it into a score.
+- Support mode is chosen from intent, not sentiment. A high-risk message interrupts the model and returns crisis resources.
+- Chat memory, a local persona fallback and optional hosted models share the same safety layer.
+
+### 3. A companion profile that connects the two tracks
+
+![Companion profile](docs/screenshots/v2/app-companion.webp)
+
+The profile shows the host, reviews, the next opening, in-person and video-call pricing, and — for a signed-in guest — the private bond built from messages, visits and favourites.
+
+### 4. Offline companionship: a booking that behaves like a real one
+
+![Booking a visit](docs/screenshots/v2/app-booking.webp)
+
+- Four services: home visit, walk & talk, café meetup, online video call.
+- Server-computed pricing with an 8% service fee; the client never sends a price.
+- Atomic slot reservation, 2-booking daily cap, host accept/decline, reschedule, cancellation with refund, completion and a review that recomputes ratings.
+- The same visit appears correctly in the guest’s **My visits** and the partner’s **Bookings**.
+
+### 5. Partner console
+
+![Partner dashboard](docs/screenshots/v2/app-merchant-overview.webp)
+
+- A 30-day dashboard with booking value, online/in-person split, repeat guests, top companions and recent reviews.
+- Listings with photo upload, 21-day availability, visit decisions, review replies and business profile.
+- A partner can see the guest contact needed for a visit, but never the guest’s chat or check-in data.
+
+### 6. Operator console
+
+![Operator safety queue](docs/screenshots/v2/app-admin-safety.webp)
+
+- Safety queue with derived scores and timestamps — **no raw conversation text**.
+- Acknowledge/resolve, partner suspension, listing/review moderation and an append-only audit trail.
+- Every operator action is recorded and every queue decision is explicit.
+
+### 7. A real mobile shell
 
 <p align="center">
-  <img src="docs/screenshots/v2/app-checkin.webp" width="49%" alt="Daily check-in with mood, energy, tags, notes and a weekly chart" />
-  <img src="docs/screenshots/v2/app-companion.webp" width="49%" alt="Companion profile with online/in-person services, bond and reviews" />
+  <img src="docs/screenshots/v2/mobile-home.webp" width="300" alt="Mobile home with bottom tab bar" />
+  <img src="docs/screenshots/v2/mobile-checkin.webp" width="300" alt="Mobile daily check-in" />
 </p>
 
-## Quick start
+Bottom navigation, safe-area spacing, touch-sized controls, no horizontal overflow, PWA manifest and install shortcuts.
 
-### Option A 閳?one command, in-memory database
+---
 
-Requires **Node.js 24+** and npm. First install the two apps, then run the demo:
+## Demo
+
+Requires **Node.js 24+**.
 
 ```bash
 npm --prefix backend ci
@@ -52,7 +101,7 @@ npm --prefix frontend ci
 npm run demo
 ```
 
-`npm run demo` starts an in-memory MongoDB, seeds the full demo (4 hosts, 14 companions, chats, check-ins, visits and reviews), starts the API on `:5000` and the web app on `:3000`. The first run downloads a MongoDB binary once.
+This starts an in-memory MongoDB, seeds the demo, starts the API on `:5000` and the web app on `:3000`. The first run downloads a MongoDB binary once.
 
 | Role | Email | Password |
 | --- | --- | --- |
@@ -60,145 +109,124 @@ npm run demo
 | Partner | `hello@willowandwhiskers.example` | `MerchantDemo!2026` |
 | Operator | `admin@pawcompanion.app` | `AdminDemo!2026` |
 
-### Option B 閳?Docker Compose
+Docker demo: `docker compose up --build` → `http://localhost:8080`.
 
-```bash
-docker compose up --build
-```
+All seed identities, reviews and visits are fictional demo data.
 
-Open `http://localhost:8080`. The compose stack runs MongoDB, the API, the seed and an nginx-served production bundle. It is a demo configuration: sandbox payments, no real money, demo credentials enabled.
+---
 
-### Option C 閳?your own MongoDB
-
-```bash
-cd backend
-cp .env.example .env
-# set MONGO_URI and a fresh JWT_SECRET
-npm ci
-npm run seed        # adds the same demo data, resetting demo collections
-npm run dev         # API :5000
-```
-
-```bash
-cd frontend
-cp .env.example .env
-npm ci
-npm run dev         # web :3000 (proxies /api and /uploads to :5000)
-```
-
-Generate a secret with:
-
-```bash
-node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
-```
-
-## Screenshots
-
-| Guest discovery | Booking a real visit |
-| --- | --- |
-| ![Guest home](docs/screenshots/v2/guest-home.webp) | ![Booking](docs/screenshots/v2/app-booking.webp) |
-
-| Partner dashboard | Operator safety queue |
-| --- | --- |
-| ![Partner overview](docs/screenshots/v2/app-merchant-overview.webp) | ![Safety queue](docs/screenshots/v2/app-admin-safety.webp) |
-
-| Mobile app home | Mobile check-in |
-| --- | --- |
-| <img src="docs/screenshots/v2/mobile-home.webp" width="300" alt="Mobile home with bottom navigation" /> | <img src="docs/screenshots/v2/mobile-checkin.webp" width="300" alt="Mobile daily check-in" /> |
-
-## Architecture
+## How it works
 
 ```mermaid
 flowchart LR
-  U[Guest] --> W[React 19 PWA]
-  M[Partner] --> W
-  O[Operator] --> W
-  W -->|access token + HttpOnly refresh cookie| A[Express API]
-  A --> DB[(MongoDB)]
-  A -. optional .-> R[(Redis budgets)]
-  A -. optional .-> HF[Hugging Face chat / image]
-  A --> S[Safety engine]
-  S --> P[Risk profiles + audit]
-  A --> B[Booking engine]
-  B --> Y[Sandbox payments]
+  Guest[Guest web / PWA] --> API[Express API]
+  Partner[Partner console] --> API
+  Operator[Operator console] --> API
+  API --> Mongo[(MongoDB)]
+  API -. optional .-> Redis[(Redis budgets)]
+  API -. optional .-> AI[Hugging Face chat / image]
+  API --> Safety[Safety engine]
+  Safety --> Risk[Derived risk profile + audit]
+  API --> Booking[Booking engine]
+  Booking --> Pay[Sandbox payment ledger]
 ```
 
-- **Frontend:** React 19, React Router 7, Vite 8, CSS Modules over a token-based design system, route-level code splitting, PWA manifest/service worker, accessible mobile tab bar.
-- **Backend:** Express 4 with a layered split 閳?`routers/` (HTTP), `services/` (domain), `models/` (Mongo), `validators/` (Zod), `serializers/` (API shape), plus shared `lib/` helpers for errors, logging, IDs and time.
-- **Auth:** short-lived access JWT in memory, rotating refresh token in an `HttpOnly`, `SameSite=Lax` cookie stored as a hashed session row. Logout and refresh invalidate the session immediately; password changes revoke other devices.
-- **Data integrity:** a partial unique index enforces one live booking per companion/date/start time; booking creation is a real reservation, not a client-side cart.
-- **Multi-role:** guest, partner and operator accounts are separate collections with shared session and role guards.
-- **Operations:** request IDs, structured JSON logging, `/api/health` and `/api/ready`, graceful shutdown, 30-minute booking sweep, daily risk scan, append-only audit events.
+**Online track:** `POST /checkins` → safety screen → companion reply → check-in row + chat memory.
 
-Read [Architecture.md](Architecture.md) for the full design and trade-offs.
+**Offline track:** service → slot → atomic booking → sandbox payment → host decision → completion → review.
+
+**Auth:** short-lived access JWT in memory + rotating refresh session in an HttpOnly cookie. Every request validates the session row, so logout and password changes are immediate.
+
+More detail: [Architecture.md](Architecture.md), [API reference](docs/API.md), [Safety model](docs/SAFETY.md).
+
+---
+
+## Three hard problems
+
+**1. Trust is not a footer disclaimer.**
+
+High-risk language is detected before any model call. The reply becomes a crisis card with real resources. Risk events store a level and timestamp, never the message. Operators see only derived signals. The guest can delete all companion data.
+
+**2. A booking is a state machine, not a POST.**
+
+A partial unique index guarantees one live booking per companion/date/start time. Cancellations release the slot and refund the sandbox payment. Confirmed past visits are swept to completed; unconfirmed past requests are declined and refunded. Reviews are only possible once, after completion.
+
+**3. Continuity is the product.**
+
+The same companion appears in discovery, chat, check-in, favourites and visits. Messages, visits and favourites create a bond; the next visit, active chats and the check-in live on the member home. That continuity is why this feels like an app rather than a directory.
+
+---
 
 ## Engineering
 
 ```bash
-npm test          # 41 backend tests: auth, RBAC, bookings, check-ins, safety, security
-npm run build     # production frontend build (route-level chunks, no source maps)
-npm run demo      # in-memory DB + seed + API + web
-npm run seed      # reset the demo data against MONGO_URI
+npm test              # 41 backend tests
+npm run build         # lazy route chunks, no source maps
+npm run e2e           # 9-step Playwright smoke test (demo running)
+npm run check:privacy # scan tracked files for local paths / key material
 ```
 
-Optional browser smoke test (with the demo running and Edge/Chrome installed):
-
-```bash
-npm ci
-npm run e2e
-```
-
-- **Validation:** every body, query and route parameter is parsed by Zod; object-shaped NoSQL payloads fail before a query.
-- **Rate limits:** shared per-IP, per-account, per-user and global budgets; Redis-backed when `REDIS_URL` is set, memory-backed for a single instance.
-- **Safety tests:** high/medium/none classification in English and Chinese, crisis card resources, risk-profile updates, check-in screening.
-- **Booking tests:** service pricing, duplicate-slot conflicts, ownership checks, rescheduling, refunds, review eligibility and rating recomputation.
-- **CI:** locked installs, `npm audit`, backend tests, frontend build and a source-map check (`.github/workflows/application.yml`).
-- **Deployment:** backend/frontend Dockerfiles and a compose demo; see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+- **Backend:** routers → services → models; Zod at every boundary; stable serializers; central error handling; request IDs and structured logs.
+- **Auth:** rotating refresh sessions hashed in MongoDB, HttpOnly/SameSite cookies, per-email/IP credential budgets, session list/revoke, password change, account closure.
+- **Rate limits:** shared Redis budgets when configured, bounded memory fallback for a single-instance demo.
+- **Data integrity:** partial unique booking index, one check-in per day, one review per visit, one conversation per companion.
+- **Frontend:** design tokens + CSS Modules, auth gate before route mount, route-level lazy loading, accessible dialogs/pickers, PWA service worker.
+- **Deployment:** backend/frontend Dockerfiles, nginx same-origin proxy, compose demo, health/readiness, graceful shutdown.
+- **Docs:** [case study](docs/CASE_STUDY.md), [architecture](Architecture.md), [API](docs/API.md), [safety](docs/SAFETY.md), [deployment](docs/DEPLOYMENT.md), [publishing](docs/PUBLISHING.md).
 
 ### Repository map
 
 ```
-backend/
-  src/
-    config/        env validation, Mongo connection
-    middleware/    auth, request context, error handling
-    models/        Customer, Merchant, Admin, Session, Animal, Booking, Payment,
-                   Review, Favorite, Checkin, Notification, ChatMemory, RiskEvent, ...
-    routers/       auth, me, checkins, animals, favorites, bookings, ai,
-                   notifications, merchant, admin
-    services/      scheduling, availability, booking, checkin, review, safety,
-                   risk scoring, session, AI, image generation, analytics, audit
-    scripts/       seed, demo
-  tests/           41 integration/unit tests
-frontend/
-  src/
-    components/    design-system primitives, layout, companion cards, chat, dashboard
-    context/       auth, toast, favorites
-    pages/         public, guest, partner and operator screens
-    styles/        tokens, base, shared UI
-    lib/           API client, formatting, constants
-docs/              API, deployment, safety, production security, screenshots
+backend/src/
+  routers/        auth, me, checkins, animals, favorites, bookings, ai, notifications, merchant, admin
+  services/       scheduling, availability, booking, checkin, review, safety, risk, session, AI, analytics
+  models/         Customer, Merchant, Admin, Session, Animal, Booking, Payment, Review, Favorite,
+                  Checkin, ChatMemory, Notification, RiskEvent, UserRiskProfile, AuditEvent
+  validators/     Zod request contracts
+  serializers/    stable API shapes
+  lib/            errors, logger, validation, IDs, time
+frontend/src/
+  pages/          public, guest, partner, operator
+  components/     layout, design primitives, companion cards, chat, dashboard
+  context/        auth, toast, favorites
+  lib/            API client, formatting, constants
+  styles/         tokens, base, shared UI
 ```
+
+---
+
+## What I would build next
+
+- **Live payments:** Stripe PaymentIntents, webhooks, idempotency keys, real refund reconciliation.
+- **Human online companionship:** scheduled audio/video sessions with vetted hosts, separate from the AI track.
+- **Production safety ops:** on-call escalation, localised helplines, clinician-reviewed copy, consent and retention controls.
+- **Recurring partner schedules:** weekly opening hours, holidays and travel time instead of per-date overrides.
+- **Real-time layer:** WebSocket/SSE notifications and a shared host inbox.
+- **Native shell:** Expo/React Native client reusing the API and design tokens, plus push notifications.
+- **Type contracts:** migrate to TypeScript and generate the client from OpenAPI.
+
+---
+
+## Honest limitations
+
+This is not a production therapy or emergency service. It is companionship with a safety layer. There is no 24/7 human crisis team, no live payment processor, no email/SMS delivery, no email verification or password reset, and no native app yet. See [docs/SAFETY.md](docs/SAFETY.md) and [docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md) before any public launch.
+
+## Publishing this project
+
+The recommended setup is **one public code repo + one private deployment repo**: this repo is the portfolio and the complete implementation; the private repo holds only environment-specific infrastructure, secrets and operational configuration. It is also valid to keep one public repo and use GitHub Environments/Secrets. The decision, privacy checklist and launch path are in [docs/PUBLISHING.md](docs/PUBLISHING.md).
 
 ## Documentation
 
 | File | Contents |
 | --- | --- |
-| [Architecture.md](Architecture.md) | Domain model, online/offline flows, auth, safety, trade-offs |
-| [docs/API.md](docs/API.md) | Endpoint reference, response envelope, examples |
-| [docs/SAFETY.md](docs/SAFETY.md) | Crisis detection, support mode, risk scoring, privacy limits |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker, production configuration, operations checklist |
-| [docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md) | Supported production boundary |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Local setup, tests, project conventions |
+| [docs/CASE_STUDY.md](docs/CASE_STUDY.md) | Problem, users, product bets, metrics, launch plan |
+| [Architecture.md](Architecture.md) | Domain model, flows, auth, safety, trade-offs |
+| [docs/API.md](docs/API.md) | Endpoint reference and examples |
+| [docs/SAFETY.md](docs/SAFETY.md) | Crisis detection, support mode, risk scoring, privacy |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker, production configuration, operations |
+| [docs/PUBLISHING.md](docs/PUBLISHING.md) | Public/private repo strategy and privacy audit |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Local setup, tests, conventions |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in 2.0 |
-
-## Safety and honest limitations
-
-PawCompanion is **companionship, not therapy or medical care**. It is not monitored 24/7 by a human crisis team. High-risk messages surface crisis resources (US 988, findahelpline.com, emergency services) and feed a private review queue; they do not contact emergency services on the guest's behalf.
-
-**Payments are sandboxed.** There is no live card processor in this build. The sandbox creates a real, auditable payment and refund record so the booking lifecycle is complete, but no money moves. A production deployment must either integrate a live provider or explicitly acknowledge demo mode with `ALLOW_SANDBOX_PAYMENTS=true`.
-
-AI is optional. With `ENABLE_AI=false` the product uses a local persona fallback and remains fully usable; with a key it upgrades chat and image generation while keeping the same safety layer. See [SECURITY.md](SECURITY.md) and [docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md).
 
 ## License
 

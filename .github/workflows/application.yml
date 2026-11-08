@@ -26,6 +26,8 @@ jobs:
           cache-dependency-path: |
             backend/package-lock.json
             frontend/package-lock.json
+      - name: Check tracked files for local paths and key material
+        run: npm run check:privacy
       - name: Install backend locked dependencies
         working-directory: backend
         run: npm ci

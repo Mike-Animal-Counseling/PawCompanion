@@ -21,6 +21,7 @@ A full product and engineering rewrite that turns the original demo into an onli
 - **Safety:** English/Chinese self-harm patterns, support mode, crisis resources, derived risk profile, human review queue, data deletion.
 - **Engineering:** 41 backend tests, CI, Dockerfiles, Docker Compose demo, seeded demo, API/safety/deployment docs.
 - **Design system:** Fraunces/Inter, warm forest/cream/coral identity, accessible components and responsive layouts.
+- **Portfolio materials:** curated README, product case study, public/private publishing strategy and a privacy check for tracked files.
 
 ### Changed
 
