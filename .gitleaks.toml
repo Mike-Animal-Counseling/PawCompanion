@@ -1,0 +1,23 @@
+[extend]
+useDefault = true
+
+# These are deliberately public demo credentials for the local seed/compose
+# stack. They are not valid in any deployed environment and must never be used
+# for a real account, database or signing key.
+[allowlist]
+description = "Local demo credentials and compose defaults"
+paths = [
+  '''docker-compose\.yml''',
+  '''backend/tests/.*''',
+  '''backend/src/data/seedData\.js''',
+  '''backend/src/scripts/seed\.js''',
+  '''backend/TEST_GUIDE\.md''',
+  '''README\.md''',
+]
+regexes = [
+  '''PawCompanion!2026''',
+  '''MerchantDemo!2026''',
+  '''AdminDemo!2026''',
+  '''pawcompanion-local-mongo-password''',
+  '''pawcompanion-local-demo-only-please-change-2026''',
+]

@@ -1,59 +1,30 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const chatMemorySchema = new mongoose.Schema({
-  userId: {
-    type: String,
-    required: true,
-    index: true,
+const messageSchema = new mongoose.Schema(
+  {
+    role: { type: String, enum: ['user', 'assistant'], required: true },
+    content: { type: String, required: true, maxlength: 4000 },
+    timestamp: { type: Date, default: Date.now },
+    meta: { type: Object, default: undefined },
   },
-  animalId: {
-    type: String,
-    required: true,
-    index: true,
-  },
-  messages: [
-    {
-      role: {
-        type: String,
-        enum: ["user", "assistant"],
-        required: true,
-      },
-      content: {
-        type: String,
-        required: true,
-      },
-      timestamp: {
-        type: Date,
-        default: Date.now,
-      },
-    },
-  ],
-  // Mode tracking for automatic play/support routing
-  chatMode: {
-    type: String,
-    enum: ["play", "support"],
-    default: "play",
-  },
-  supportTurnsLeft: {
-    type: Number,
-    default: 0,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
+  { _id: false },
+);
 
-// Update updatedAt before saving
-chatMemorySchema.pre("save", function (next) {
-  this.updatedAt = new Date();
-  next();
-});
+const chatMemorySchema = new mongoose.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+    animalId: { type: String, required: true, index: true },
+    animalName: { type: String, default: '' },
+    messages: { type: [messageSchema], default: [] },
+    chatMode: { type: String, enum: ['play', 'support'], default: 'play' },
+    supportTurnsLeft: { type: Number, default: 0, min: 0 },
+    lastMessageAt: { type: Date, default: Date.now, index: true },
+  },
+  { timestamps: true },
+);
 
-const ChatMemory = mongoose.model("ChatMemory", chatMemorySchema);
+chatMemorySchema.index({ userId: 1, animalId: 1 }, { unique: true });
+chatMemorySchema.index({ userId: 1, lastMessageAt: -1 });
 
+export const ChatMemory = mongoose.model('ChatMemory', chatMemorySchema);
 export default ChatMemory;

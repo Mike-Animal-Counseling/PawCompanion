@@ -1,538 +1,401 @@
-import mongoose from "mongoose";
-import { Router } from "express";
-import fs from "fs";
-import path from "path";
-import multer from "multer";
-import Animal from "../models/Animal.js";
-import Booking from "../models/Booking.js";
-import AnimalAvailability from "../models/AnimalAvailability.js";
-import { requireAuth, requireRole } from "../middleware/auth.js";
-import { storeImage, ownsImage } from "../services/secureImage.js";
+import { Router } from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
+import multer from 'multer';
+import Animal from '../models/Animal.js';
+import Booking from '../models/Booking.js';
+import Review from '../models/Review.js';
+import { AppError, asyncHandler, conflict, notFound } from '../lib/errors.js';
+import { created, noContent, ok } from '../lib/http.js';
+import { validate } from '../lib/validate.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import { serializeAnimal } from '../serializers/animal.js';
+import { serializeBooking } from '../serializers/booking.js';
+import { serializeReview } from '../serializers/review.js';
+import { serializeAccount } from '../serializers/account.js';
+import { getConfiguredSlots, getBookedStartTimes, saveDayAvailability, availabilityCalendar } from '../services/availabilityService.js';
+import {
+  acceptBooking,
+  completeBooking,
+  declineBooking,
+  getBookingForMerchant,
+  listMerchantBookings,
+  rescheduleBooking,
+  sweepPastBookings,
+} from '../services/bookingService.js';
+import { replyToReview } from '../services/reviewService.js';
+import { merchantOverview } from '../services/analyticsService.js';
+import { storeImage, ownsImage } from '../services/secureImage.js';
+import { recordAudit } from '../services/auditService.js';
+import { localDateString } from '../lib/time.js';
+import {
+  merchantAnimalCreateSchema,
+  merchantAnimalParamsSchema,
+  merchantAnimalUpdateSchema,
+  merchantAvailabilityQuerySchema,
+  merchantAvailabilitySchema,
+  merchantBookingsQuerySchema,
+  merchantNoteSchema,
+  merchantOverviewQuerySchema,
+  merchantParamsSchema,
+  merchantReplySchema,
+  merchantRescheduleSchema,
+  merchantReviewParamsSchema,
+  merchantReviewsQuerySchema,
+} from '../validators/merchant.js';
+import { updateProfileSchema } from '../validators/auth.js';
 
 const router = Router();
+router.use(requireAuth, requireRole('merchant'));
 
-const AVAILABLE_SLOTS = ["09:00", "11:00", "13:00", "15:00", "17:00"];
-const SLOT_DURATION = 2;
-const ACTIVE_BOOKING_STATUSES = [
-  "pending",
-  "confirmed",
-  "merchant_accepted",
-  "rescheduled",
-];
-const VALID_BOOKING_STATUSES = [...ACTIVE_BOOKING_STATUSES, 'merchant_rejected', 'cancelled', 'completed'];
-const UPLOADS_DIR = path.resolve(process.cwd(), "uploads");
-const ALLOWED_IMAGE_MIME_TYPES = new Set(["image/jpeg", "image/png"]);
-
+const IMAGE_TYPES = new Set(['image/jpeg', 'image/png']);
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (_req, file, cb) => {
-    if (!ALLOWED_IMAGE_MIME_TYPES.has(file.mimetype)) {
-      cb(new Error("Only JPG and PNG images are supported"));
-      return;
-    }
-    cb(null, true);
+  limits: { fileSize: 5 * 1024 * 1024, files: 1 },
+  fileFilter: (_req, file, callback) => {
+    if (!IMAGE_TYPES.has(file.mimetype)) return callback(new AppError(400, 'UNSUPPORTED_IMAGE', 'Only JPG and PNG images are supported'));
+    callback(null, true);
   },
 });
 
-const getUploadedFilePathFromImageUrl = (imageUrl) => {
-  if (!imageUrl || typeof imageUrl !== "string") {
-    return null;
-  }
-
-  let pathname = "";
-  if (imageUrl.startsWith("/uploads/")) {
-    pathname = imageUrl;
-  } else {
-    try {
-      pathname = new URL(imageUrl).pathname;
-    } catch (_error) {
-      return null;
-    }
-  }
-
-  if (!pathname.startsWith("/uploads/")) {
-    return null;
-  }
-
-  const fileName = path.basename(pathname);
-  if (!fileName || fileName === "." || fileName === "..") {
-    return null;
-  }
-
-  return path.join(UPLOADS_DIR, fileName);
-};
-
-const createDefaultSlots = () =>
-  AVAILABLE_SLOTS.map((startTime) => {
-    const endHour =
-      Number.parseInt(startTime.split(":")[0], 10) + SLOT_DURATION;
-    return {
-      startTime: String(startTime),
-      endTime: `${String(endHour).padStart(2, "0")}:00`,
-      enabled: true,
-    };
-  });
-
-const serializeAnimal = (animal) => ({
-  id: animal._id.toString(),
-  _id: animal._id.toString(),
-  name: animal.name,
-  price: animal.price,
-  favorite: animal.favorite,
-  origins: animal.origins,
-  stars: animal.stars,
-  imageUrl: animal.imageUrl,
-  personality: animal.personality,
-  tags: animal.tags,
-  isActive: animal.isActive,
-  visibility: animal.visibility,
-  createdAt: animal.createdAt,
-  updatedAt: animal.updatedAt,
-});
-
-const serializeBooking = (booking) => ({
-  ...booking,
-  _id: booking._id.toString(),
-  animalId: booking.animalId
-    ? {
-        id: booking.animalId._id.toString(),
-        _id: booking.animalId._id.toString(),
-        name: booking.animalId.name,
-        imageUrl: booking.animalId.imageUrl,
-        price: booking.animalId.price,
-      }
-    : null,
-});
-
-const ensureMerchantAnimal = async (animalId, merchantId) => {
-  if (!mongoose.Types.ObjectId.isValid(animalId)) {
-    return null;
-  }
-
-  return Animal.findOne({ _id: animalId, merchantId });
-};
-
-const ensureMerchantBooking = async (bookingId, merchantId) => {
-  if (!mongoose.Types.ObjectId.isValid(bookingId)) {
-    return null;
-  }
-
-  return Booking.findOne({ _id: bookingId, merchantId }).populate(
-    "animalId",
-    "name imageUrl price",
-  );
-};
-
-router.use(requireAuth, requireRole("merchant"));
-
-router.post("/upload-image", (req, res) => {
-  upload.single("image")(req, res, async (error) => {
+function uploadMiddleware(req, res, next) {
+  upload.single('image')(req, res, (error) => {
     if (error) {
-      return res
-        .status(400)
-        .json({ error: error.message || "Image upload failed" });
+      return next(
+        error instanceof AppError
+          ? error
+          : new AppError(error.code === 'LIMIT_FILE_SIZE' ? 413 : 400, 'UPLOAD_FAILED', error.message || 'Image upload failed'),
+      );
     }
-
-    if (!req.file) {
-      return res.status(400).json({ error: "Image file is required" });
-    }
-
-    try {
-      const filename = await storeImage(req.file.buffer, req.auth.sub, UPLOADS_DIR);
-      return res.status(201).json({ imageUrl: `/uploads/${filename}`, fileName: filename });
-    } catch { return res.status(400).json({ error: "Image could not be processed" }); }
+    next();
   });
-});
+}
 
-router.delete("/upload-image", (req, res) => {
-  const filePath = getUploadedFilePathFromImageUrl(req.body?.imageUrl);
+function uploadDir(req) {
+  return path.resolve(req.app.locals.config.uploadDir);
+}
 
-  if (!filePath) {
-    return res
-      .status(400)
-      .json({ error: "Only locally uploaded images can be deleted" });
-  }
+async function ensureAnimal(animalId, merchantId) {
+  const animal = await Animal.findOne({ _id: animalId, merchantId });
+  if (!animal) throw notFound('Listing not found');
+  return animal;
+}
 
-  if (!ownsImage(path.basename(filePath), req.auth.sub)) return res.status(403).json({ error: "Access denied" });
+router.get(
+  '/overview',
+  validate(merchantOverviewQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    await sweepPastBookings().catch(() => {});
+    return ok(res, await merchantOverview(req.auth.sub, req.query.days));
+  }),
+);
 
-  try {
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    return res.json({ success: true });
-  } catch (error) {
-    return res.status(500).json({ error: "Failed to delete image" });
-  }
-});
-
-router.get("/dashboard", async (req, res) => {
-  try {
-    const merchantId = req.auth.sub;
-
-    const [
-      animalsCount,
-      activeAnimalsCount,
-      pendingBookings,
-      confirmedBookings,
-    ] = await Promise.all([
-      Animal.countDocuments({ merchantId }),
-      Animal.countDocuments({ merchantId, isActive: true }),
-      Booking.countDocuments({ merchantId, status: "pending" }),
-      Booking.countDocuments({
-        merchantId,
-        status: { $in: ["confirmed", "merchant_accepted", "rescheduled"] },
-      }),
+router.get(
+  '/animals',
+  asyncHandler(async (req, res) => {
+    const animals = await Animal.find({ merchantId: req.auth.sub }).sort({ createdAt: -1 }).lean();
+    const counts = await Booking.aggregate([
+      { $match: { merchantId: req.auth.sub, status: { $in: ['pending', 'confirmed'] } } },
+      { $group: { _id: '$animalId', upcoming: { $sum: 1 }, revenue: { $sum: '$pricing.subtotal' } } },
     ]);
-
-    return res.json({
-      animalsCount,
-      activeAnimalsCount,
-      pendingBookings,
-      confirmedBookings,
-    });
-  } catch (error) {
-    console.error("Merchant dashboard error:");
-    return res.status(500).json({ error: "Failed to load merchant dashboard" });
-  }
-});
-
-router.get("/animals", async (req, res) => {
-  try {
-    const animals = await Animal.find({ merchantId: req.auth.sub }).sort({
-      createdAt: -1,
-    });
-    return res.json(animals.map(serializeAnimal));
-  } catch (error) {
-    console.error("Merchant animals list error:");
-    return res.status(500).json({ error: "Failed to load merchant animals" });
-  }
-});
-
-router.get("/animals/:animalId", async (req, res) => {
-  try {
-    const animal = await ensureMerchantAnimal(
-      req.params.animalId,
-      req.auth.sub,
+    const byId = new Map(counts.map((row) => [String(row._id), row]));
+    return ok(
+      res,
+      animals.map((animal) => ({
+        ...serializeAnimal(animal),
+        visibility: animal.visibility,
+        isActive: animal.isActive,
+        moderationStatus: animal.moderationStatus,
+        stats: {
+          upcoming: byId.get(String(animal._id))?.upcoming || 0,
+          revenue: Math.round((byId.get(String(animal._id))?.revenue || 0) * 100) / 100,
+        },
+      })),
     );
+  }),
+);
 
-    if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
-    }
-
-    return res.json(serializeAnimal(animal));
-  } catch (error) {
-    console.error("Merchant animal detail error:");
-    return res.status(500).json({ error: "Failed to load animal" });
-  }
-});
-
-router.post("/animals", async (req, res) => {
-  try {
-    const {
-      name,
-      price,
-      favorite,
-      origins,
-      stars,
-      imageUrl,
-      personality,
-      tags,
-      visibility,
-    } = req.body;
-
-    if (!name || price === undefined) {
-      return res.status(400).json({ error: "Name and price are required" });
-    }
-
+router.post(
+  '/animals',
+  validate(merchantAnimalCreateSchema),
+  asyncHandler(async (req, res) => {
     const animal = await Animal.create({
+      ...req.body,
       merchantId: req.auth.sub,
-      name: String(name).trim(),
-      price: Number(price),
-      favorite: Boolean(favorite),
-      origins: Array.isArray(origins) ? origins : [],
-      stars: Number(stars || 0),
-      imageUrl: imageUrl?.trim() || "",
-      personality: personality?.trim() || "",
-      tags: Array.isArray(tags) ? tags : [],
-      visibility: visibility === "private" ? "private" : "public",
-      isActive: true,
+      city: req.body.city || req.account.city || '',
+      ratingAverage: 0,
+      reviewCount: 0,
+      bookingCount: 0,
+      moderationStatus: 'visible',
+      featured: false,
     });
+    await recordAudit(req, { action: 'listing.created', targetType: 'animal', targetId: animal._id });
+    return created(res, serializeAnimal(animal));
+  }),
+);
 
-    return res.status(201).json(serializeAnimal(animal));
-  } catch (error) {
-    console.error("Merchant animal create error:");
-    return res.status(500).json({ error: "Failed to create animal" });
-  }
-});
+router.get(
+  '/animals/:animalId',
+  validate(merchantAnimalParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    return ok(res, {
+      ...serializeAnimal(animal),
+      visibility: animal.visibility,
+      isActive: animal.isActive,
+      moderationStatus: animal.moderationStatus,
+    });
+  }),
+);
 
-router.put("/animals/:animalId", async (req, res) => {
-  try {
-    const animal = await ensureMerchantAnimal(
-      req.params.animalId,
-      req.auth.sub,
-    );
-
-    if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
-    }
-
-    const {
-      name,
-      price,
-      favorite,
-      origins,
-      stars,
-      imageUrl,
-      personality,
-      tags,
-      visibility,
-      isActive,
-    } = req.body;
-
-    animal.name = String(name ?? animal.name).trim();
-    animal.price = Number(price ?? animal.price);
-    animal.favorite = favorite ?? animal.favorite;
-    animal.origins = Array.isArray(origins) ? origins : animal.origins;
-    animal.stars = Number(stars ?? animal.stars);
-    animal.imageUrl = imageUrl?.trim() ?? animal.imageUrl;
-    animal.personality = personality?.trim() ?? animal.personality;
-    animal.tags = Array.isArray(tags) ? tags : animal.tags;
-    animal.visibility = visibility === "private" ? "private" : "public";
-    animal.isActive =
-      typeof isActive === "boolean" ? isActive : animal.isActive;
+router.patch(
+  '/animals/:animalId',
+  validate(merchantAnimalParamsSchema, 'params'),
+  validate(merchantAnimalUpdateSchema),
+  asyncHandler(async (req, res) => {
+    const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    Object.assign(animal, req.body);
+    if (!req.body.city && !animal.city) animal.city = req.account.city || '';
     await animal.save();
+    await recordAudit(req, { action: 'listing.updated', targetType: 'animal', targetId: animal._id, metadata: { fields: Object.keys(req.body) } });
+    return ok(res, serializeAnimal(animal));
+  }),
+);
 
-    return res.json(serializeAnimal(animal));
-  } catch (error) {
-    console.error("Merchant animal update error:");
-    return res.status(500).json({ error: "Failed to update animal" });
-  }
-});
-
-router.delete("/animals/:animalId", async (req, res) => {
-  try {
-    const animal = await ensureMerchantAnimal(
-      req.params.animalId,
-      req.auth.sub,
-    );
-
-    if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
-    }
-
-    animal.isActive = false;
-    animal.visibility = "private";
-    await animal.save();
-
-    return res.json({ message: "Animal archived successfully" });
-  } catch (error) {
-    console.error("Merchant animal archive error:");
-    return res.status(500).json({ error: "Failed to archive animal" });
-  }
-});
-
-router.get("/animals/:animalId/availability", async (req, res) => {
-  try {
-    const animal = await ensureMerchantAnimal(
-      req.params.animalId,
-      req.auth.sub,
-    );
-
-    if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
-    }
-
-    const { date } = req.query;
-    if (!date) {
-      return res.status(400).json({ error: "date query is required" });
-    }
-
-    const availability = await AnimalAvailability.findOne({
+router.delete(
+  '/animals/:animalId',
+  validate(merchantAnimalParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    const upcoming = await Booking.countDocuments({
       animalId: animal._id,
-      date: String(date),
-    }).lean();
-
-    return res.json({
-      date: String(date),
-      animalId: animal._id.toString(),
-      slots: availability?.slots?.length
-        ? availability.slots
-        : createDefaultSlots(),
+      status: { $in: ['pending', 'confirmed'] },
+      date: { $gte: localDateString() },
     });
-  } catch (error) {
-    console.error("Merchant availability read error:");
-    return res.status(500).json({ error: "Failed to load availability" });
-  }
-});
+    if (upcoming > 0) throw conflict('Resolve upcoming visits before archiving this listing');
+    animal.isActive = false;
+    animal.visibility = 'private';
+    animal.archivedAt = new Date();
+    await animal.save();
+    await recordAudit(req, { action: 'listing.archived', targetType: 'animal', targetId: animal._id });
+    return noContent(res);
+  }),
+);
 
-router.put("/animals/:animalId/availability", async (req, res) => {
-  try {
-    const animal = await ensureMerchantAnimal(
-      req.params.animalId,
-      req.auth.sub,
-    );
+router.get(
+  '/animals/:animalId/availability',
+  validate(merchantAnimalParamsSchema, 'params'),
+  validate(merchantAvailabilityQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    const [slots, booked] = await Promise.all([
+      getConfiguredSlots(animal._id, req.query.date),
+      getBookedStartTimes(animal._id, req.query.date),
+    ]);
+    return ok(res, {
+      date: req.query.date,
+      slots: slots.map((slot) => ({
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        enabled: slot.enabled,
+        booked: booked.has(slot.startTime),
+      })),
+    });
+  }),
+);
 
-    if (!animal) {
-      return res.status(404).json({ error: "Animal not found" });
-    }
-
-    const { date, slots } = req.body;
-    if (!date || !Array.isArray(slots) || slots.length === 0) {
-      return res.status(400).json({ error: "date and slots are required" });
-    }
-
-    const sanitizedSlots = slots.map((slot) => ({
-      startTime: slot.startTime,
-      endTime: slot.endTime,
-      enabled: Boolean(slot.enabled),
-    }));
-
-    const availability = await AnimalAvailability.findOneAndUpdate(
-      { animalId: animal._id, date: String(date) },
-      { animalId: animal._id, date: String(date), slots: sanitizedSlots },
-      { upsert: true, new: true, setDefaultsOnInsert: true },
-    );
-
-    return res.json({
+router.put(
+  '/animals/:animalId/availability',
+  validate(merchantAnimalParamsSchema, 'params'),
+  validate(merchantAvailabilitySchema),
+  asyncHandler(async (req, res) => {
+    const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    const availability = await saveDayAvailability(animal._id, req.body.date, req.body.slots);
+    return ok(res, {
       date: availability.date,
-      animalId: animal._id.toString(),
       slots: availability.slots,
+      animalId: String(animal._id),
     });
-  } catch (error) {
-    console.error("Merchant availability save error:");
-    return res.status(500).json({ error: "Failed to save availability" });
-  }
-});
+  }),
+);
 
-router.get("/bookings", async (req, res) => {
-  try {
-    const query = { merchantId: req.auth.sub };
-    if (req.query.status) {
-      if (typeof req.query.status !== 'string' || !VALID_BOOKING_STATUSES.includes(req.query.status)) return res.status(400).json({ error: 'Invalid status' });
-      query.status = String(req.query.status);
-    }
-
-    const bookings = await Booking.find(query)
-      .populate("animalId", "name imageUrl price")
-      .sort({ date: 1, startTime: 1 })
-      .lean();
-
-    return res.json(bookings.map(serializeBooking));
-  } catch (error) {
-    console.error("Merchant bookings list error:");
-    return res.status(500).json({ error: "Failed to load merchant bookings" });
-  }
-});
-
-router.patch("/bookings/:bookingId/accept", async (req, res) => {
-  try {
-    const booking = await ensureMerchantBooking(
-      req.params.bookingId,
-      req.auth.sub,
-    );
-
-    if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
-    }
-
-    booking.status = "merchant_accepted";
-    booking.decisionNote = req.body.note?.trim() || "Accepted by merchant";
-    await booking.save();
-
-    return res.json(serializeBooking(booking.toObject()));
-  } catch (error) {
-    console.error("Merchant accept booking error:");
-    return res.status(500).json({ error: "Failed to accept booking" });
-  }
-});
-
-router.patch("/bookings/:bookingId/reject", async (req, res) => {
-  try {
-    const booking = await ensureMerchantBooking(
-      req.params.bookingId,
-      req.auth.sub,
-    );
-
-    if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
-    }
-
-    booking.status = "merchant_rejected";
-    booking.decisionNote = req.body.note?.trim() || "Rejected by merchant";
-    await booking.save();
-
-    return res.json(serializeBooking(booking.toObject()));
-  } catch (error) {
-    console.error("Merchant reject booking error:");
-    return res.status(500).json({ error: "Failed to reject booking" });
-  }
-});
-
-router.patch("/bookings/:bookingId/reschedule", async (req, res) => {
-  if (process.env.NODE_ENV === 'production') return res.status(503).json({ error: 'Booking changes are temporarily unavailable' });
-  try {
-    const booking = await ensureMerchantBooking(
-      req.params.bookingId,
-      req.auth.sub,
-    );
-
-    if (!booking) {
-      return res.status(404).json({ error: "Booking not found" });
-    }
-
-    const { date, startTime, note } = req.body;
-    if (!date || !startTime) {
-      return res.status(400).json({ error: "date and startTime are required" });
-    }
-
-    const availability = await AnimalAvailability.findOne({
-      animalId: booking.animalId._id,
-      date: String(date),
-    }).lean();
-    const baseSlots = availability?.slots?.length
-      ? availability.slots
-      : createDefaultSlots();
-    const targetSlot = baseSlots.find(
-      (slot) => slot.startTime === startTime && slot.enabled,
-    );
-
-    if (!targetSlot) {
-      return res
-        .status(400)
-        .json({ error: "Selected slot is not available for this animal" });
-    }
-
-    const collision = await Booking.findOne({
-      _id: { $ne: booking._id },
-      animalId: booking.animalId._id,
-      date: String(date),
-      startTime: String(startTime),
-      status: { $in: ACTIVE_BOOKING_STATUSES },
+router.get(
+  '/animals/:animalId/calendar',
+  validate(merchantAnimalParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    return ok(res, {
+      animalId: String(animal._id),
+      days: await availabilityCalendar(animal._id, { days: 21 }),
     });
+  }),
+);
 
-    if (collision) {
-      return res.status(400).json({ error: "This slot is already booked" });
+router.get(
+  '/bookings',
+  validate(merchantBookingsQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    await sweepPastBookings().catch(() => {});
+    const { status, page, pageSize } = req.query;
+    const { total, items } = await listMerchantBookings({
+      merchantId: req.auth.sub,
+      status,
+      page,
+      pageSize,
+    });
+    return ok(res, items.map((booking) => serializeBooking(booking, { viewer: 'merchant' })), {
+      page,
+      pageSize,
+      total,
+      totalPages: total === 0 ? 0 : Math.ceil(total / pageSize),
+      hasNext: page * pageSize < total,
+    });
+  }),
+);
+
+router.get(
+  '/bookings/:bookingId',
+  validate(merchantParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const booking = await getBookingForMerchant(req.params.bookingId, req.auth.sub);
+    return ok(res, serializeBooking(booking, { viewer: 'merchant' }));
+  }),
+);
+
+router.post(
+  '/bookings/:bookingId/accept',
+  validate(merchantParamsSchema, 'params'),
+  validate(merchantNoteSchema),
+  asyncHandler(async (req, res) => {
+    const booking = await getBookingForMerchant(req.params.bookingId, req.auth.sub);
+    const updated = await acceptBooking({ booking, note: req.body.note, req });
+    return ok(res, serializeBooking(updated, { viewer: 'merchant' }));
+  }),
+);
+
+router.post(
+  '/bookings/:bookingId/decline',
+  validate(merchantParamsSchema, 'params'),
+  validate(merchantNoteSchema),
+  asyncHandler(async (req, res) => {
+    const booking = await getBookingForMerchant(req.params.bookingId, req.auth.sub);
+    const updated = await declineBooking({ booking, note: req.body.note, req });
+    return ok(res, serializeBooking(updated, { viewer: 'merchant' }));
+  }),
+);
+
+router.post(
+  '/bookings/:bookingId/complete',
+  validate(merchantParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const booking = await getBookingForMerchant(req.params.bookingId, req.auth.sub);
+    const updated = await completeBooking({ booking, req });
+    return ok(res, serializeBooking(updated, { viewer: 'merchant' }));
+  }),
+);
+
+router.post(
+  '/bookings/:bookingId/reschedule',
+  validate(merchantParamsSchema, 'params'),
+  validate(merchantRescheduleSchema),
+  asyncHandler(async (req, res) => {
+    const booking = await getBookingForMerchant(req.params.bookingId, req.auth.sub);
+    const updated = await rescheduleBooking({
+      booking,
+      date: req.body.date,
+      startTime: req.body.startTime,
+      note: req.body.note,
+      actorRole: 'merchant',
+      req,
+    });
+    return ok(res, serializeBooking(updated, { viewer: 'merchant' }));
+  }),
+);
+
+router.get(
+  '/reviews',
+  validate(merchantReviewsQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    const { page, pageSize } = req.query;
+    const filter = { merchantId: req.auth.sub, status: 'published' };
+    const [total, reviews] = await Promise.all([
+      Review.countDocuments(filter),
+      Review.find(filter)
+        .populate('customerId', 'name avatarColor')
+        .populate('animalId', 'name imageUrl')
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .lean(),
+    ]);
+    return ok(
+      res,
+      reviews.map((review) => ({
+        ...serializeReview(review),
+        animal: review.animalId ? { id: String(review.animalId._id), name: review.animalId.name, imageUrl: review.animalId.imageUrl } : null,
+      })),
+      {
+        page,
+        pageSize,
+        total,
+        totalPages: total === 0 ? 0 : Math.ceil(total / pageSize),
+        hasNext: page * pageSize < total,
+      },
+    );
+  }),
+);
+
+router.post(
+  '/reviews/:reviewId/reply',
+  validate(merchantReviewParamsSchema, 'params'),
+  validate(merchantReplySchema),
+  asyncHandler(async (req, res) => {
+    const review = await replyToReview({
+      reviewId: req.params.reviewId,
+      merchantId: req.auth.sub,
+      body: req.body.body,
+      req,
+    });
+    return ok(res, serializeReview(await review.populate('customerId', 'name avatarColor')));
+  }),
+);
+
+router.patch(
+  '/profile',
+  validate(updateProfileSchema),
+  asyncHandler(async (req, res) => {
+    const allowed = ['name', 'businessType', 'description', 'website', 'logoUrl', 'city'];
+    for (const key of Object.keys(req.body)) {
+      if (!allowed.includes(key)) throw new AppError(400, 'FIELD_NOT_ALLOWED', `The field "${key}" cannot be changed`);
+      req.account[key] = req.body[key];
     }
+    await req.account.save();
+    await recordAudit(req, { action: 'merchant.profile_updated', targetType: 'merchant', targetId: req.auth.sub });
+    return ok(res, { user: serializeAccount(req.account) });
+  }),
+);
 
-    const previousDate = booking.date;
-    const previousTime = `${booking.startTime}-${booking.endTime}`;
+router.post(
+  '/uploads',
+  uploadMiddleware,
+  asyncHandler(async (req, res) => {
+    if (!req.file) throw new AppError(400, 'FILE_REQUIRED', 'Choose an image to upload');
+    const filename = await storeImage(req.file.buffer, req.auth.sub, uploadDir(req));
+    return created(res, { imageUrl: `/uploads/${filename}`, fileName: filename });
+  }),
+);
 
-    booking.date = date;
-    booking.startTime = startTime;
-    booking.endTime = targetSlot.endTime;
-    booking.status = "rescheduled";
-    booking.rescheduledAt = new Date();
-    booking.rescheduleNote =
-      note?.trim() ||
-      `Merchant rescheduled from ${previousDate} ${previousTime} to ${date} ${startTime}-${targetSlot.endTime}`;
-    await booking.save();
-
-    return res.json(serializeBooking(booking.toObject()));
-  } catch (error) {
-    console.error("Merchant reschedule booking error:");
-    return res.status(500).json({ error: "Failed to reschedule booking" });
-  }
-});
+router.delete(
+  '/uploads',
+  asyncHandler(async (req, res) => {
+    const imageUrl = String(req.body?.imageUrl || '');
+    if (!imageUrl.startsWith('/uploads/')) throw new AppError(400, 'INVALID_IMAGE', 'Only uploaded images can be removed');
+    const filename = path.basename(imageUrl);
+    if (!ownsImage(filename, req.auth.sub)) throw new AppError(403, 'FORBIDDEN', 'You do not own that image');
+    const filePath = path.join(uploadDir(req), filename);
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    return noContent(res);
+  }),
+);
 
 export default router;

@@ -1,192 +1,129 @@
-// services/safety.js
-// Fast + robust self-harm detection (keywords + quick HF text-classification model)
-// Model: sentinet/suicidality (LABEL_1 = suicidality, LABEL_0 = non-suicidal)
-// Sources: model labels on HF model card; HF inference endpoints can sometimes return "Not Found" text.
-// - https://huggingface.co/sentinet/suicidality  :contentReference[oaicite:0]{index=0}
-// - Some users report 404/Not Found from public inference APIs intermittently :contentReference[oaicite:1]{index=1}
+import { createHash } from 'node:crypto';
+import { logger } from '../lib/logger.js';
+import { providerFetch } from './providerFetch.js';
 
-const HF_API_KEY = process.env.HUGGINGFACE_API_KEY;
+const HF_MODEL = 'sentinet/suicidality';
 
-// Quick, inference-compatible text classification model
-const HF_MODEL = "sentinet/suicidality";
-
-// Prefer the classic public Inference API first (often simplest).
-// Fallback to router endpoint if needed.
-const HF_ENDPOINTS = [
-  `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`,
-];
-
-// Hard triggers: immediate high risk (no network)
+// Hard triggers run locally and immediately, with no network dependency.
 const HIGH_RISK_PATTERNS = [
-  /\b(i want to die|kill myself|end my life)\b/i,
-  /\b(suicide|suicidal)\b/i,
-  /\b(i am going to (kill|harm) myself)\b/i,
-  /\b(overdose|jump off|hang myself)\b/i,
-  /\b(i plan to (kill|harm) myself)\b/i,
+  /\b(i (really )?want to die|i wanna die)\b/i,
+  /\b(kill|killing) myself\b/i,
+  /\b(end|ending|take|taking) my (own )?life\b/i,
+  /\b(i (do not|don't) want to (live|be alive|wake up))\b/i,
+  /\b(no reason to (live|keep going)|better off dead)\b/i,
+  /\b(hurt|harm|cut) myself\b/i,
+  /\b(suicid(e|al)|self[- ]harm)\b/i,
+  /\b(overdose|hang myself|jump off a bridge)\b/i,
+  /\b(i (have|made) a plan to (die|kill myself))\b/i,
+  /(想死|不想活|自杀|结束(自己的)?生命|伤害自己|轻生)/,
 ];
 
-function withTimeout(ms) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), ms);
-  return { controller, timeoutId };
-}
+// Softer language. These raise a support event (not a crisis interrupt) so the
+// assistant can respond with care and the safety team can spot a pattern.
+const MEDIUM_RISK_PATTERNS = [
+  /\b(hopeless|worthless|hate myself|can't go on|cannot go on)\b/i,
+  /\b(nobody (cares|would miss me)|want to disappear)\b/i,
+  /\b(tired of (living|being alive)|life (is|feels) pointless)\b/i,
+  /(绝望|活着没意思|没人关心|撑不下去|讨厌自己)/,
+];
 
-// tiny in-memory cache (per process)
 const cache = new Map();
-// optional: keep cache from growing forever
-const MAX_CACHE = 500;
+const MAX_CACHE = 300;
 
-function setCache(key, value) {
-  if (cache.size >= MAX_CACHE) {
-    // delete oldest entry
-    const firstKey = cache.keys().next().value;
-    cache.delete(firstKey);
-  }
-  cache.set(key, value);
-}
-
-async function fetchJsonSafe(url, bodyObj, signal) {
-  const resp = await fetch(url, {
-    method: "POST",
-    signal,
-    headers: {
-      Authorization: `Bearer ${HF_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(bodyObj),
-  });
-
-  // IMPORTANT: HF sometimes returns plain text like "Not Found"
-  const raw = await resp.text();
-
-  let json = null;
-  try {
-    json = JSON.parse(raw);
-  } catch {
-    // Non-JSON body (e.g. "Not Found")
-    return { ok: resp.ok, status: resp.status, raw, json: null };
-  }
-
-  return { ok: resp.ok, status: resp.status, raw, json };
-}
-
-function parseTextClassification(json) {
-  // Expected common shapes:
-  // 1) [{ label: "LABEL_1", score: 0.9 }, ...]
-  // 2) [[{label,score}, ...]] (rare)
-  // 3) { error: "..."} etc.
-  if (!json) return null;
-
-  // unwrap nested arrays
-  let arr = json;
-  if (Array.isArray(arr) && Array.isArray(arr[0]) && arr[0][0]?.label) {
-    arr = arr[0];
-  }
-  if (
-    !Array.isArray(arr) ||
-    !arr[0]?.label ||
-    typeof arr[0]?.score !== "number"
-  ) {
-    return null;
-  }
-  // pick top-1
-  return arr[0];
-}
-
-export async function detectSelfHarm(text = "") {
-  const cleanText = (text || "").trim();
-  if (!cleanText) return { flagged: false, level: "none", source: "empty" };
-
-  // 1) hard keyword triggers
-  for (const pattern of HIGH_RISK_PATTERNS) {
-    if (pattern.test(cleanText)) {
-      return { flagged: true, level: "high", source: "keyword" };
-    }
-  }
-
-  // 2) token check
-  if (!HF_API_KEY) {
-    return { flagged: false, level: "none", source: "no_token" };
-  }
-
-  // 3) cache only successful model results (optional)
-  if (cache.has(cleanText)) return cache.get(cleanText);
-
-  const body = { inputs: cleanText, options: { wait_for_model: true } };
-  let lastDiag = null;
-
-  // Try both endpoints
-  for (const url of HF_ENDPOINTS) {
-    // fresh timeout per attempt
-    const { controller, timeoutId } = withTimeout(12000);
-
-    try {
-      const diag = await fetchJsonSafe(url, body, controller.signal);
-      lastDiag = { url, ...diag };
-
-      if (!diag.ok) continue;
-
-      const pred = parseTextClassification(diag.json);
-      if (!pred) continue;
-
-      const label = String(pred.label);
-      const score = Number(pred.score);
-      const isSuicidality = label === "LABEL_1";
-
-      const result =
-        isSuicidality && score >= 0.7
-          ? {
-              flagged: true,
-              level: score >= 0.85 ? "high" : "medium",
-              source: "model",
-              label,
-              score,
-            }
-          : { flagged: false, level: "none", source: "model", label, score };
-
-      setCache(cleanText, result); // cache only good result
-      console.log("Safety check result:", { text: cleanText, ...result });
-      return result;
-    } catch (err) {
-      if (err?.name === "AbortError") {
-        // Don't cache timeout; try next endpoint
-        lastDiag = { url, ok: false, status: 0, raw: "timeout", json: null };
-        continue;
-      }
-      console.error("Safety detection error:", err);
-      // Don't cache unexpected errors; try next endpoint
-      lastDiag = {
-        url,
-        ok: false,
-        status: 0,
-        raw: String(err?.message || err),
-        json: null,
-      };
-      continue;
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  }
-
-  console.error("HF safety check failed on all endpoints:", lastDiag);
-  return { flagged: false, level: "none", source: "hf_failed" };
+export function safetyResources() {
+  return [
+    { label: 'Call or text 988 (US)', href: 'https://988lifeline.org/', kind: 'phone' },
+    { label: 'Find a helpline in your country', href: 'https://findahelpline.com/', kind: 'web' },
+    { label: 'Emergency services', href: 'tel:911', kind: 'emergency' },
+  ];
 }
 
 export function buildCrisisResponse() {
   return {
-    type: "crisis",
+    type: 'crisis',
     message:
-      "I’m really sorry you’re feeling this way. You deserve support right now.\n\n" +
-      "If you’re in the U.S., you can call or text 988 (Suicide & Crisis Lifeline).\n" +
-      "If you’re in immediate danger, call 911.\n\n" +
-      "If you're outside the U.S., find local resources here:\n" +
-      "https://www.opencounseling.com/suicide-hotlines",
-    resources: [
-      { label: "Call or Text 988 (U.S.) ", href: "https://988lifeline.org/" },
-      {
-        label: "Find international hotlines (Intl)",
-        href: "https://www.opencounseling.com/suicide-hotlines",
-      },
-    ],
+      "I'm really glad you told me. You deserve support from a person right now, not just me.\n\n" +
+      'If you are in the US, call or text 988. If you are in immediate danger, call 911. ' +
+      'Outside the US, findahelpline.com lists free, confidential services in your country.\n\n' +
+      "I'll stay right here. Would you like to tell me what today has felt like?",
+    resources: safetyResources(),
   };
+}
+
+export const SAFETY_DISCLAIMER =
+  'PawCompanion offers companionship, not therapy or medical care. If you are in crisis, contact a local emergency service or helpline.';
+
+function keywordRisk(text) {
+  for (const pattern of HIGH_RISK_PATTERNS) {
+    if (pattern.test(text)) {
+      return { flagged: true, level: 'high', score: 0.95, source: 'keyword' };
+    }
+  }
+  for (const pattern of MEDIUM_RISK_PATTERNS) {
+    if (pattern.test(text)) {
+      return { flagged: false, level: 'medium', score: 0.62, source: 'keyword' };
+    }
+  }
+  return null;
+}
+
+function parseClassification(json) {
+  let predictions = json;
+  if (Array.isArray(predictions) && Array.isArray(predictions[0]) && predictions[0][0]?.label) {
+    predictions = predictions[0];
+  }
+  if (!Array.isArray(predictions) || !predictions[0]?.label || typeof predictions[0]?.score !== 'number') return null;
+  return predictions[0];
+}
+
+async function classifyWithModel(text, apiKey) {
+  if (!apiKey) return null;
+  const key = createHash('sha256').update(text).digest('hex');
+  if (cache.has(key)) return cache.get(key);
+
+  try {
+    const response = await providerFetch(
+      `https://router.huggingface.co/hf-inference/models/${HF_MODEL}`,
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inputs: text, options: { wait_for_model: true } }),
+      },
+      512 * 1024,
+    );
+    const prediction = parseClassification(await response.json());
+    if (!prediction) return null;
+    const isRisk = String(prediction.label) === 'LABEL_1';
+    const score = Number(prediction.score);
+    const result =
+      isRisk && score >= 0.7
+        ? { flagged: score >= 0.85, level: score >= 0.85 ? 'high' : 'medium', score, source: 'model' }
+        : { flagged: false, level: 'none', score, source: 'model' };
+
+    if (cache.size >= MAX_CACHE) cache.delete(cache.keys().next().value);
+    cache.set(key, result);
+    return result;
+  } catch (error) {
+    // Never let a classifier outage turn into a user-visible failure; the
+    // keyword layer still runs on every message.
+    logger.warn('safety.model_unavailable', { error: error.message });
+    return null;
+  }
+}
+
+/**
+ * Analyse a message for self-harm risk. Raw message text is never logged or
+ * persisted; only the derived level/score is recorded as a risk event.
+ */
+export async function detectSelfHarm(text = '', { apiKey = '' } = {}) {
+  const clean = String(text || '').trim();
+  if (!clean) return { flagged: false, level: 'none', source: 'empty' };
+
+  const keyword = keywordRisk(clean);
+  if (keyword?.level === 'high') return keyword;
+
+  const model = await classifyWithModel(clean, apiKey);
+  if (model && (model.level !== 'none' || !keyword)) return model;
+
+  return keyword || { flagged: false, level: 'none', source: 'keyword' };
 }

@@ -1,239 +1,232 @@
-import { providerFetch } from "./providerFetch.js";
-// services/aiService.js
-import { buildSystemPrompt } from "./personalityProfiles.js";
-const HUGGINGFACE_API_KEY = process.env.HUGGINGFACE_API_KEY || "";
-const HF_CHAT_URL = "https://router.huggingface.co/v1/chat/completions";
-const DEFAULT_MODEL = "meta-llama/Llama-3.1-8B-Instruct";
-const HF_CHAT_MODEL = process.env.HF_CHAT_MODEL || DEFAULT_MODEL;
-// Router model can be the same model or a smaller/cheaper one if you set env
-const HF_ROUTER_MODEL = process.env.HF_ROUTER_MODEL || "meta-llama/Llama-3.2-3B-Instruct"; // smaller, cheaper, faster for classification
-const DEFAULT_MAX_TOKENS = Number(process.env.HF_MAX_TOKENS || 220);
-const DEFAULT_TEMPERATURE = Number(process.env.HF_TEMPERATURE || 0.7);
-// Router is cheap: small output, deterministic
-const ROUTER_MAX_TOKENS = Number(process.env.HF_ROUTER_MAX_TOKENS || 80);
-const ROUTER_THRESHOLD = Number(process.env.HF_ROUTER_THRESHOLD || 0.55);
-const ROUTER_CONTEXT_USER_MSGS = Number(process.env.HF_ROUTER_CONTEXT_USER_MSGS || 2);
-const ROUTER_CONTEXT_CHARS = Number(process.env.HF_ROUTER_CONTEXT_CHARS || 500);
-const ROUTER_SYSTEM_PROMPT = `
-You are a routing classifier for an AI pet companion chat app.
-Decide the best mode for the NEXT assistant reply.
+import { providerFetch } from './providerFetch.js';
+import { buildSystemPrompt, getPersonalityProfile } from './personalityProfiles.js';
 
-Choose exactly one mode:
+const HF_CHAT_URL = 'https://router.huggingface.co/v1/chat/completions';
 
-support:
-Use ONLY when the user is seeking emotional help (coping, reassurance, reflection, advice),
-or when the user is clearly expressing emotional distress that calls for a supportive response.
+const ROUTER_PROMPT = `You are a routing classifier for an AI pet companion app.
+Decide the best mode for the next reply.
 
-play:
-Use for greetings, small talk, casual conversation, fun interaction (roleplay, jokes, stories, games, drawing),
-social/relationship/flirting/invitations, or when the user wants cheering up / distraction.
+support: the user is seeking emotional help, is clearly distressed, or is talking about a painful personal experience.
+play: greetings, small talk, jokes, games, stories, flirting, or light conversation.
 
-Decision rules (follow strictly):
-1) Intent > sentiment. Do not treat a neutral question as distress.
-2) Do NOT invent distress, coping requests, or emotional needs that are not stated.
-3) Greetings and small talk are play.
-4) Social or romantic questions/invitations are play unless the user asks for emotional help.
-5) If the user asks for something fun (joke/story/roleplay/game/drawing), choose play even if they mention mild stress.
-6) If the user expresses dissatisfaction or sadness without asking for fun, choose support.
-7) If uncertain or ambiguous, choose play.
+Rules:
+- Intent beats sentiment. A neutral question is not distress.
+- Do not invent distress.
+- If uncertain, choose play.
+Return ONLY JSON: {"mode":"support"|"play","confidence":0.0-1.0,"rationale":"<=12 words"}`;
 
-Output:
-Return ONLY valid JSON (no markdown, no extra text).
-Schema:
-{"mode":"support" or "play","confidence":0.0 - 1.0,"rationale":"<=12 words"}
-`.trim();
+const SUPPORT_SIGNALS = [
+  /\b(sad|depress|anxious|anxiety|panic|overwhelm|stress|lonely|alone|grief|grieving|heartbroken|breakup|crying|cry|hopeless|worthless|exhausted|burn(ed|t) out|can'?t cope|don'?t know what to do|rough day|bad day|terrible day|need(ed)? to talk|feel(ing)? (lost|stuck|empty|awful))\b/i,
+  /(难过|焦虑|压力|孤独|寂寞|崩溃|撑不住|心情不好|失恋|想哭|迷茫|累死|绝望)/,
+];
+
+const PLAY_SIGNALS = [
+  /\b(joke|story|game|play|draw|roleplay|adventure|fun|silly|dance|sing|flirt|date)\b/i,
+  /(笑话|故事|游戏|玩|角色扮演|画画|唱歌|跳舞)/,
+];
+
+function clamp01(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return 0;
+  return Math.min(1, Math.max(0, number));
+}
+
+export function classifyModeLocally(message = '') {
+  const text = String(message);
+  const supportHits = SUPPORT_SIGNALS.filter((pattern) => pattern.test(text)).length;
+  const playHits = PLAY_SIGNALS.filter((pattern) => pattern.test(text)).length;
+  if (supportHits > 0 && playHits === 0) {
+    return { mode: 'support', confidence: Math.min(0.92, 0.62 + supportHits * 0.12), rationale: 'local:intent_support', provider: 'local' };
+  }
+  if (playHits > 0) {
+    return { mode: 'play', confidence: 0.72, rationale: 'local:intent_play', provider: 'local' };
+  }
+  return { mode: 'play', confidence: 0.55, rationale: 'local:default_play', provider: 'local' };
+}
+
 function safeJsonParse(text) {
-    try {
-        const raw = String(text || "").trim();
-        // Strip common ```json fences if any
-        const withoutFence = raw
-            .replace(/^```json\s*/i, "")
-            .replace(/^```\s*/i, "")
-            .replace(/```$/i, "")
-            .trim();
-        // 1) Try direct JSON parse
-        try {
-            return JSON.parse(withoutFence);
-        }
-        catch {
-            // 2) Fallback: extract first JSON object region {...}
-            const start = withoutFence.indexOf("{");
-            const end = withoutFence.lastIndexOf("}");
-            if (start >= 0 && end > start) {
-                const slice = withoutFence.slice(start, end + 1);
-                return JSON.parse(slice);
-            }
-            return null;
-        }
-    }
-    catch {
+  const raw = String(text || '')
+    .trim()
+    .replace(/^```json\s*/i, '')
+    .replace(/^```\s*/i, '')
+    .replace(/```$/i, '')
+    .trim();
+  try {
+    return JSON.parse(raw);
+  } catch {
+    const start = raw.indexOf('{');
+    const end = raw.lastIndexOf('}');
+    if (start >= 0 && end > start) {
+      try {
+        return JSON.parse(raw.slice(start, end + 1));
+      } catch {
         return null;
+      }
     }
+    return null;
+  }
 }
-function clamp01(x) {
-    const n = Number(x);
-    if (!Number.isFinite(n))
-        return 0;
-    if (n < 0)
-        return 0;
-    if (n > 1)
-        return 1;
-    return n;
+
+async function callChat(config, messages, { model, temperature, maxTokens }) {
+  if (!config.ai.apiKey) throw new Error('AI provider is not configured');
+  const response = await providerFetch(
+    HF_CHAT_URL,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.ai.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model,
+        messages,
+        temperature,
+        max_tokens: Math.min(Math.max(Number(maxTokens) || 220, 1), 512),
+      }),
+    },
+    1024 * 1024,
+  );
+  const data = await response.json();
+  const content = data?.choices?.[0]?.message?.content;
+  if (!content || !String(content).trim()) throw new Error('Empty response from AI provider');
+  return String(content).trim();
 }
-async function callHuggingFace(messages, { model, temperature, max_tokens, signal } = {}) {
-    const apiStartTime = Date.now();
-    const response = await providerFetch(HF_CHAT_URL, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${HUGGINGFACE_API_KEY}`,
-            "Content-Type": "application/json",
+
+export async function detectMode({ animal, messages = [], message, config }) {
+  const local = classifyModeLocally(message);
+  if (!config.ai.enabled || !config.ai.apiKey) return local;
+
+  const recentUsers = messages
+    .filter((item) => item.role === 'user')
+    .slice(-2)
+    .map((item) => String(item.content || '').slice(0, 400));
+
+  try {
+    const raw = await callChat(
+      config,
+      [
+        { role: 'system', content: ROUTER_PROMPT },
+        {
+          role: 'user',
+          content: JSON.stringify({
+            animal: { name: animal?.name, species: animal?.species },
+            recent_user_messages: recentUsers,
+            current_user_message: String(message).slice(0, 500),
+          }),
         },
-        body: JSON.stringify({
-            model,
-            messages,
-            temperature,
-            max_tokens,
-        }),
-        signal,
-    });
-    if (!response.ok) {
-        const contentType = response.headers.get("content-type") || "";
-        let details = "";
-        try {
-            details = contentType.includes("application/json")
-                ? JSON.stringify(await response.json())
-                : await response.text();
-        }
-        catch {
-            details = "Unable to parse error body";
-        }
-        const apiDuration = Date.now() - apiStartTime;
-        const err = new Error(`HuggingFace chat error ${response.status}: ${details}`);
-        err.status = response.status;
-        throw err;
-    }
-    const data = await response.json();
-    const content = data?.choices?.[0]?.message?.content;
-    if (!content || !String(content).trim()) {
-        const apiDuration = Date.now() - apiStartTime;
-        const err = new Error("Empty response from HuggingFace chat API");
-        err.status = 502;
-        throw err;
-    }
-    const apiDuration = Date.now() - apiStartTime;
-    return String(content).trim();
-}
-/**
- * Smart router: uses a small LLM call to decide "support" vs "play".
- * Returns { mode, confidence, rationale }.
- *
- * Keep hysteresis in your main router (ai.router.js),
- * because even a good classifier can be unstable on short messages.
- */
-export const detectMode = async (animal, messageHistory, userMessage, opts = {}) => {
-    const detectModeStartTime = Date.now();
-    const { signal } = opts;
-    // If no token configured, fall back to play
-    if (!HUGGINGFACE_API_KEY || !HUGGINGFACE_API_KEY.trim()) {
-        return { mode: "play", confidence: 0, rationale: "no_token" };
-    }
-    const history = Array.isArray(messageHistory) ? messageHistory : [];
-    // Keep router input small: last N user messages + current
-    const lastUserMsgs = history
-        .filter((m) => m && m.role === "user")
-        .slice(-ROUTER_CONTEXT_USER_MSGS)
-        .map((m) => String(m.content || "").slice(0, ROUTER_CONTEXT_CHARS));
-    const payload = {
-        animal: { name: animal?.name || "pet", type: animal?.type || "" },
-        recent_user_messages: lastUserMsgs,
-        current_user_message: String(userMessage || "").slice(0, ROUTER_CONTEXT_CHARS),
+      ],
+      { model: config.ai.routerModel, temperature: 0, maxTokens: 80 },
+    );
+    const parsed = safeJsonParse(raw);
+    if (!parsed) return local;
+    const confidence = clamp01(parsed.confidence);
+    if (confidence < config.ai.routerThreshold) return { ...local, confidence: Math.max(local.confidence, confidence), rationale: 'router:low_confidence' };
+    return {
+      mode: parsed.mode === 'support' ? 'support' : 'play',
+      confidence,
+      rationale: String(parsed.rationale || '').slice(0, 80),
+      provider: 'huggingface',
     };
-    const routerMessages = [
-        { role: "system", content: ROUTER_SYSTEM_PROMPT },
-        { role: "user", content: JSON.stringify(payload) },
-    ];
-    try {
-        const raw = await callHuggingFace(routerMessages, {
-            model: HF_ROUTER_MODEL,
-            temperature: 0,
-            max_tokens: ROUTER_MAX_TOKENS,
-            signal,
-        });
-        const parsed = safeJsonParse(raw);
-        const mode = parsed?.mode === "support" ? "support" : "play";
-        const confidence = clamp01(parsed?.confidence);
-        const rationale = String(parsed?.rationale || "").slice(0, 80);
-        // If confidence too low, default to play (you can bias to support if you prefer)
-        if (confidence < ROUTER_THRESHOLD) {
-            const modeDuration = Date.now() - detectModeStartTime;
-            return {
-                mode: "play",
-                confidence,
-                rationale: rationale || "low_confidence",
-            };
-        }
-        const modeDuration = Date.now() - detectModeStartTime;
-        return { mode, confidence, rationale };
-    }
-    catch (err) {
-        // Router failure should not break chat
-        const modeDuration = Date.now() - detectModeStartTime;
-        return { mode: "play", confidence: 0, rationale: "router_error" };
-    }
-};
-export const generateResponse = async (animal, messageHistory, userMessage, opts = {}) => {
-    const generateResponseStartTime = Date.now();
-    const { signal, mode = "play" } = opts;
-    if (!HUGGINGFACE_API_KEY || !HUGGINGFACE_API_KEY.trim()) {
-        const err = new Error("HuggingFace API key not configured");
-        err.status = 500;
-        throw err;
-    }
-    const result = await callHuggingFaceChat(animal, messageHistory, userMessage, {
-        signal,
-        mode,
-    });
-    const generateDuration = Date.now() - generateResponseStartTime;
-    return result;
-};
-async function callHuggingFaceChat(animal, messageHistory, userMessage, { signal, mode = "play" } = {}) {
-    const systemPrompt = buildSystemPrompt(animal, mode);
-    const historyMessages = Array.isArray(messageHistory)
-        ? messageHistory
-            .filter((m) => m && (m.role === "user" || m.role === "assistant"))
-            .map((m) => ({
-            role: m.role,
-            content: String(m.content || ""),
-        }))
-        : [];
-    const currentUser = String(userMessage || "").trim();
-    // Build base message list
-    let messages = [
-        { role: "system", content: systemPrompt },
-        ...historyMessages,
-    ];
-    // Ensure the current userMessage is included (but avoid duplicating if already last)
-    if (currentUser) {
-        const last = messages[messages.length - 1];
-        const lastIsSameUserMsg = last?.role === "user" &&
-            String(last.content || "").trim() === currentUser;
-        if (!lastIsSameUserMsg) {
-            messages.push({ role: "user", content: currentUser });
-        }
-    }
-    const MAX_HISTORY_MESSAGES = Number(process.env.HF_MAX_HISTORY || 20);
-    const trimmed = messages.length > 1 + MAX_HISTORY_MESSAGES
-        ? [messages[0], ...messages.slice(messages.length - MAX_HISTORY_MESSAGES)]
-        : messages;
-    const content = await callHuggingFace(trimmed, {
-        model: HF_CHAT_MODEL,
-        temperature: DEFAULT_TEMPERATURE,
-        max_tokens: DEFAULT_MAX_TOKENS,
-        signal,
-    });
-    let text = String(content).trim();
-    const MAX_CHARS = Number(process.env.HF_MAX_CHARS || 800);
-    if (text.length > MAX_CHARS)
-        text = text.slice(0, MAX_CHARS) + "...";
-    return text;
+  } catch {
+    return { ...local, rationale: local.rationale };
+  }
 }
+
+function pick(list, seed) {
+  if (!list?.length) return '';
+  const index = Math.abs(seed) % list.length;
+  return list[index];
+}
+
+function lastUserMessage(messages, message) {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    if (messages[index].role === 'user') return String(messages[index].content || '');
+  }
+  return String(message || '');
+}
+
+/**
+ * A deterministic, persona-aware reply for when no model provider is
+ * configured. It is intentionally simple, but it keeps the product honest:
+ * the demo works end to end without a paid API key.
+ */
+export function localCompanionReply({ animal, messages = [], message, mode = 'play' }) {
+  const profile = getPersonalityProfile(animal);
+  const voice = profile.voice;
+  const seed = String(message).length + String(animal.name || '').length;
+  const recentUserCount = messages.filter((item) => item.role === 'user').length;
+  const latest = String(message).trim().toLowerCase();
+  const previous = lastUserMessage(messages.slice(0, -1)).toLowerCase();
+
+  const isGreeting = /^(hi|hey|hello|yo|good (morning|afternoon|evening)|howdy)\b/.test(latest);
+  const isThanks = /\b(thanks|thank you|ty|appreciate)\b/.test(latest);
+  const isBye = /\b(bye|goodnight|good night|see you|talk later)\b/.test(latest);
+  const isQuestion = latest.includes('?') || /^(what|why|how|do you|can you|are you|tell me)\b/.test(latest);
+
+  if (isThanks) {
+    return {
+      text: `Anytime. I am glad you came by. Want to stay a little longer, or should I let you get back to your day?`,
+      provider: 'local',
+    };
+  }
+  if (isBye) {
+    return { text: `Go gently. I will be here when you want to talk again.`, provider: 'local' };
+  }
+  if (mode === 'support') {
+    return {
+      text: `${pick(voice.comfort, seed)} What is the heaviest part of it right now?`,
+      provider: 'local',
+    };
+  }
+  if (isGreeting && recentUserCount <= 1) {
+    return { text: `${pick(voice.greetings, seed)} What has your day been like?`, provider: 'local' };
+  }
+  if (isQuestion || latest.includes('you')) {
+    return {
+      text: `${pick(voice.facts, seed)} What about you — what is something small you noticed today?`,
+      provider: 'local',
+    };
+  }
+  if (previous && /\b(sad|hard|rough|tired|stress|lonely)\b/i.test(previous)) {
+    return {
+      text: `I am still here. You do not have to make it sound better than it is. What happened today?`,
+      provider: 'local',
+    };
+  }
+  return {
+    text: `${pick(voice.play, seed)} What kind of day are you having?`,
+    provider: 'local',
+  };
+}
+
+export async function generateResponse({ animal, messages = [], message, mode = 'play', config }) {
+  if (!config.ai.enabled || !config.ai.apiKey) {
+    return localCompanionReply({ animal, messages, message, mode });
+  }
+
+  const history = messages
+    .filter((item) => item.role === 'user' || item.role === 'assistant')
+    .slice(-20)
+    .map((item) => ({ role: item.role, content: String(item.content || '').slice(0, 2000) }));
+
+  const payload = [{ role: 'system', content: buildSystemPrompt(animal, mode) }, ...history];
+  const last = payload[payload.length - 1];
+  if (!last || last.role !== 'user' || last.content.trim() !== String(message).trim()) {
+    payload.push({ role: 'user', content: String(message) });
+  }
+
+  try {
+    const text = await callChat(config, payload, {
+      model: config.ai.chatModel,
+      temperature: config.ai.temperature,
+      maxTokens: config.ai.maxTokens,
+    });
+    const trimmed = text.length > 800 ? `${text.slice(0, 800)}…` : text;
+    return { text: trimmed, provider: 'huggingface' };
+  } catch {
+    // Provider outages should degrade to the local companion, not a 500 page.
+    return localCompanionReply({ animal, messages, message, mode });
+  }
+}
+
+export { safeJsonParse };

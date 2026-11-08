@@ -1,90 +1,121 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import request from 'supertest';
 import jwt from 'jsonwebtoken';
-import sharp from 'sharp';
-import bcrypt from 'bcryptjs';
-process.env.JWT_SECRET = 'testing-only-' + 'a'.repeat(64);
-process.env.NODE_ENV = 'test';
-const { createApp } = await import('../src/app.js');
-const { loadSecurity } = await import('../src/security.js');
-const { signAuthToken } = await import('../src/middleware/auth.js');
-const { encodeImage, ownsImage } = await import('../src/services/secureImage.js');
-const { default: Customer } = await import('../src/models/Customer.js');
-const { default: Merchant } = await import('../src/models/Merchant.js');
-const owner = { _id: 'a'.repeat(24), email: 'owner@example.invalid', name: 'Synthetic owner', status: 'active' };
-Customer.findById = async id => id === owner._id ? owner : null;
-Merchant.findById = async () => null;
-const config = loadSecurity();
-const budgets = { take: async () => true };
-const app = createApp({ config, budgets });
-const token = signAuthToken({ sub: owner._id, role: 'customer', email: owner.email });
-test('anonymous requests cannot access chat, bookings or merchant uploads', async () => {
-  for (const path of ['/api/ai/memory/' + owner._id + '/' + 'b'.repeat(24), '/api/booking/my/' + owner._id, '/api/merchant/dashboard']) assert.equal((await request(app).get(path)).status, 401);
-  assert.equal((await request(app).post('/api/ai/chat').send({ userId: owner._id, message: 'hi' })).status, 401);
-});
-test('customer cannot impersonate another user through URL or JSON identifiers', async () => {
-  const other = 'c'.repeat(24);
-  assert.equal((await request(app).get('/api/booking/my/' + other).auth(token, { type: 'bearer' })).status, 403);
-  assert.equal((await request(app).get('/api/ai/risk-profile/' + other).auth(token, { type: 'bearer' })).status, 403);
-  assert.equal((await request(app).post('/api/booking/create').auth(token, { type: 'bearer' }).send({ userId: other })).status, 403);
-  assert.equal((await request(app).delete('/api/booking/' + 'd'.repeat(24)).query({ userId: other }).auth(token, { type: 'bearer' })).status, 403);
+import { app, createApp, customer, login, request } from './helpers/setup.js';
+import { loadConfig } from '../src/config/env.js';
+
+test('health is available without authentication and carries security headers', async () => {
+  const response = await request(app()).get('/api/health');
+  assert.equal(response.status, 200);
+  assert.equal(response.body.ok, true);
+  assert.match(response.headers['content-security-policy'], /default-src 'none'/);
+  assert.equal(response.headers['x-content-type-options'], 'nosniff');
+  assert.equal(response.headers['x-powered-by'], undefined);
+  assert.match(response.headers['x-request-id'], /[a-f0-9-]{8,}/);
 });
 
-test('NoSQL-shaped and malformed conversation identifiers fail before database access', async () => {
-  assert.equal((await request(app).post('/api/ai/chat').auth(token, { type: 'bearer' }).send({ animalId: { $ne: null }, message: 'synthetic' })).status, 400);
-  assert.equal((await request(app).get('/api/ai/memory/' + owner._id + '/invalid').auth(token, { type: 'bearer' })).status, 400);
-  assert.equal((await request(app).get('/api/booking/slots/' + 'b'.repeat(24)).query({ date: ['2026-11-01', '2026-11-02'] })).status, 400);
-  assert.equal((await request(app).post('/api/booking/create').auth(token, { type: 'bearer' }).send({ date: { $ne: null } })).status, 400);
-  assert.equal((await request(app).post('/api/booking/create').auth(token, { type: 'bearer' }).send({ date: '2026-99-99' })).status, 400);
-});
-test('rejects legacy forged merchant tokens and wrong-role access', async () => {
-  const forged = jwt.sign({ sub: owner._id, role: 'merchant' }, 'merchant-portal-dev-secret');
-  assert.equal((await request(app).get('/api/merchant/dashboard').auth(forged, { type: 'bearer' })).status, 401);
-  assert.equal((await request(app).get('/api/merchant/dashboard').auth(token, { type: 'bearer' })).status, 403);
-});
-test('untrusted origins and oversized requests fail before application work', async () => {
-  assert.equal((await request(app).get('/api/health').set('Origin', 'https://attacker.invalid')).status, 403);
-  assert.equal((await request(app).post('/api/auth/customer/login').send({ password: 'x'.repeat(20000) })).status, 413);
-  assert.equal((await request(app).post('/api/notification/email').send({})).status, 404);
-  assert.equal((await request(app).get('/uploads/legacy.html')).status, 404);
-});
-test('production never confirms simulated checkout or payments', async () => {
-  const productionApp = createApp({ config: { ...config, production: true, trustProxy: 'loopback' }, budgets });
-  process.env.NODE_ENV = 'production'; process.env.REDIS_URL = 'rediss://example.invalid'; process.env.CORS_ORIGIN = 'https://example.invalid';
-  try {
-    assert.equal((await request(productionApp).post('/api/booking/create').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
-    assert.equal((await request(productionApp).patch('/api/booking/' + 'b'.repeat(24) + '/reschedule').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
-    assert.equal((await request(productionApp).post('/api/booking/checkout').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
-    assert.equal((await request(productionApp).post('/api/payment/process').set('X-Forwarded-Proto', 'https').auth(token, { type: 'bearer' }).send({})).status, 503);
-  } finally { process.env.NODE_ENV = 'test'; delete process.env.REDIS_URL; delete process.env.CORS_ORIGIN; }
-});
-test('decodes and re-encodes actual images; refuses HTML and cross-owner deletes', async () => {
-  await assert.rejects(encodeImage(Buffer.from('<html><script>alert(1)</script></html>')));
-  const png = await sharp({ create: { width: 2, height: 2, channels: 3, background: '#fff' } }).png().toBuffer();
-  assert.equal((await sharp(await encodeImage(png)).metadata()).format, 'jpeg');
-  assert.equal(ownsImage(owner._id + '-00000000-0000-0000-0000-000000000000.jpeg', 'b'.repeat(24)), false);
-});
-test('shared budget failure closes access', async () => {
-  const failed = createApp({ config, budgets: { take: async () => { throw new Error('offline'); } } });
-  assert.equal((await request(failed).get('/api/health')).status, 503);
+test('untrusted origins are rejected before application work', async () => {
+  const response = await request(app()).get('/api/animals').set('Origin', 'https://attacker.invalid');
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error.code, 'ORIGIN_NOT_ALLOWED');
+  const allowed = await request(app()).get('/api/animals').set('Origin', 'http://localhost:3000');
+  assert.equal(allowed.status, 200);
 });
 
-test('merchant input validation cannot skip database identity or password verification', async () => {
-  const find = Merchant.findOne, create = Merchant.create;
-  const password = 'Synthetic-long-test-password';
-  const merchant = { ...owner, role: 'merchant', passwordHash: await bcrypt.hash(password, 12) };
-  Merchant.findOne = async () => merchant;
-  Merchant.create = async data => ({ ...merchant, ...data });
-  try {
-    for (const body of [{ name: '', email: owner.email, password }, { name: 'Test', email: 'x'.repeat(255), password }, { name: 'Test', email: owner.email, password: 'short' }, { name: { $ne: null }, email: owner.email, password }]) {
-      assert.equal((await request(app).post('/api/auth/merchant/register').send(body)).status, 400);
-    }
-    assert.equal((await request(app).post('/api/auth/merchant/login').send({ email: 'x'.repeat(255), password })).status, 400);
-    assert.equal((await request(app).post('/api/auth/merchant/login').send({ email: owner.email, password: 'incorrect-password' })).status, 401);
-    const response = await request(app).post('/api/auth/merchant/login').send({ email: owner.email, password, role: 'admin', sub: 'b'.repeat(24) });
-    assert.equal(response.status, 200);
-    const claims = jwt.verify(response.body.token, process.env.JWT_SECRET, { algorithms: ['HS256'], issuer: 'pawcompanion', audience: 'pawcompanion' });
-    assert.equal(claims.sub, merchant._id); assert.equal(claims.role, 'merchant');
-  } finally { Merchant.findOne = find; Merchant.create = create; }
+test('anonymous access to companion and operator features is rejected', async () => {
+  for (const path of ['/api/me/dashboard', '/api/checkins', '/api/bookings', '/api/favorites', '/api/notifications', '/api/merchant/dashboard', '/api/admin/overview']) {
+    const response = await request(app()).get(path);
+    assert.equal(response.status, 401, path);
+  }
+  assert.equal((await request(app()).post('/api/ai/chat').send({ animalId: 'a'.repeat(24), message: 'hi' })).status, 401);
+});
+
+test('forged and wrong-role tokens cannot escalate access', async () => {
+  const forged = jwt.sign({ sub: 'a'.repeat(24), role: 'admin', sid: 'b'.repeat(24) }, 'attacker-secret-attacker-secret-attacker', {
+    issuer: 'pawcompanion',
+    audience: 'pawcompanion',
+  });
+  assert.equal((await request(app()).get('/api/admin/overview').set('Authorization', `Bearer ${forged}`)).status, 401);
+
+  const user = await customer();
+  const session = await login(request.agent(app()), user.email);
+  const token = session.body.data.accessToken;
+  assert.equal((await request(app()).get('/api/merchant/dashboard').set('Authorization', `Bearer ${token}`)).status, 403);
+  assert.equal((await request(app()).get('/api/admin/overview').set('Authorization', `Bearer ${token}`)).status, 403);
+});
+
+test('oversized and malformed JSON bodies are rejected', async () => {
+  const oversized = await request(app()).post('/api/auth/customer/login').send({ email: 'a@example.com', password: 'x'.repeat(40000) });
+  assert.equal(oversized.status, 413);
+  const malformed = await request(app()).post('/api/auth/customer/login').set('Content-Type', 'application/json').send('{"email":');
+  assert.equal(malformed.status, 400);
+  assert.equal(malformed.body.error.code, 'INVALID_JSON');
+});
+
+test('NoSQL-shaped inputs are rejected by validation instead of reaching Mongo', async () => {
+  const user = await customer();
+  const session = await login(request.agent(app()), user.email);
+  const token = session.body.data.accessToken;
+  const header = { Authorization: `Bearer ${token}` };
+  assert.equal((await request(app()).post('/api/bookings').set(header).send({ animalId: { $ne: null }, date: '2026-12-01', startTime: '09:00' })).status, 422);
+  assert.equal((await request(app()).post('/api/checkins').set(header).send({ mood: { $gt: 0 } })).status, 422);
+  assert.equal((await request(app()).get('/api/animals?species[$ne]=dog')).status, 422);
+});
+
+test('uploaded assets are only served for the generated filename shape', async () => {
+  assert.equal((await request(app()).get('/uploads/legacy.html')).status, 404);
+  assert.equal((await request(app()).get('/uploads/..%2F..%2Fetc%2Fpasswd')).status, 404);
+  assert.equal((await request(app()).get('/uploads/000000000000000000000000-00000000-0000-0000-0000-000000000000.jpeg')).status, 404);
+});
+
+test('removed prototype endpoints are not silently exposed', async () => {
+  assert.equal((await request(app()).post('/api/notification/email').send({})).status, 404);
+  assert.equal((await request(app()).post('/api/payment/process').send({})).status, 404);
+  assert.equal((await request(app()).get('/api/unknown')).status, 404);
+});
+
+test('shared budget outage closes protected routes', async () => {
+  const failed = createAppWithFailingBudgets();
+  const response = await request(failed).get('/api/animals');
+  assert.equal(response.status, 503);
+});
+
+function createAppWithFailingBudgets() {
+  return createApp({
+    config: loadConfig({
+      NODE_ENV: 'test',
+      JWT_SECRET: 'testing-only-' + 'a'.repeat(64),
+      CORS_ORIGIN: 'http://localhost:3000',
+      MONGO_URI: 'mongodb://127.0.0.1:27017/test',
+      LOG_LEVEL: 'silent',
+    }),
+    budgets: {
+      take: async () => {
+        throw new Error('offline');
+      },
+      close: async () => {},
+    },
+  });
+}
+
+test('production configuration refuses insecure or placeholder settings', () => {
+  const base = {
+    NODE_ENV: 'production',
+    JWT_SECRET: 'a'.repeat(64),
+    CORS_ORIGIN: 'https://pawcompanion.example',
+    MONGO_URI: 'mongodb://127.0.0.1:27017/paw',
+    APP_URL: 'https://pawcompanion.example',
+  };
+  assert.throws(() => loadConfig(base), /sandbox payments/i);
+  assert.throws(
+    () => loadConfig({ ...base, ALLOW_SANDBOX_PAYMENTS: 'true', CORS_ORIGIN: 'http://pawcompanion.example' }),
+    /HTTPS|CORS_ORIGIN/,
+  );
+  assert.throws(
+    () => loadConfig({ ...base, ALLOW_SANDBOX_PAYMENTS: 'true', JWT_SECRET: 'change-me' }),
+    /JWT_SECRET/,
+  );
+  const valid = loadConfig({ ...base, ALLOW_SANDBOX_PAYMENTS: 'true' });
+  assert.equal(valid.production, true);
+  assert.equal(valid.paymentsMode, 'sandbox');
 });

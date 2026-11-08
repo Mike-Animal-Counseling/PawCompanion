@@ -1,312 +1,319 @@
-import { customerAccess } from "../middleware/customer.js";
-import { Router } from "express";
-import Animal from "../models/Animal.js";
-import ChatMemory from "../models/ChatMemory.js";
-import { generateResponse, detectMode } from "../services/aiService.js";
-import { sample_animals } from "../data.js";
-import { detectSelfHarm, buildCrisisResponse } from "../services/safety.js";
-import { recordRiskEventAndUpdateProfile } from "../services/riskScoring.js";
-import { extractTextAndImagePrompt, generateImage, } from "../services/imageGeneration.js";
+import { Router } from 'express';
+import Animal from '../models/Animal.js';
+import ChatMemory from '../models/ChatMemory.js';
+import Checkin from '../models/Checkin.js';
+import RiskEvent from '../models/RiskEvent.js';
+import UserRiskProfile from '../models/UserRiskProfile.js';
+import { asyncHandler, notFound } from '../lib/errors.js';
+import { isObjectId } from '../lib/ids.js';
+import { ok } from '../lib/http.js';
+import { validate } from '../lib/validate.js';
+import { requireAuth, requireRole } from '../middleware/auth.js';
+import { detectSelfHarm, buildCrisisResponse, SAFETY_DISCLAIMER, safetyResources } from '../services/safety.js';
+import { recordRiskEventAndUpdateProfile, deleteRiskData } from '../services/riskScoring.js';
+import { detectMode, generateResponse } from '../services/aiService.js';
+import { extractTextAndImagePrompt, generateImage } from '../services/imageGeneration.js';
+import { suggestedPrompts } from '../services/personalityProfiles.js';
+import { chatSchema, conversationListQuerySchema, conversationParamsSchema } from '../validators/ai.js';
+import { paginationMeta } from '../lib/http.js';
+
 const router = Router();
-router.use(customerAccess());
-/**
- * POST /api/ai/chat
- * Chat with an animal AI personality
- *
- * Request body:
- * {
- *   userId: string (required),
- *   animalId: string (required, MongoDB ObjectId),
- *   message: string (required)
- * }
- *
- * Response:
- * {
- *   response: string (AI-generated response),
- *   memory: ChatMemory object (updated message history),
- *   messageCount: number (total messages in conversation)
- * }
- */
-router.post("/chat", async (req, res) => {
-    try {
-        const userId = req.auth.sub;
-        const animalId = String(req.body.animalId || '');
-        const message = req.body.message;
-        // Validate input
-        if (!userId || !animalId || !message) {
-            return res.status(400).json({
-                error: "Missing required fields: userId, animalId, message",
-            });
-        }
-        try {
-            // Fetch animal from sample data (same as animal router)
-            const animal = sample_animals.find((item) => item.id === animalId);
-            if (!animal) {
-                return res.status(404).json({
-                    error: `Animal with ID ${animalId} not found`,
-                });
-            }
-            // Load or create chat memory for this user+animal combination
-            let chatMemory = await ChatMemory.findOne({ userId, animalId });
-            if (!chatMemory) {
-                chatMemory = new ChatMemory({
-                    userId,
-                    animalId,
-                    messages: [],
-                    chatMode: "play",
-                    supportTurnsLeft: 0,
-                });
-            }
-            chatMemory.messages = chatMemory.messages.slice(-12).map(item => ({ ...item, content: String(item.content || "").slice(0, 4000) }));
-            // Append user message to memory
-            chatMemory.messages.push({
-                role: "user",
-                content: message,
-                timestamp: new Date(),
-            });
-            // --- SAFETY (already exists) ---
-            const safetyStartTime = Date.now();
-            const risk = await detectSelfHarm(message);
-            const safetyDuration = Date.now() - safetyStartTime;
-            // --- USER-LEVEL RISK SCORING (long-term rolling windows) ---
-            await recordRiskEventAndUpdateProfile({ userId, animalId, risk }).catch((err) => {
-            });
-            if (risk.flagged) {
-                const crisis = buildCrisisResponse();
-                // Save assistant message to memory so the history matches what happened
-                chatMemory.messages.push({
-                    role: "assistant",
-                    content: crisis.message,
-                    timestamp: new Date(),
-                });
-                chatMemory.messages = chatMemory.messages.slice(-80);
-                await chatMemory.save();
-                return res.json({
-                    response: crisis.message,
-                    memory: chatMemory,
-                    messageCount: chatMemory.messages.length,
-                    meta: crisis,
-                });
-            }
-            // --- SMART MODE ROUTING (LLM router) + HYSTERESIS ---
-            const chatProcessingStart = Date.now();
-            // detectMode returns { mode: "support"|"play", confidence: 0..1, rationale?: string }
-            const routing = await detectMode(animal, chatMemory.messages, message, {
-                signal: undefined, // optionally pass AbortController.signal from client
-            });
-            let detectedMode = routing?.mode || "play";
-            const confidence = typeof routing?.confidence === "number" ? routing.confidence : 0;
-            const currentMode = chatMemory.chatMode || "play";
-            const turnsLeft = chatMemory.supportTurnsLeft || 0;
-            // If currently in support and timer active, only allow early exit
-            // when router is VERY confident user wants play.
-            const EARLY_EXIT_CONF = Number(process.env.SUPPORT_EARLY_EXIT_CONF || 0.85);
-            if (currentMode === "support" && turnsLeft > 0) {
-                if (detectedMode === "play" && confidence >= EARLY_EXIT_CONF) {
-                    chatMemory.chatMode = "play";
-                    chatMemory.supportTurnsLeft = 0;
-                }
-                else {
-                    // stay in support and decrement
-                    detectedMode = "support";
-                    chatMemory.chatMode = "support";
-                    chatMemory.supportTurnsLeft = Math.max(0, turnsLeft - 1);
-                }
-            }
-            else {
-                // Not locked in support
-                if (detectedMode === "support") {
-                    if (chatMemory.chatMode !== "support") {
-                    }
-                    chatMemory.chatMode = "support";
-                    chatMemory.supportTurnsLeft = 4; // lock for next 4 user turns
-                }
-                else {
-                    chatMemory.chatMode = "play";
-                    chatMemory.supportTurnsLeft = 0;
-                }
-            }
-            // Generate AI response with detected mode
-            const aiResponse = await generateResponse(animal, chatMemory.messages, message, { mode: chatMemory.chatMode });
-            // Extract text and image prompt from response
-            const { text: cleanedResponse, imagePrompt } = extractTextAndImagePrompt(aiResponse);
-            // Generate image if image prompt exists
-            let imageData = null;
-            if (imagePrompt) {
-                imageData = await generateImage(imagePrompt).catch((err) => {
-                    return null;
-                });
-            }
-            // Append AI response to memory (save cleaned response without image prompt)
-            chatMemory.messages.push({
-                role: "assistant",
-                content: cleanedResponse,
-                timestamp: new Date(),
-            });
-            // Save updated memory
-            chatMemory.messages = chatMemory.messages.slice(-80);
-            await chatMemory.save();
-            // Fetch updated user risk profile for response
-            let userProfile = null;
-            try {
-                const UserRiskProfile = (await import("../models/UserRiskProfile.js"))
-                    .default;
-                userProfile = await UserRiskProfile.findOne({ userId });
-            }
-            catch (err) {
-            }
-            const chatProcessingEnd = Date.now();
-            const totalDuration = chatProcessingEnd - chatProcessingStart;
-            // Return response
-            return res.json({
-                response: cleanedResponse,
-                image: imageData,
-                memory: chatMemory,
-                messageCount: chatMemory.messages.length,
-                routeMeta: {
-                    mode: chatMemory.chatMode,
-                    confidence,
-                    rationale: routing?.rationale || "",
-                },
-                userProfile: userProfile
-                    ? {
-                        status: userProfile.status,
-                        score7d: userProfile.score7d,
-                        score30d: userProfile.score30d,
-                        events7d: userProfile.events7d,
-                        events30d: userProfile.events30d,
-                        maxLevel30d: userProfile.maxLevel30d,
-                        lastRiskAt: userProfile.lastRiskAt,
-                        flagReason: userProfile.flagReason,
-                    }
-                    : null,
-            });
-        }
-        catch (mongoError) {
-            // Re-throw - let main error handler deal with it
-            throw mongoError;
-        }
+router.use(requireAuth, requireRole('customer'));
+
+const PUBLIC_FILTER = { isActive: true, visibility: 'public', moderationStatus: 'visible' };
+const MAX_MESSAGES = 80;
+
+function profileView(profile) {
+  if (!profile) {
+    return {
+      status: 'ok',
+      score7d: 0,
+      score30d: 0,
+      events7d: 0,
+      events30d: 0,
+      maxLevel30d: 'none',
+      lastRiskAt: null,
+    };
+  }
+  return {
+    status: profile.status,
+    flagReason: profile.flagReason || '',
+    score7d: Math.round((profile.score7d || 0) * 10) / 10,
+    score30d: Math.round((profile.score30d || 0) * 10) / 10,
+    events7d: profile.events7d,
+    events30d: profile.events30d,
+    maxLevel30d: profile.maxLevel30d,
+    lastRiskAt: profile.lastRiskAt,
+    acknowledgedAt: profile.acknowledgedAt,
+  };
+}
+
+function trimMessages(messages) {
+  return messages.slice(-MAX_MESSAGES).map((message) => ({
+    role: message.role,
+    content: String(message.content || '').slice(0, 4000),
+    timestamp: message.timestamp,
+    ...(message.meta ? { meta: message.meta } : {}),
+  }));
+}
+
+router.get(
+  '/status',
+  asyncHandler(async (_req, res) => {
+    const config = _req.app.locals.config;
+    return ok(res, {
+      modelEnabled: Boolean(config.ai.enabled && config.ai.apiKey),
+      mode: config.ai.enabled && config.ai.apiKey ? 'model' : 'demo',
+      disclaimer: SAFETY_DISCLAIMER,
+      resources: safetyResources(),
+    });
+  }),
+);
+
+router.post(
+  '/chat',
+  validate(chatSchema),
+  asyncHandler(async (req, res) => {
+    const config = req.app.locals.config;
+    const userId = req.auth.sub;
+    const { animalId, message } = req.body;
+
+    const animal = await Animal.findOne({ _id: animalId, ...PUBLIC_FILTER }).lean();
+    if (!animal) throw notFound('Companion not found');
+
+    let memory = await ChatMemory.findOne({ userId, animalId });
+    if (!memory) {
+      memory = new ChatMemory({
+        userId,
+        animalId,
+        animalName: animal.name,
+        messages: [],
+        chatMode: 'play',
+        supportTurnsLeft: 0,
+      });
     }
-    catch (error) {
-        // Check if it's a 429 API limit error
-        if (error.status === 429 || error.message.includes("API key")) {
-            return res.status(429).json({
-                error: "API Unavailable",
-                status: 429,
-            });
-        }
-        return res.status(500).json({
-            error: "Internal server error",
-        });
+    memory.animalName = animal.name;
+    memory.messages = trimMessages(memory.messages);
+    memory.messages.push({ role: 'user', content: message, timestamp: new Date() });
+
+    const risk = await detectSelfHarm(message, {
+      apiKey: config.ai.enabled ? config.ai.apiKey : '',
+    });
+    const profile = await recordRiskEventAndUpdateProfile({ userId, animalId, risk }).catch(() => null);
+
+    if (risk.flagged) {
+      const crisis = buildCrisisResponse();
+      memory.chatMode = 'support';
+      memory.supportTurnsLeft = 4;
+      memory.messages.push({
+        role: 'assistant',
+        content: crisis.message,
+        timestamp: new Date(),
+        meta: crisis,
+      });
+      memory.messages = trimMessages(memory.messages);
+      memory.lastMessageAt = new Date();
+      await memory.save();
+      return ok(res, {
+        response: crisis.message,
+        image: null,
+        meta: { ...crisis, provider: 'safety', mode: 'support' },
+        memory: { id: String(memory._id), messages: memory.messages, chatMode: memory.chatMode },
+        messageCount: memory.messages.length,
+        routeMeta: { mode: 'support', confidence: 1, rationale: 'safety_override', provider: 'safety' },
+        userProfile: profileView(profile || (await UserRiskProfile.findOne({ userId }).lean())),
+        suggestedPrompts: suggestedPrompts(animal),
+      });
     }
-});
-/**
- * GET /api/ai/memory/:userId/:animalId
- * Retrieve chat memory for a user+animal combination
- */
-router.get("/memory/:userId/:animalId", async (req, res) => {
-    try {
-        const userId = req.auth.sub, animalId = String(req.params.animalId);
-        if (!/^[a-f\d]{24}$/i.test(animalId)) return res.status(400).json({ error: 'Invalid animal' });
-        const chatMemory = await ChatMemory.findOne({ userId, animalId });
-        if (!chatMemory) {
-            return res.status(404).json({
-                error: "No chat history found for this user and animal",
-            });
-        }
-        return res.json({
-            memory: chatMemory,
-            messageCount: chatMemory.messages.length,
-        });
+
+    const routing = await detectMode({
+      animal,
+      messages: memory.messages,
+      message,
+      config,
+    });
+
+    let mode = memory.chatMode || 'play';
+    let turnsLeft = memory.supportTurnsLeft || 0;
+    const EARLY_EXIT_CONFIDENCE = 0.85;
+
+    if (mode === 'support' && turnsLeft > 0) {
+      if (routing.mode === 'play' && routing.confidence >= EARLY_EXIT_CONFIDENCE) {
+        mode = 'play';
+        turnsLeft = 0;
+      } else {
+        mode = 'support';
+        turnsLeft = Math.max(0, turnsLeft - 1);
+      }
+    } else if (routing.mode === 'support') {
+      mode = 'support';
+      turnsLeft = 4;
+    } else {
+      mode = 'play';
+      turnsLeft = 0;
     }
-    catch (error) {
-        return res.status(500).json({
-            error: "Internal server error",
-        });
+
+    memory.chatMode = mode;
+    memory.supportTurnsLeft = turnsLeft;
+
+    const generated = await generateResponse({
+      animal,
+      messages: memory.messages,
+      message,
+      mode,
+      config,
+    });
+
+    const { text: cleaned, imagePrompt } = extractTextAndImagePrompt(generated.text);
+    let image = null;
+    if (imagePrompt && mode === 'play') {
+      image = await generateImage(imagePrompt, config);
     }
-});
-/**
- * DELETE /api/ai/memory/:userId/:animalId
- * Clear chat history for a user+animal combination
- */
-router.delete("/memory/:userId/:animalId", async (req, res) => {
-    try {
-        const userId = req.auth.sub, animalId = String(req.params.animalId);
-        if (!/^[a-f\d]{24}$/i.test(animalId)) return res.status(400).json({ error: 'Invalid animal' });
-        const result = await ChatMemory.deleteOne({ userId, animalId });
-        if (result.deletedCount === 0) {
-            return res.status(404).json({
-                error: "No chat history found to delete",
-            });
-        }
-        return res.json({
-            message: "Chat history cleared successfully",
-        });
-    }
-    catch (error) {
-        return res.status(500).json({
-            error: "Internal server error",
-        });
-    }
-});
-/**
- * GET /api/ai/risk-profile/:userId
- * Get user's risk profile and recent events
- * Useful for testing and monitoring
- */
-router.get("/risk-profile/:userId", async (req, res) => {
-    try {
-        const userId = req.auth.sub;
-        const UserRiskProfile = (await import("../models/UserRiskProfile.js"))
-            .default;
-        const RiskEvent = (await import("../models/RiskEvent.js")).default;
-        const profile = await UserRiskProfile.findOne({ userId });
-        if (!profile) {
-            return res.status(404).json({
-                error: "No risk profile found for this user",
-                userId,
-            });
-        }
-        // Get recent risk events (last 10)
-        const recentEvents = await RiskEvent.find({ userId })
-            .sort({ timestamp: -1 })
-            .limit(10);
-        return res.json({
-            profile: {
-                userId: profile.userId,
-                status: profile.status,
-                flagReason: profile.flagReason,
-                score7d: profile.score7d,
-                score30d: profile.score30d,
-                events7d: profile.events7d,
-                events30d: profile.events30d,
-                maxLevel30d: profile.maxLevel30d,
-                lastRiskAt: profile.lastRiskAt,
-                lastActiveAt: profile.lastActiveAt,
-                createdAt: profile.createdAt,
-                updatedAt: profile.updatedAt,
-            },
-            recentEvents: recentEvents.map((e) => ({
-                timestamp: e.timestamp,
-                animalId: e.animalId,
-                level: e.level,
-                score: e.score,
-                source: e.source,
-            })),
-            summary: {
-                isFlagged: profile.status === "flagged",
-                isOnWatch: profile.status === "watch",
-                riskTrend: profile.score30d > profile.score7d ? "increasing" : "stable",
-                lastEventAgo: profile.lastRiskAt
-                    ? `${Math.round((Date.now() - profile.lastRiskAt) / 1000 / 60)} minutes ago`
-                    : "never",
-            },
-        });
-    }
-    catch (error) {
-        return res.status(500).json({
-            error: "Internal server error",
-        });
-    }
-});
+
+    memory.messages.push({
+      role: 'assistant',
+      content: cleaned,
+      timestamp: new Date(),
+      ...(image ? { meta: { imagePrompt } } : {}),
+    });
+    memory.messages = trimMessages(memory.messages);
+    memory.lastMessageAt = new Date();
+    await memory.save();
+
+    const latestProfile = profile || (await UserRiskProfile.findOne({ userId }).lean());
+
+    return ok(res, {
+      response: cleaned,
+      image,
+      meta: { provider: generated.provider, mode },
+      memory: { id: String(memory._id), messages: memory.messages, chatMode: memory.chatMode },
+      messageCount: memory.messages.length,
+      routeMeta: {
+        mode,
+        confidence: routing.confidence,
+        rationale: routing.rationale,
+        provider: generated.provider,
+      },
+      userProfile: profileView(latestProfile),
+      suggestedPrompts: suggestedPrompts(animal),
+    });
+  }),
+);
+
+router.get(
+  '/conversations',
+  validate(conversationListQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    const { page, pageSize } = req.query;
+    const filter = { userId: req.auth.sub };
+    const [total, memories] = await Promise.all([
+      ChatMemory.countDocuments(filter),
+      ChatMemory.find(filter)
+        .sort({ lastMessageAt: -1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .lean(),
+    ]);
+
+    const animals = await Animal.find({ _id: { $in: memories.map((memory) => memory.animalId) } })
+      .select('name imageUrl species breed')
+      .lean();
+    const byId = new Map(animals.map((animal) => [String(animal._id), animal]));
+
+    return ok(
+      res,
+      memories.map((memory) => {
+        const animal = byId.get(String(memory.animalId));
+        const last = memory.messages[memory.messages.length - 1];
+        return {
+          animalId: String(memory.animalId),
+          animalName: animal?.name || memory.animalName || 'Companion',
+          imageUrl: animal?.imageUrl || '',
+          species: animal?.species || '',
+          breed: animal?.breed || '',
+          mode: memory.chatMode,
+          messageCount: memory.messages.length,
+          preview: last ? String(last.content).slice(0, 140) : '',
+          lastMessageAt: memory.lastMessageAt || memory.updatedAt,
+        };
+      }),
+      paginationMeta(page, pageSize, total),
+    );
+  }),
+);
+
+router.get(
+  '/conversations/:animalId',
+  validate(conversationParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const animal = await Animal.findOne({ _id: req.params.animalId, ...PUBLIC_FILTER }).lean();
+    if (!animal) throw notFound('Companion not found');
+    const memory = await ChatMemory.findOne({ userId: req.auth.sub, animalId: req.params.animalId }).lean();
+    return ok(res, {
+      animal: { id: String(animal._id), name: animal.name, imageUrl: animal.imageUrl, personality: animal.personality },
+      messages: memory?.messages || [],
+      chatMode: memory?.chatMode || 'play',
+      suggestedPrompts: suggestedPrompts(animal),
+    });
+  }),
+);
+
+router.delete(
+  '/conversations/:animalId',
+  validate(conversationParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const result = await ChatMemory.deleteOne({ userId: req.auth.sub, animalId: req.params.animalId });
+    if (!result.deletedCount) throw notFound('Conversation not found');
+    return ok(res, { deleted: true });
+  }),
+);
+
+router.delete(
+  '/conversations',
+  asyncHandler(async (req, res) => {
+    const result = await ChatMemory.deleteMany({ userId: req.auth.sub });
+    return ok(res, { deleted: result.deletedCount });
+  }),
+);
+
+router.get(
+  '/safety',
+  asyncHandler(async (req, res) => {
+    const [profile, events] = await Promise.all([
+      UserRiskProfile.findOne({ userId: req.auth.sub }).lean(),
+      RiskEvent.find({ userId: req.auth.sub }).sort({ timestamp: -1 }).limit(10).lean(),
+    ]);
+    const eventAnimalIds = events.map((event) => event.animalId).filter(isObjectId);
+    const animals = await Animal.find({ _id: { $in: eventAnimalIds } }).select('name').lean();
+    const names = new Map(animals.map((animal) => [String(animal._id), animal.name]));
+    return ok(res, {
+      profile: profileView(profile),
+      events: events.map((event) => ({
+        level: event.level,
+        animalName: names.get(String(event.animalId)) || '',
+        timestamp: event.timestamp,
+      })),
+      disclaimer: SAFETY_DISCLAIMER,
+      resources: safetyResources(),
+      retention: {
+        chatHistory: 'Kept until you delete it from this page.',
+        riskEvents: 'Derived risk signals are kept for up to 120 days.',
+        rawMessages: 'Raw messages are never stored in the risk log.',
+      },
+    });
+  }),
+);
+
+router.delete(
+  '/data',
+  asyncHandler(async (req, res) => {
+    const [chats, checkins, risk] = await Promise.all([
+      ChatMemory.deleteMany({ userId: req.auth.sub }),
+      Checkin.deleteMany({ customerId: req.auth.sub }),
+      deleteRiskData(req.auth.sub),
+    ]);
+    return ok(res, { conversationsDeleted: chats.deletedCount, checkinsDeleted: checkins.deletedCount, ...risk });
+  }),
+);
+
 export default router;

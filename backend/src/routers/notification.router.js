@@ -1,120 +1,74 @@
-import { Router } from "express";
-import * as notificationService from "../services/notificationService.js";
+import { Router } from 'express';
+import { asyncHandler, notFound } from '../lib/errors.js';
+import { ok } from '../lib/http.js';
+import { validate } from '../lib/validate.js';
+import { requireAuth } from '../middleware/auth.js';
+import Notification from '../models/Notification.js';
+import { serializeNotification } from '../serializers/notification.js';
+import { markAllRead, markRead, unreadCount } from '../services/notificationService.js';
+import { z } from 'zod';
+import { pagination } from '../validators/common.js';
 
 const router = Router();
+router.use(requireAuth);
 
-/**
- * POST /api/notification/sms
- * Send SMS notification
- */
-router.post("/sms", async (req, res) => {
-  try {
-    const { phoneNumber, message } = req.body;
-
-    if (!phoneNumber || !message) {
-      return res.status(400).json({
-        error: "Missing required fields: phoneNumber, message",
-      });
-    }
-
-    const result = await notificationService.sendSMS(phoneNumber, message);
-
-    return res.json(result);
-  } catch (error) {
-    console.error("Error sending SMS:");
-    return res.status(500).json({
-      error: "Failed to send SMS",
-
-    });
-  }
+const listQuerySchema = z.object({
+  page: pagination.page,
+  pageSize: pagination.pageSize,
+  unreadOnly: z.preprocess((value) => value === 'true', z.boolean()).optional(),
 });
 
-/**
- * POST /api/notification/email
- * Send email notification
- */
-router.post("/email", async (req, res) => {
-  try {
-    const { email, subject, html } = req.body;
+const idSchema = z.object({ notificationId: z.string().regex(/^[a-f\d]{24}$/i, 'Invalid notification') });
 
-    if (!email || !subject || !html) {
-      return res.status(400).json({
-        error: "Missing required fields: email, subject, html",
-      });
-    }
-
-    const result = await notificationService.sendEmail(email, subject, html);
-
-    return res.json(result);
-  } catch (error) {
-    console.error("Error sending email:");
-    return res.status(500).json({
-      error: "Failed to send email",
-
+router.get(
+  '/',
+  validate(listQuerySchema, 'query'),
+  asyncHandler(async (req, res) => {
+    const { page, pageSize, unreadOnly } = req.query;
+    const filter = { recipientId: req.auth.sub, recipientRole: req.auth.role, ...(unreadOnly ? { readAt: null } : {}) };
+    const [total, items, unread] = await Promise.all([
+      Notification.countDocuments(filter),
+      Notification.find(filter)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * pageSize)
+        .limit(pageSize)
+        .lean(),
+      unreadCount(req.auth.sub, req.auth.role),
+    ]);
+    return ok(res, items.map(serializeNotification), {
+      page,
+      pageSize,
+      total,
+      totalPages: total === 0 ? 0 : Math.ceil(total / pageSize),
+      hasNext: page * pageSize < total,
+      unread,
     });
-  }
-});
+  }),
+);
 
-/**
- * POST /api/notification/push
- * Send push notification
- */
-router.post("/push", async (req, res) => {
-  try {
-    const { userId, title, body, data } = req.body;
+router.get(
+  '/unread-count',
+  asyncHandler(async (req, res) => {
+    return ok(res, { unread: await unreadCount(req.auth.sub, req.auth.role) });
+  }),
+);
 
-    if (!userId || !title || !body) {
-      return res.status(400).json({
-        error: "Missing required fields: userId, title, body",
-      });
-    }
+router.post(
+  '/:notificationId/read',
+  validate(idSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const notification = await markRead(req.auth.sub, req.auth.role, req.params.notificationId);
+    if (!notification) throw notFound('Notification not found');
+    return ok(res, serializeNotification(notification));
+  }),
+);
 
-    const result = await notificationService.sendPushNotification(
-      userId,
-      title,
-      body,
-      data,
-    );
-
-    return res.json(result);
-  } catch (error) {
-    console.error("Error sending push notification:");
-    return res.status(500).json({
-      error: "Failed to send push notification",
-
-    });
-  }
-});
-
-/**
- * POST /api/notification/order-confirmation
- * Send order confirmation
- */
-router.post("/order-confirmation", async (req, res) => {
-  try {
-    const { userId, email, orderId, animalName } = req.body;
-
-    if (!userId || !email || !orderId || !animalName) {
-      return res.status(400).json({
-        error: "Missing required fields: userId, email, orderId, animalName",
-      });
-    }
-
-    const result = await notificationService.sendOrderConfirmation(
-      userId,
-      email,
-      orderId,
-      animalName,
-    );
-
-    return res.json(result);
-  } catch (error) {
-    console.error("Error sending order confirmation:");
-    return res.status(500).json({
-      error: "Failed to send order confirmation",
-
-    });
-  }
-});
+router.post(
+  '/read-all',
+  asyncHandler(async (req, res) => {
+    const updated = await markAllRead(req.auth.sub, req.auth.role);
+    return ok(res, { updated });
+  }),
+);
 
 export default router;

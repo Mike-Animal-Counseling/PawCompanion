@@ -1,0 +1,535 @@
+.page {
+  padding: 34px 0 60px;
+}
+
+.layout {
+  max-width: 1120px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  margin-top: 10px;
+  font-size: clamp(2.4rem, 4.4vw, 3.8rem);
+}
+
+.head p {
+  margin-top: 9px;
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.streak {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-xs);
+}
+
+.streakNumber {
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--coral);
+  line-height: 1;
+}
+
+.streak > span:last-child {
+  font-size: 0.72rem;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.streak small {
+  color: var(--muted);
+  font-size: 0.62rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.formCard,
+.replyCard,
+.weekCard,
+.historyCard,
+.safetyCard {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.formCard {
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.blockLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.moods {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.mood {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--cream);
+  transition: all 0.18s var(--ease);
+}
+
+.mood:hover {
+  border-color: var(--coral);
+  transform: translateY(-2px);
+}
+
+.moodEmoji {
+  font-size: 1.6rem;
+  line-height: 1;
+  filter: grayscale(0.15);
+}
+
+.moodLabel {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.moodActive {
+  background: var(--forest);
+  border-color: var(--forest);
+  box-shadow: 0 8px 18px -12px rgba(31, 77, 58, 0.8);
+}
+
+.moodActive .moodLabel {
+  color: #fff;
+}
+
+.moodActive .moodEmoji {
+  filter: none;
+}
+
+.moodNote {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  color: var(--forest);
+}
+
+.energy {
+  display: flex;
+  gap: 8px;
+}
+
+.energyDot {
+  flex: 1;
+  height: 12px;
+  border: 0;
+  border-radius: 99px;
+  background: var(--cream-deep);
+  transition: background 0.18s var(--ease);
+}
+
+.energyOn {
+  background: var(--forest);
+}
+
+.energyValue {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.tags .chip {
+  font-size: 0.74rem;
+  padding: 7px 11px;
+}
+
+.note {
+  min-height: 130px;
+}
+
+.privacy {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  font-size: 0.66rem;
+  color: var(--muted-2);
+  text-align: center;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.replyCard {
+  padding: 20px;
+  background: var(--forest-tint);
+  border-color: #d9e6dc;
+}
+
+.replySupport {
+  background: #fdf2ed;
+  border-color: #f0d4c8;
+}
+
+.replyHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.replyHead img,
+.replyIcon {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--paper);
+  display: grid;
+  place-items: center;
+  color: var(--forest);
+  flex: 0 0 auto;
+}
+
+.replyHead > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.replyHead strong {
+  font-size: 0.82rem;
+}
+
+.replyHead span {
+  font-size: 0.66rem;
+  color: var(--muted);
+}
+
+.replyCard > p {
+  margin-top: 12px;
+  font-family: var(--font-display);
+  font-size: 1.12rem;
+  line-height: 1.45;
+  color: var(--forest-deep);
+  white-space: pre-wrap;
+}
+
+.replyCard .replyActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.weekCard {
+  padding: 20px;
+}
+
+.weekHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.weekHead h2 {
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+.weekHead p {
+  margin-top: 2px;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.weekChart {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  height: 110px;
+  align-items: stretch;
+}
+
+.weekDay {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+
+.weekTrack {
+  flex: 1;
+  width: 100%;
+  border-radius: var(--radius-xs);
+  background: var(--cream);
+  display: flex;
+  align-items: flex-end;
+  padding: 3px;
+}
+
+.weekFill {
+  width: 100%;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #6aa081, var(--forest));
+}
+
+.weekEmpty {
+  width: 100%;
+  border-radius: 5px;
+  background: var(--line);
+}
+
+.weekDay > span {
+  font-size: 0.6rem;
+  color: var(--muted);
+}
+
+.historyCard {
+  padding: 20px;
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+}
+
+.historyList li {
+  border-top: 1px solid var(--line);
+}
+
+.historyList li:first-child {
+  border-top: 0;
+}
+
+.historyList li > button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 11px 0;
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.historyMood {
+  font-size: 1.2rem;
+  flex: 0 0 auto;
+}
+
+.historyBody {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.historyBody strong {
+  font-size: 0.74rem;
+}
+
+.historyBody > span {
+  font-size: 0.7rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historyStreak {
+  font-size: 0.6rem;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+
+.historyList svg {
+  color: var(--muted);
+}
+
+.historyReply {
+  margin: 0 0 12px 30px;
+  padding: 10px 12px;
+  border-left: 2px solid var(--coral);
+  background: var(--cream);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+
+.historyReply strong {
+  font-size: 0.64rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--coral-deep);
+}
+
+.historyReply p {
+  margin-top: 3px;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.safetyCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 16px;
+}
+
+.safetyCard > svg {
+  color: var(--forest);
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.safetyCard > div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 2px;
+}
+
+.safetyCard strong {
+  font-size: 0.74rem;
+}
+
+.safetyCard span {
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.safetyCard a {
+  font-size: 0.66rem;
+  font-weight: 650;
+  color: var(--forest);
+  white-space: nowrap;
+}
+
+.hidden {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .side {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .replyCard {
+    grid-column: span 2;
+  }
+  .safetyCard {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding-top: 22px;
+  }
+  .formCard {
+    padding: 18px;
+  }
+  .moods {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+  .mood {
+    padding: 9px 2px 7px;
+  }
+  .moodEmoji {
+    font-size: 1.35rem;
+  }
+  .moodLabel {
+    font-size: 0.54rem;
+  }
+  .side {
+    display: flex;
+  }
+  .replyCard,
+  .safetyCard {
+    grid-column: auto;
+  }
+  .historyStreak {
+    display: none;
+  }
+}
+
+.grid > * {
+  min-width: 0;
+}
+
+.moods {
+  min-width: 0;
+}
+
+.mood {
+  min-width: 0;
+}
+
+.moodLabel {
+  overflow-wrap: anywhere;
+}
+
+.tags .chip {
+  max-width: 100%;
+}

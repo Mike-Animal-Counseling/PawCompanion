@@ -1,0 +1,158 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 34px;
+  align-items: center;
+  padding: 22px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.score strong {
+  font-family: var(--font-display);
+  font-size: 3.4rem;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.score span {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.barRow {
+  display: grid;
+  grid-template-columns: 14px 1fr 24px;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.bar {
+  height: 7px;
+  border-radius: 99px;
+  background: var(--sand);
+  overflow: hidden;
+}
+
+.bar div {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--gold);
+}
+
+.barCount {
+  text-align: right;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.review {
+  padding: 20px 0;
+  border-top: 1px solid var(--line);
+}
+
+.review:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.author {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.author strong {
+  font-size: 0.82rem;
+}
+
+.author span {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.title {
+  margin-top: 11px;
+  font-size: 1rem;
+  font-family: var(--font-body);
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  margin-top: 5px;
+  font-size: 0.87rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.reply {
+  margin-top: 12px;
+  margin-left: 16px;
+  padding: 12px 14px;
+  border-left: 2px solid var(--coral);
+  background: var(--cream);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+
+.reply strong {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--coral-deep);
+}
+
+.reply p {
+  margin-top: 3px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+
+.empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 24px;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+@media (max-width: 620px) {
+  .summary {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+}

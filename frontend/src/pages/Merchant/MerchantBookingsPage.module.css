@@ -1,0 +1,362 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  margin-top: 10px;
+  font-size: clamp(2rem, 3.2vw, 2.7rem);
+}
+
+.head p {
+  margin-top: 6px;
+  max-width: 680px;
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.count {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 64px 190px 1fr 130px auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+
+.card:hover {
+  border-color: var(--line-strong);
+  box-shadow: var(--shadow-xs);
+}
+
+.dateBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  border-radius: var(--radius-xs);
+  background: var(--cream);
+  border: 1px solid var(--line);
+}
+
+.dateBlock span {
+  font-size: 0.54rem;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.dateBlock strong {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.dateBlock small {
+  font-size: 0.54rem;
+  color: var(--muted-2);
+}
+
+.animal {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.animal img,
+.animal > span {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--forest-soft);
+  color: var(--forest);
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.animal > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.animal strong {
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.animal span {
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.statusCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.created {
+  font-size: 0.6rem;
+  color: var(--muted-2);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 16px;
+  background: var(--cream);
+  border-radius: var(--radius-sm);
+}
+
+.detailGrid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detailGrid span {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.detailGrid strong {
+  font-size: 0.8rem;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+
+.detailNotes span {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.detailNotes p {
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: var(--cream);
+  border-radius: var(--radius-xs);
+  font-size: 0.8rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.detailTimeline > span {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.detailTimeline ol {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.detailTimeline li {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  font-size: 0.76rem;
+}
+
+.detailTimeline strong {
+  text-transform: capitalize;
+  font-size: 0.76rem;
+}
+
+.detailTimeline li span {
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.receipt {
+  font-size: 0.66rem;
+  color: var(--muted-2);
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.datePicker {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.dateChip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 7px 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--paper);
+}
+
+.dateChip span {
+  font-size: 0.54rem;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.dateChip strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.dateChip small {
+  font-size: 0.5rem;
+  color: var(--muted-2);
+}
+
+.dateChipActive {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fff;
+}
+
+.dateChipActive span,
+.dateChipActive small {
+  color: #b9d0c1;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.slotChip {
+  padding: 9px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--paper);
+  font-size: 0.72rem;
+}
+
+.slotChip:hover {
+  border-color: var(--forest);
+}
+
+.slotChipActive {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fff;
+}
+
+@media (max-width: 1100px) {
+  .card {
+    grid-template-columns: 58px 1fr auto;
+    grid-template-areas:
+      'date animal status'
+      'date meta actions';
+    row-gap: 8px;
+  }
+  .dateBlock { grid-area: date; }
+  .animal { grid-area: animal; }
+  .meta { grid-area: meta; flex-direction: row; gap: 12px; flex-wrap: wrap; }
+  .statusCol { grid-area: status; align-items: flex-end; }
+  .actions { grid-area: actions; }
+}
+
+@media (max-width: 680px) {
+  .card {
+    grid-template-columns: 54px 1fr;
+    grid-template-areas:
+      'date animal'
+      'meta meta'
+      'status status'
+      'actions actions';
+    padding: 14px;
+  }
+  .statusCol {
+    align-items: flex-start;
+    flex-direction: row;
+    gap: 8px;
+  }
+  .actions {
+    justify-content: flex-start;
+  }
+  .datePicker {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+}
