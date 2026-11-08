@@ -139,8 +139,10 @@ router.get(
   validate(merchantAnimalParamsSchema, 'params'),
   asyncHandler(async (req, res) => {
     const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    const serialized = serializeAnimal(animal);
     return ok(res, {
-      ...serializeAnimal(animal),
+      ...serialized,
+      digital: { ...serialized.digital, hostNotes: animal.digital?.hostNotes || '', soundPack: animal.digital?.soundPack || 'species' },
       visibility: animal.visibility,
       isActive: animal.isActive,
       moderationStatus: animal.moderationStatus,
@@ -158,7 +160,11 @@ router.patch(
     if (!req.body.city && !animal.city) animal.city = req.account.city || '';
     await animal.save();
     await recordAudit(req, { action: 'listing.updated', targetType: 'animal', targetId: animal._id, metadata: { fields: Object.keys(req.body) } });
-    return ok(res, serializeAnimal(animal));
+    const serialized = serializeAnimal(animal);
+    return ok(res, {
+      ...serialized,
+      digital: { ...serialized.digital, hostNotes: animal.digital?.hostNotes || '', soundPack: animal.digital?.soundPack || 'species' },
+    });
   }),
 );
 

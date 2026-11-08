@@ -1,4 +1,4 @@
-# Case study: PawCompanion
+﻿# Case study: PawCompanion
 
 > A companionship app for pet people. Online AI company between visits, verified in-person visits when being alone is too much. This is a personal product/engineering project, currently a portfolio-ready demo rather than a launched consumer business.
 
@@ -28,7 +28,7 @@ Existing pet products optimise for transactions: find a pet, book a walker, buy 
 | Surface | Capabilities |
 | --- | --- |
 | Guest | Discovery with filters/facets, companion detail, reviews, favourites, safety page, register/login |
-| Member | Personal home, daily check-in + journal + seven-day chart, AI chat with memory/support mode, bond, bookings, visits, notifications, account and data deletion |
+| Member | Personal home, daily check-in + journal + seven-day chart, digital pet with memory/support mode, bond, bookings, visits, notifications, account and data deletion |
 | Partner | 30-day dashboard, listings + image upload, 21-day availability, visit accept/decline/complete/reschedule, review replies, business profile |
 | Operator | Platform overview, safety queue, derived risk events, partner suspension, listing/review moderation, audit trail |
 | Platform | Rotating refresh sessions, RBAC, Zod validation, shared rate budgets, structured logs, health/readiness, Docker, CI |
@@ -70,7 +70,7 @@ Not implemented; this is a product hypothesis, not a revenue claim.
 
 - **8% guest service fee** on in-person bookings (already reflected in pricing logic).
 - **Partner tools** (availability, analytics, review replies) as a lightweight subscription for high-volume hosts.
-- **Plus membership** for guests: priority booking windows, a small monthly video-call credit, and advanced memory — optional, never required for basic companionship.
+- **Plus membership** for guests: priority booking windows, a small monthly digital-pet credit, and advanced memory — optional, never required for basic companionship.
 - No ads and no sale of conversation data. The trust position is the moat.
 
 ## Metrics I would use
@@ -108,11 +108,11 @@ I would instrument these with privacy review; no message content in analytics.
 - Product thinking: a clear user, a non-obvious dual-track thesis, explicit trade-offs and a launch plan.
 - Full-stack execution: domain modelling, atomic booking, auth/session rotation, validation, rate limits, admin/moderation, responsive design.
 - Safety engineering: layered detection, privacy-preserving risk data, operator workflows and honest limitations.
-- Engineering quality: 41 backend tests, browser E2E, CI, Docker, structured logs, graceful shutdown and documentation.
+- Engineering quality: 45 backend tests, browser E2E, CI, Docker, structured logs, graceful shutdown and documentation.
 
 ## Next
 
-Live payments · human online sessions · recurring partner schedules · real-time notifications · PWA polish · TypeScript/OpenAPI contracts · production safety operations.
+Live payments · host-recorded sound packs + audio embeddings · recurring partner schedules · real-time notifications · PWA polish · TypeScript/OpenAPI contracts · production safety operations.
 
 ---
 

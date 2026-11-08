@@ -17,7 +17,8 @@ TEST_MONGO_URI=mongodb://127.0.0.1:27018/pawcompanion-test npm test
 | --- | --- |
 | `tests/auth.test.js` | register, duplicate, login, refresh rotation, logout, password change, roles, sessions, preferences |
 | `tests/animals.test.js` | discovery pagination/filter/sort, facets, detail, relationship, favourites, invalid queries |
-| `tests/bookings.test.js` | service pricing, duplicate slots, video calls, ownership, reschedule, refunds, reviews, merchant decisions, availability |
+| `tests/bookings.test.js` | service pricing, duplicate slots, in-person services, ownership, reschedule, refunds, reviews, merchant decisions, availability |
+| `tests/digital.test.js` | digital-pet state, mood/body/sound contract, support turns, host opt-out |
 | `tests/checkins.test.js` | check-in create/update/streak/history, crisis screening, dashboard, bond, deletion, validation |
 | `tests/security.test.js` | headers, origin, auth, forged tokens, payload limits, NoSQL shapes, static paths, budget failure, production config |
 | `tests/safety.test.js` | English/Chinese high/medium/none patterns and crisis resources |
@@ -45,7 +46,7 @@ Use the demo credentials printed by `npm run demo`.
 
 ### Offline track
 
-1. Open a companion → **Book in person**. Choose home visit, walk, café or video call. The price changes with the service.
+1. Open a companion → **Book in person**. Choose home visit, walk or café. The price changes with the service.
 2. Pick a date and an available slot. Complete contact details and the sandbox payment step.
 3. Confirm; the success screen says the host must confirm. The visit appears under **My visits** with status “Awaiting host”.
 4. Sign in as the partner. Open **Bookings** → accept the request. The guest receives a notification.

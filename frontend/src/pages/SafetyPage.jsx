@@ -35,7 +35,7 @@ const STEPS = [
 ];
 
 const DATA = [
-  { label: 'Companion chat history', detail: 'Stored per companion until you delete it. Visible only to you.', retention: 'Until deleted' },
+  { label: 'Digital pet chat history', detail: 'Stored per companion until you delete it. Visible only to you.', retention: 'Until deleted' },
   { label: 'Risk signals', detail: 'Derived level, score and timestamp. No raw message text is stored here.', retention: 'Up to 120 days' },
   { label: 'Bookings & payments', detail: 'Needed for visit logistics, receipts and refunds. Contact details are withheld from public profiles.', retention: 'Account lifetime' },
   { label: 'Account & sessions', detail: 'Email, name, city, hashed password and device sessions. You can revoke sessions at any time.', retention: 'Until deletion' },

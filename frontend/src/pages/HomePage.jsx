@@ -161,7 +161,7 @@ export default function HomePage() {
                 </span>
                 <div>
                   <strong>Mochi</strong>
-                  <span>AI companion · online</span>
+                  <span>Digital pet · online</span>
                 </div>
                 <span className={classes.onlineDot} />
               </div>

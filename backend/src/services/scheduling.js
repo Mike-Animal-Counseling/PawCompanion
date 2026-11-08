@@ -38,15 +38,6 @@ export const SERVICES = {
     description: 'Meet at the partner café or shelter. A low-pressure first visit with a drink and plenty of space.',
     badge: 'Good first visit',
   },
-  video_call: {
-    type: 'video_call',
-    label: 'Video call',
-    mode: 'online',
-    durationMinutes: 30,
-    multiplier: 1.2,
-    description: 'A thirty-minute live video call with the companion and their host. For days when leaving the house is too much.',
-    badge: 'Online',
-  },
 };
 
 export const SERVICE_TYPES = Object.keys(SERVICES);

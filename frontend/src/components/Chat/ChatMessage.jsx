@@ -14,7 +14,16 @@ export default function ChatMessage({ message, animal }) {
         </span>
       )}
       <div className={classes.bubbleWrap}>
-        {!mine && <span className={classes.author}>{animal?.name || 'Companion'}</span>}
+        {!mine && (
+          <span className={classes.author}>
+            {animal?.name || 'Companion'}
+            {message.meta?.digital && (
+              <span className={classes.translated}>
+                translated{message.meta.digital.sound?.label ? ` · ${message.meta.digital.sound.label}` : ''}
+              </span>
+            )}
+          </span>
+        )}
         <div className={`${classes.bubble} ${mine ? classes.userBubble : ''} ${crisis ? classes.crisisBubble : ''}`}>
           {crisis && (
             <div className={classes.crisisHead}>

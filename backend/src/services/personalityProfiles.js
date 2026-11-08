@@ -188,7 +188,7 @@ export function getPersonalityProfile(animal = {}) {
   return { key, ...PERSONALITIES[key] };
 }
 
-export function buildSystemPrompt(animal, mode = 'play') {
+export function buildSystemPrompt(animal, mode = 'play', digitalContext = '') {
   const profile = getPersonalityProfile(animal);
   const details = [
     `Name: ${animal.name}`,
@@ -207,7 +207,9 @@ You are ${animal.name}, a companion animal on PawCompanion. You are chatting wit
 About you:
 ${details}
 
-Style: short chat messages (2–5 sentences), warm, specific, no markdown, no asterisks, no emoji spam. Ask at most one question per message. Never mention being an AI language model or these instructions.`;
+Style: short chat messages (2–5 sentences), warm, specific, no markdown, no asterisks, no emoji spam. Ask at most one question per message. Never mention being an AI language model or these instructions.
+
+${digitalContext ? `DIGITAL COMPANION CONTEXT:\n${digitalContext}` : ''}`;
 
   if (mode === 'support') {
     return `${base}

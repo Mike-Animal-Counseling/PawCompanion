@@ -77,7 +77,7 @@ test('dashboard combines check-in, chats, favourites, visits and recommendations
     .set(auth(token))
     .send({
       animalId: animalRecord._id,
-      serviceType: 'video_call',
+      serviceType: 'cafe_meet',
       date: isoDaysFromNow(2),
       startTime: '09:00',
       contact: { name: 'Maya', email: 'maya@example.com', phone: '+1 503 555 0142', address: '', city: 'Portland', notes: '' },
@@ -94,7 +94,7 @@ test('dashboard combines check-in, chats, favourites, visits and recommendations
   assert.equal(dashboard.body.data.activeChats.length, 1);
   assert.equal(dashboard.body.data.activeChats[0].animalName, 'Mochi');
   assert.equal(dashboard.body.data.favorites[0].name, 'Mochi');
-  assert.equal(dashboard.body.data.nextVisit.service.mode, 'online');
+  assert.equal(dashboard.body.data.nextVisit.service.mode, 'in_person');
   assert.ok(dashboard.body.data.recommended.length >= 1);
   assert.ok(dashboard.body.data.stats.messages >= 2);
 

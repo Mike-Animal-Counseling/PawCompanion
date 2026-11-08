@@ -192,7 +192,7 @@ Create body:
 }
 ```
 
-Service types: `home_visit` (120 min, in person), `walk` (120 min, in person), `cafe_meet` (120 min, in person), `video_call` (30 min, online).
+Service types: `home_visit` (120 min, in person), `walk` (120 min, in person), `cafe_meet` (120 min, in person).
 
 Server responds with `service`, `pricing`, `statusHistory`, `paymentStatus` and computed `actions` (`canCancel`, `canReschedule`, `canReview`).
 
@@ -200,7 +200,7 @@ Booking status: `pending → confirmed → completed`, `cancelled`, `declined`.
 
 ---
 
-## AI companionship
+## Digital pet companionship
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
@@ -213,7 +213,21 @@ Booking status: `pending → confirmed → completed`, `cancelled`, `declined`.
 | GET | `/ai/safety` | customer | Derived safety summary, events, resources, retention |
 | DELETE | `/ai/data` | customer | Delete chats, check-ins, risk events/profile |
 
-Chat response includes `response`, optional `image`, `meta`, `routeMeta` (`mode`, `confidence`, `provider`), `userProfile` and `suggestedPrompts`. Crisis responses use `meta.type="crisis"` and `meta.resources`.
+Chat response includes `response`, optional `image`, `meta`, `routeMeta` (`mode`, `confidence`, `provider`), `userProfile`, `digital` and `suggestedPrompts`. Crisis responses use `meta.type="crisis"` and `meta.resources`.
+
+`digital` is the online companion contract:
+
+```json
+{
+  "mood": "gentle",
+  "behaviour": "settle_nearby",
+  "animation": "slow_blink",
+  "sound": { "key": "cat-purr-0", "url": "/sounds/cat-purr.mp3", "label": "a soft, close purr", "rate": 0.9 },
+  "state": { "mood": "gentle", "energy": 68, "attention": 66, "trust": 43, "interactions": 1 }
+}
+```
+
+The text is the translation; the sound is an animal vocalization. No human TTS is used. See [DIGITAL_PET.md](DIGITAL_PET.md).
 
 ---
 

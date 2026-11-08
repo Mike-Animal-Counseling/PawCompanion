@@ -11,8 +11,8 @@
     "demo:api": "node src/demo.js --no-web",
     "seed": "node src/scripts/seed.js --reset",
     "seed:append": "node src/scripts/seed.js",
-    "test": "node --test --test-concurrency=1 tests/auth.test.js tests/animals.test.js tests/bookings.test.js tests/checkins.test.js tests/security.test.js tests/safety.test.js",
-    "test:watch": "node --test --watch tests/auth.test.js tests/animals.test.js tests/bookings.test.js tests/checkins.test.js tests/security.test.js tests/safety.test.js",
+    "test": "node --test --test-concurrency=1 tests/auth.test.js tests/animals.test.js tests/bookings.test.js tests/checkins.test.js tests/digital.test.js tests/security.test.js tests/safety.test.js",
+    "test:watch": "node --test --watch tests/auth.test.js tests/animals.test.js tests/bookings.test.js tests/checkins.test.js tests/digital.test.js tests/security.test.js tests/safety.test.js",
     "start": "node src/server.js"
   },
   "keywords": [

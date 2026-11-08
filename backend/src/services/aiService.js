@@ -199,7 +199,7 @@ export function localCompanionReply({ animal, messages = [], message, mode = 'pl
   };
 }
 
-export async function generateResponse({ animal, messages = [], message, mode = 'play', config }) {
+export async function generateResponse({ animal, messages = [], message, mode = 'play', config, digitalContext = '' }) {
   if (!config.ai.enabled || !config.ai.apiKey) {
     return localCompanionReply({ animal, messages, message, mode });
   }
@@ -209,7 +209,7 @@ export async function generateResponse({ animal, messages = [], message, mode = 
     .slice(-20)
     .map((item) => ({ role: item.role, content: String(item.content || '').slice(0, 2000) }));
 
-  const payload = [{ role: 'system', content: buildSystemPrompt(animal, mode) }, ...history];
+  const payload = [{ role: 'system', content: buildSystemPrompt(animal, mode, digitalContext) }, ...history];
   const last = payload[payload.length - 1];
   if (!last || last.role !== 'user' || last.content.trim() !== String(message).trim()) {
     payload.push({ role: 'user', content: String(message) });

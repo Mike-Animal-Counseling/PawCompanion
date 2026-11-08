@@ -90,7 +90,6 @@ export default function CompanionPage() {
   const next = animal.availability?.next;
   const canBook = !user || user.role === 'customer';
   const homeService = services?.find((service) => service.type === 'home_visit');
-  const videoService = services?.find((service) => service.type === 'video_call');
   const pricing = homeService?.pricing
     ? { ...homeService.pricing, hourlyRate: animal.price, hours: 2 }
     : {
@@ -226,13 +225,6 @@ export default function CompanionPage() {
                   <strong>2-hour visit</strong>
                   <span>{formatCurrency(pricing.total)}</span>
                 </div>
-                {videoService && (
-                  <div>
-                    <span className={classes.serviceMode}><Icon name="chat" size={13} /> Online</span>
-                    <strong>30-min video call</strong>
-                    <span>{formatCurrency(videoService.pricing.total)}</span>
-                  </div>
-                )}
               </div>
               <div className={classes.priceBreakdown}>
                 <span>In-person subtotal</span>
@@ -260,7 +252,7 @@ export default function CompanionPage() {
               {canBook ? (
                 <div className={classes.ctaRow}>
                   <Link to={`/chat/${animal.id}`} className="btn btn-secondary">
-                    <Icon name="chat" size={17} /> Chat online
+                    <Icon name="chat" size={17} /> Meet digital {animal.name}
                   </Link>
                   <Link to={`/book/${animal.id}`} className="btn">
                     Book in person <Icon name="arrow-right" size={16} />

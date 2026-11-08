@@ -4,7 +4,7 @@ import ChatMemory from '../models/ChatMemory.js';
 import Checkin from '../models/Checkin.js';
 import RiskEvent from '../models/RiskEvent.js';
 import UserRiskProfile from '../models/UserRiskProfile.js';
-import { asyncHandler, notFound } from '../lib/errors.js';
+import { asyncHandler, conflict, notFound } from '../lib/errors.js';
 import { isObjectId } from '../lib/ids.js';
 import { ok } from '../lib/http.js';
 import { validate } from '../lib/validate.js';
@@ -14,6 +14,14 @@ import { recordRiskEventAndUpdateProfile, deleteRiskData } from '../services/ris
 import { detectMode, generateResponse } from '../services/aiService.js';
 import { extractTextAndImagePrompt, generateImage } from '../services/imageGeneration.js';
 import { suggestedPrompts } from '../services/personalityProfiles.js';
+import {
+  digitalPromptContext,
+  digitalStateView,
+  getDigitalProfile,
+  getOrCreateDigitalState,
+  planDigitalTurn,
+  recordDigitalInteraction,
+} from '../services/digitalPetService.js';
 import { chatSchema, conversationListQuerySchema, conversationParamsSchema } from '../validators/ai.js';
 import { paginationMeta } from '../lib/http.js';
 
@@ -80,6 +88,9 @@ router.post(
 
     const animal = await Animal.findOne({ _id: animalId, ...PUBLIC_FILTER }).lean();
     if (!animal) throw notFound('Companion not found');
+    const digitalProfile = getDigitalProfile(animal);
+    if (!digitalProfile.enabled) throw conflict('This companion has not enabled their digital self yet');
+    const digitalState = await getOrCreateDigitalState(userId, animalId);
 
     let memory = await ChatMemory.findOne({ userId, animalId });
     if (!memory) {
@@ -99,7 +110,7 @@ router.post(
     const risk = await detectSelfHarm(message, {
       apiKey: config.ai.enabled ? config.ai.apiKey : '',
     });
-    const profile = await recordRiskEventAndUpdateProfile({ userId, animalId, risk }).catch(() => null);
+    const riskProfile = await recordRiskEventAndUpdateProfile({ userId, animalId, risk }).catch(() => null);
 
     if (risk.flagged) {
       const crisis = buildCrisisResponse();
@@ -121,7 +132,14 @@ router.post(
         memory: { id: String(memory._id), messages: memory.messages, chatMode: memory.chatMode },
         messageCount: memory.messages.length,
         routeMeta: { mode: 'support', confidence: 1, rationale: 'safety_override', provider: 'safety' },
-        userProfile: profileView(profile || (await UserRiskProfile.findOne({ userId }).lean())),
+        userProfile: profileView(riskProfile || (await UserRiskProfile.findOne({ userId }).lean())),
+        digital: {
+          mood: 'gentle',
+          behaviour: 'stay_close',
+          animation: 'still',
+          sound: null,
+          state: digitalStateView(digitalState),
+        },
         suggestedPrompts: suggestedPrompts(animal),
       });
     }
@@ -156,12 +174,22 @@ router.post(
     memory.chatMode = mode;
     memory.supportTurnsLeft = turnsLeft;
 
+    const digitalPlan = planDigitalTurn({
+      animal,
+      profile: digitalProfile,
+      state: digitalState,
+      mode,
+      message,
+    });
+    const digitalContext = digitalPromptContext(digitalProfile, digitalPlan, digitalState);
+
     const generated = await generateResponse({
       animal,
       messages: memory.messages,
       message,
       mode,
       config,
+      digitalContext,
     });
 
     const { text: cleaned, imagePrompt } = extractTextAndImagePrompt(generated.text);
@@ -170,17 +198,27 @@ router.post(
       image = await generateImage(imagePrompt, config);
     }
 
+    const digital = {
+      mood: digitalPlan.mood,
+      behaviour: digitalPlan.behaviour,
+      animation: digitalPlan.animation,
+      sound: digitalPlan.sound,
+      state: digitalStateView(digitalState),
+    };
+
     memory.messages.push({
       role: 'assistant',
       content: cleaned,
       timestamp: new Date(),
-      ...(image ? { meta: { imagePrompt } } : {}),
+      meta: { ...(image ? { imagePrompt } : {}), digital },
     });
     memory.messages = trimMessages(memory.messages);
     memory.lastMessageAt = new Date();
     await memory.save();
+    const updatedState = (await recordDigitalInteraction(digitalState, digitalPlan)) || digitalState;
+    digital.state = digitalStateView(updatedState);
 
-    const latestProfile = profile || (await UserRiskProfile.findOne({ userId }).lean());
+    const latestProfile = riskProfile || (await UserRiskProfile.findOne({ userId }).lean());
 
     return ok(res, {
       response: cleaned,
@@ -195,6 +233,7 @@ router.post(
         provider: generated.provider,
       },
       userProfile: profileView(latestProfile),
+      digital,
       suggestedPrompts: suggestedPrompts(animal),
     });
   }),
@@ -249,10 +288,28 @@ router.get(
     const animal = await Animal.findOne({ _id: req.params.animalId, ...PUBLIC_FILTER }).lean();
     if (!animal) throw notFound('Companion not found');
     const memory = await ChatMemory.findOne({ userId: req.auth.sub, animalId: req.params.animalId }).lean();
+    const digitalProfile = getDigitalProfile(animal);
+    const digitalState = await getOrCreateDigitalState(req.auth.sub, req.params.animalId);
     return ok(res, {
-      animal: { id: String(animal._id), name: animal.name, imageUrl: animal.imageUrl, personality: animal.personality },
+      animal: {
+        id: String(animal._id),
+        name: animal.name,
+        imageUrl: animal.imageUrl,
+        personality: animal.personality,
+        species: animal.species,
+        breed: animal.breed || '',
+      },
       messages: memory?.messages || [],
       chatMode: memory?.chatMode || 'play',
+      digital: {
+        enabled: digitalProfile.enabled,
+        voice: digitalProfile.voice,
+        traits: digitalProfile.traits,
+        voiceStyle: digitalProfile.voiceStyle,
+        routines: digitalProfile.routines,
+        favorites: digitalProfile.favorites,
+        state: digitalStateView(digitalState),
+      },
       suggestedPrompts: suggestedPrompts(animal),
     });
   }),

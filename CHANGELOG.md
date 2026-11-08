@@ -1,4 +1,4 @@
-# Changelog
+﻿# Changelog
 
 ## 2.0.0 — Companionship, rebuilt
 
@@ -6,9 +6,9 @@ A full product and engineering rewrite that turns the original demo into an onli
 
 ### Added
 
-- **Dual-track product model.** Online companionship (AI chat, daily check-ins, mood journal, bond) and in-person companionship (home visit, walk, café meetup, 30-minute video call) share one companion relationship.
+- **Dual-track product model.** Online companionship (digital pet, daily check-ins, mood journal, bond) and in-person companionship (home visit, walk, café meetup) share one companion relationship.
 - **Daily check-in system** with mood, energy, tags, private notes, companion reply, streak, seven-day series and history.
-- **In-person service catalogue** with server-side pricing, four service types and online/offline modes.
+- **In-person service catalogue** with server-side pricing and three visit types: home visit, walk and café meetup.
 - **Booking lifecycle** with atomic slot reservation, host accept/decline/complete, rescheduling, >24-hour cancellation policy, automatic sandbox refunds, receipts and reviews.
 - **Companion bond** from messages, visits and favourites; shown on the companion profile.
 - **Member home** with next visit, active conversations, recommendations, preferences and safety status.
@@ -19,7 +19,8 @@ A full product and engineering rewrite that turns the original demo into an onli
 - **Auth 2.0:** rotating refresh sessions, HttpOnly cookies, short-lived access tokens, password change, session management and account closure.
 - **API foundation:** Zod validation, consistent response/error envelopes, pagination, rate budgets, request IDs, structured logs, health/readiness, graceful shutdown.
 - **Safety:** English/Chinese self-harm patterns, support mode, crisis resources, derived risk profile, human review queue, data deletion.
-- **Engineering:** 41 backend tests, CI, Dockerfiles, Docker Compose demo, seeded demo, API/safety/deployment docs.
+- **Digital pet:** host-authored traits/routines/comforts, per-user state, behaviour planner, licensed animal sounds, translated text and push-to-talk.
+- **Engineering:** 45 backend tests, 10-step browser E2E, CI, Dockerfiles, Docker Compose demo, seeded demo, API/safety/deployment docs.
 - **Design system:** Fraunces/Inter, warm forest/cream/coral identity, accessible components and responsive layouts.
 - **Portfolio materials:** curated README, product case study, public/private publishing strategy and a privacy check for tracked files.
 

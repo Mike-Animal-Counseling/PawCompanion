@@ -49,17 +49,27 @@ try {
     await page.goto(base + '/check-in', { waitUntil: 'networkidle' });
     await page.getByRole('heading', { name: 'How are you, really?' }).waitFor();
   });
+  let companionHref;
   await step('companion detail exposes bond and services', async () => {
     await page.goto(base, { waitUntil: 'networkidle' });
-    const href = await page.locator('a[href^="/companions/"]').first().getAttribute('href');
-    await page.goto(base + href, { waitUntil: 'networkidle' });
+    companionHref = await page.locator('a[href^="/companions/"]').first().getAttribute('href');
+    await page.goto(base + companionHref, { waitUntil: 'networkidle' });
     await page.getByText('Your companionship').waitFor();
-    await page.getByText('Video call', { exact: false }).first().waitFor();
+    await page.getByText('2-hour visit', { exact: false }).first().waitFor();
   });
-  await step('booking screen offers four services', async () => {
+  await step('digital pet replies with a translated animal sound', async () => {
+    await page.getByRole('link', { name: /Meet digital/ }).click();
+    await page.getByText('Digital pet', { exact: false }).first().waitFor();
+    await page.locator('textarea').fill('Hi, I just got home.');
+    await page.getByRole('button', { name: 'Send message' }).click();
+    await page.getByText(/translated/i).first().waitFor({ timeout: 15000 });
+    await page.getByRole('button', { name: /Hear / }).waitFor();
+  });
+  await step('booking screen offers three in-person services', async () => {
+    await page.goto(base + companionHref, { waitUntil: 'networkidle' });
     await page.getByRole('link', { name: /Book in person/ }).click();
     await page.getByText('What kind of time together?').waitFor();
-    assert.equal(await page.getByRole('radio').count(), 4);
+    assert.equal(await page.getByRole('radio').count(), 3);
   });
   await step('visits screen loads', async () => {
     await page.goto(base + '/visits', { waitUntil: 'networkidle' });
