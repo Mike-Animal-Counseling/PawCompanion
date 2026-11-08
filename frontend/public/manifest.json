@@ -1,25 +1,52 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "name": "PawCompanion — companionship, on your terms",
+  "short_name": "PawCompanion",
+  "description": "Verified animal companions, warm AI company, daily check-ins and low-pressure visits.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#faf6ee",
+  "theme_color": "#1f4d3a",
+  "categories": ["lifestyle", "health", "social"],
+  "lang": "en",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "logo192.png",
+      "src": "/logo512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "sizes": "192x192"
+      "purpose": "any maskable"
     },
     {
-      "src": "logo512.png",
-      "type": "image/png",
-      "sizes": "512x512"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ],
-  "start_url": ".",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "shortcuts": [
+    {
+      "name": "Daily check-in",
+      "short_name": "Check in",
+      "url": "/check-in",
+      "description": "Notice how you feel and hear from a companion."
+    },
+    {
+      "name": "My visits",
+      "short_name": "Visits",
+      "url": "/visits",
+      "description": "Upcoming and past companion visits."
+    },
+    {
+      "name": "Messages",
+      "short_name": "Chats",
+      "url": "/chats",
+      "description": "Continue a conversation with a companion."
+    }
+  ]
 }

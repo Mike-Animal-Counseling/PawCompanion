@@ -1,4 +1,4 @@
-name: Application security and build
+name: Application security, tests and build
 on:
   pull_request:
   push:
@@ -12,7 +12,7 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -20,21 +20,32 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            backend/package-lock.json
+            frontend/package-lock.json
+      - name: Check tracked files for local paths and key material
+        run: npm run check:privacy
       - name: Install backend locked dependencies
         working-directory: backend
-        run: npm ci --ignore-scripts
+        run: npm ci
       - name: Audit backend dependencies
         working-directory: backend
         run: npm audit --audit-level=low
-      - name: Authentication and security regressions
+      - name: Backend tests (auth, dual-track bookings, check-ins, safety)
         working-directory: backend
+        env:
+          MONGOMS_DOWNLOAD_DIR: ${{ runner.temp }}/mongodb-binaries
         run: npm test
       - name: Install frontend locked dependencies
         working-directory: frontend
-        run: npm ci --ignore-scripts
+        run: npm ci
       - name: Audit frontend dependencies
         working-directory: frontend
         run: npm audit --audit-level=low
       - name: Build production assets
         working-directory: frontend
         run: npm run build
+      - name: Verify the production bundle exposes no source maps
+        working-directory: frontend
+        run: test -z "$(find dist -name '*.map' -print -quit)"

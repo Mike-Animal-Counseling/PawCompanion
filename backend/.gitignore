@@ -9,8 +9,9 @@ logs/
 dist/
 build/
 coverage/
+.cache/
 
-# If you use runtime uploads locally
+# Runtime uploads
 uploads/
 tmp/
 

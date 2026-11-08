@@ -1,0 +1,142 @@
+.wrapper {
+  position: relative;
+}
+
+.dot {
+  position: absolute;
+  top: 4px;
+  right: 3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: var(--coral);
+  border: 2px solid var(--cream);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  line-height: 13px;
+  text-align: center;
+}
+
+.panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 70;
+  width: min(380px, calc(100vw - 32px));
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: notif-in 0.18s var(--ease);
+}
+
+@keyframes notif-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.88rem;
+}
+
+.list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  padding: 13px 16px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  text-align: left;
+  transition: background 0.15s var(--ease);
+}
+
+.item:hover {
+  background: var(--cream);
+}
+
+.unread {
+  background: #fbf7ef;
+}
+
+.itemIcon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--forest-soft);
+  color: var(--forest);
+  flex: 0 0 auto;
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemTitle {
+  font-size: 0.83rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.itemText {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.time {
+  font-size: 0.68rem;
+  color: var(--muted-2);
+  margin-top: 2px;
+}
+
+.unreadDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--coral);
+  margin-top: 6px;
+  flex: 0 0 auto;
+}
+
+.empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--forest);
+  background: var(--cream);
+}

@@ -1,0 +1,81 @@
+.chart {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 120px;
+}
+
+.gridLines {
+  position: absolute;
+  inset: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  pointer-events: none;
+}
+
+.gridLines span {
+  height: 1px;
+  background: var(--line);
+  opacity: 0.7;
+}
+
+.bars {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 100%;
+  padding-bottom: 20px;
+}
+
+.barWrap {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+}
+
+.barTrack {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.15s var(--ease);
+}
+
+.barWrap:hover .barTrack {
+  background: rgba(31, 77, 58, 0.06);
+}
+
+.bar {
+  width: min(100%, 26px);
+  min-height: 2px;
+  border-radius: 4px 4px 2px 2px;
+  background: linear-gradient(180deg, #4b8a6d, var(--forest));
+  transition: height 0.4s var(--ease), background 0.15s var(--ease);
+}
+
+.barWrap:hover .bar {
+  background: var(--coral);
+}
+
+.barLabel {
+  position: absolute;
+  bottom: 0;
+  font-size: 0.56rem;
+  color: var(--muted-2);
+  white-space: nowrap;
+  transform: translateY(100%);
+  padding-top: 4px;
+}

@@ -1,0 +1,348 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  margin-top: 10px;
+  font-size: clamp(2rem, 3.2vw, 2.7rem);
+}
+
+.head p {
+  margin-top: 6px;
+  max-width: 660px;
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.selectorRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.selector {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.selector span {
+  font-size: 0.68rem;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.selector select {
+  min-width: 260px;
+  height: 46px;
+}
+
+.miniCompanion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+}
+
+.miniCompanion img,
+.miniCompanion > span {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--forest-soft);
+  color: var(--forest);
+  display: grid;
+  place-items: center;
+}
+
+.miniCompanion > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.miniCompanion strong {
+  font-size: 0.76rem;
+}
+
+.miniCompanion span {
+  font-size: 0.64rem;
+  color: var(--muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.calendarPanel,
+.slotsPanel {
+  padding: 22px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+}
+
+.panelHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.panelHead h2 {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.panelHead p {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 9px 2px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xs);
+  background: var(--paper);
+  color: var(--ink-soft);
+  transition: all 0.16s var(--ease);
+}
+
+.day:hover {
+  border-color: var(--forest);
+}
+
+.day span {
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.day strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.day small {
+  font-size: 0.5rem;
+  color: var(--muted-2);
+}
+
+.dayActive {
+  background: var(--forest);
+  border-color: var(--forest);
+  color: #fff;
+}
+
+.dayActive span,
+.dayActive small {
+  color: #b9d0c1;
+}
+
+.calendarNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  font-size: 0.68rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.slotList {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.slot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  text-align: left;
+  transition: all 0.16s var(--ease);
+}
+
+.slot:hover:not(:disabled) {
+  border-color: var(--forest);
+}
+
+.slotTime {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+.slotTime small {
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+.slotState {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.slotOpen .slotState {
+  color: var(--success);
+}
+
+.slotBooked {
+  background: var(--cream);
+  opacity: 0.8;
+}
+
+.slotBooked .slotState {
+  color: var(--coral-deep);
+}
+
+.switch {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 99px;
+  background: var(--line-strong);
+  flex: 0 0 auto;
+  transition: background 0.18s var(--ease);
+}
+
+.switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.18s var(--ease);
+}
+
+.slotOpen .switch {
+  background: var(--forest);
+}
+
+.slotOpen .switch span {
+  transform: translateX(14px);
+}
+
+.slotBooked .switch {
+  background: var(--coral);
+}
+
+.slotBooked .switch span {
+  transform: translateX(14px);
+}
+
+.slotSkeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.unsaved {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  padding: 10px;
+  border-radius: var(--radius-xs);
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 0.72rem;
+}
+
+.tip {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--forest-tint);
+  border: 1px solid #d9e6dc;
+}
+
+.tip svg {
+  color: var(--forest);
+  flex: 0 0 auto;
+  margin-top: 1px;
+}
+
+.tip div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tip strong {
+  font-size: 0.78rem;
+}
+
+.tip span {
+  font-size: 0.72rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+@media (max-width: 1000px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .days {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .selector select {
+    min-width: 100%;
+    width: 100%;
+  }
+  .selector {
+    width: 100%;
+  }
+}

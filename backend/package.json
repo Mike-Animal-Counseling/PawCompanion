@@ -1,20 +1,28 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "main": "index.js",
+  "name": "@pawcompanion/api",
+  "version": "2.0.0",
+  "private": true,
+  "description": "PawCompanion API — companion discovery, AI chat, safety and visit bookings",
   "type": "module",
+  "main": "src/server.js",
   "scripts": {
     "dev": "node --watch src/server.js",
-    "seed": "node src/scripts/seed.js",
-    "test": "node --test tests/*.test.js",
+    "demo": "node src/demo.js",
+    "demo:api": "node src/demo.js --no-web",
+    "seed": "node src/scripts/seed.js --reset",
+    "seed:append": "node src/scripts/seed.js",
+    "test": "node --test --test-concurrency=1 tests/auth.test.js tests/animals.test.js tests/bookings.test.js tests/checkins.test.js tests/security.test.js tests/safety.test.js",
+    "test:watch": "node --test --watch tests/auth.test.js tests/animals.test.js tests/bookings.test.js tests/checkins.test.js tests/security.test.js tests/safety.test.js",
     "start": "node src/server.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "pets",
+    "companionship",
+    "express",
+    "mongodb"
+  ],
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -25,9 +33,11 @@
     "mongoose": "^8.0.0",
     "multer": "^2.1.1",
     "redis": "^6.3.0",
-    "sharp": "^0.35.5"
+    "sharp": "^0.35.5",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "mongodb-memory-server": "^11.3.0",
     "supertest": "^7.3.1"
   },
   "engines": {

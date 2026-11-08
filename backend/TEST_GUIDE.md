@@ -1,370 +1,83 @@
-# Mode Detection & Risk Scoring - Test Guide
+# Test guide
 
-## Prerequisites
+## Automated
 
 ```bash
-# 1. Start the backend
 cd backend
-npm install
-npm run dev
-
-# 2. In a separate terminal, run the test script
-node test-modes.js
-
-# Or run manual curl tests (see below)
+npm test
 ```
 
----
-
-## CURL Test Commands
-
-### Generate a unique user ID
+The suite uses a disposable database. If `mongodb-memory-server` cannot start in your environment, point `TEST_MONGO_URI` at a local test database:
 
 ```bash
-# Use a new ID each time to observe fresh risk accumulation
-$TEST_USER = "user_$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-$ANIMAL_ID = "1"
+TEST_MONGO_URI=mongodb://127.0.0.1:27018/pawcompanion-test npm test
 ```
 
----
+| File | Covers |
+| --- | --- |
+| `tests/auth.test.js` | register, duplicate, login, refresh rotation, logout, password change, roles, sessions, preferences |
+| `tests/animals.test.js` | discovery pagination/filter/sort, facets, detail, relationship, favourites, invalid queries |
+| `tests/bookings.test.js` | service pricing, duplicate slots, video calls, ownership, reschedule, refunds, reviews, merchant decisions, availability |
+| `tests/checkins.test.js` | check-in create/update/streak/history, crisis screening, dashboard, bond, deletion, validation |
+| `tests/security.test.js` | headers, origin, auth, forged tokens, payload limits, NoSQL shapes, static paths, budget failure, production config |
+| `tests/safety.test.js` | English/Chinese high/medium/none patterns and crisis resources |
 
-## 1. Test PLAY MODE
-
-### Messages that should trigger "play" mode
+Frontend:
 
 ```bash
-# Message 1: Ask for a joke
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_play",
-    "animalId": "1",
-    "message": "Tell me something funny!"
-  }' | ConvertTo-Json
+cd frontend
+npm run build
 ```
 
-**Expected output:**
+CI additionally checks that the build contains no `.map` files.
 
-```
-mode: "play"
-confidence: > 0.7
-response: [light, fun reply]
-```
+## Manual smoke test
 
-### More PLAY mode examples
+Use the demo credentials printed by `npm run demo`.
 
-```bash
-# Message 2: Role play
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_play",
-    "animalId": "1",
-    "message": "Can we play a game? I want some fun!"
-  }'
+### Online track
 
-# Message 3: Pet interaction
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_play",
-    "animalId": "2",
-    "message": "What is your favorite toy to play with?"
-  }'
+1. Sign in as Maya. The member home shows the check-in card, 9-day streak, next visit, conversations, recommendations and stats.
+2. Open **Check-in**. Change mood, energy and tags; add a note; submit. A companion reply appears and the entry is added to the chosen conversation.
+3. Open **Messages** → a conversation. The support/play badge matches the thread. Send a message and confirm a reply.
+4. Clear a conversation; it disappears from the list.
+5. In **Account → Safety & data**, review the derived profile, then delete companion data and confirm the check-ins/history clear.
 
-# Message 4: Creative content
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_play",
-    "animalId": "3",
-    "message": "Tell me a silly story about an adventure!"
-  }'
-```
+### Offline track
 
----
+1. Open a companion → **Book in person**. Choose home visit, walk, café or video call. The price changes with the service.
+2. Pick a date and an available slot. Complete contact details and the sandbox payment step.
+3. Confirm; the success screen says the host must confirm. The visit appears under **My visits** with status “Awaiting host”.
+4. Sign in as the partner. Open **Bookings** → accept the request. The guest receives a notification.
+5. As the guest, reschedule more than 24 hours ahead. Confirm the time and status.
+6. Cancel the visit; confirm the sandbox refund and the cancelled state.
+7. For a completed visit, open the visit and submit a review. The companion rating and merchant rating update.
+8. As the partner, reply to the review.
 
-## 2. Test SUPPORT MODE
+### Partner console
 
-### Messages that should trigger "support" mode
+- Dashboard shows booking value, online/in-person split, top companions, upcoming visits and recent reviews.
+- Add a listing with a photo, edit it, archive it (blocked if upcoming visits exist).
+- Availability: open/close slots for a date; booked slots are read-only.
+- Reviews: reply publicly.
 
-```bash
-# Message 1: Expressing stress and anxiety
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_support",
-    "animalId": "1",
-    "message": "I feel so overwhelmed with everything lately. Nothing seems to go right anymore."
-  }' | ConvertTo-Json
-```
+### Operator console
 
-**Expected output:**
+- Overview shows customers, partners, GMV, live bookings, risk counts, signup chart, recent bookings and audit.
+- Safety queue: open derived signals, acknowledge/resolve. No raw message text is visible.
+- Suspend a partner; their public listings disappear.
+- Hide/restore a listing and a review; ratings recompute.
+- Audit trail records the actions.
 
-```
-mode: "support"
-confidence: > 0.7
-response: [warm, validating STF-N reply]
-chatMode: "support"
-supportTurnsLeft: N > 0
-```
+### Mobile
 
-### More SUPPORT mode examples
+Use a 390×844 viewport. The bottom tab bar (Home / Discover / Check-in / Chats / Me) is visible; the check-in form has no horizontal overflow; toasts sit above the tab bar.
 
-```bash
-# Message 2: Rumination - STF-N handles this specifically
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_support",
-    "animalId": "1",
-    "message": "I keep replaying that conversation in my head over and over. I think everyone hates me now."
-  }'
+## Troubleshooting
 
-# Message 3: Failure and self-judgement
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_support",
-    "animalId": "1",
-    "message": "I messed up again. I feel like such a failure. Why can I never get things right?"
-  }'
-
-# Message 4: Anxiety and loss of control
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_support",
-    "animalId": "2",
-    "message": "My anxiety is so bad right now. I can't stop my mind from racing. I feel like I'm losing control."
-  }'
-
-# Message 5: Seeking help to cope
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_support",
-    "animalId": "2",
-    "message": "Can you help me? I don't know how to calm down or deal with this stress."
-  }'
-```
-
----
-
-## 3. Test HIGH RISK Detection
-
-### Self-harm detection - triggers crisis response
-
-```bash
-# This triggers safety.detectSelfHarm() returning flagged: true
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_highrisk",
-    "animalId": "1",
-    "message": "I want to hurt myself. Nobody cares anyway."
-  }' | ConvertTo-Json
-```
-
-**Expected output:**
-
-```
-risk.flagged: true
-risk.level: "high"
-response: [crisis response + hotlines]
-meta: {
-  crisis: {
-    message: "I'm really worried about you...",
-    hotlines: [...]
-  }
-}
-```
-
-### More high risk examples
-
-```bash
-# Message 2: Suicidal ideation
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_highrisk",
-    "animalId": "1",
-    "message": "I am thinking about ending it all. There is no point anymore."
-  }'
-
-# Message 3: Hopelessness
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_highrisk",
-    "animalId": "1",
-    "message": "I can'\''t do this anymore. Nobody would care if I was gone."
-  }'
-
-# Message 4: Self-blame combined with self-harm
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_demo_highrisk",
-    "animalId": "1",
-    "message": "I deserve to suffer. I should hurt myself."
-  }'
-```
-
----
-
-## 4. Test RISK PROFILE Accumulation
-
-### View a user's risk profile
-
-To inspect risk scores directly in MongoDB:
-
-```bash
-# Use MongoDB Compass or mongosh
-# Connect to: mongodb://localhost:27017/pet-ai-dev
-
-# View a user's risk profile
-db.userriskprofiles.findOne({ userId: "user_demo_support" })
-
-# View all risk events for a user
-db.riskevents.find({ userId: "user_demo_support" })
-
-# View all users flagged as high risk
-db.userriskprofiles.find({ status: "flagged" })
-```
-
-### Expected risk accumulation behaviour
-
-**Single high-risk message**
-
-```
-score7d += 6 * 0.9 = 5.4
-status: "ok"
-```
-
-**Several support-mode messages followed by one high-risk message**
-
-```
-Messages 1-3 (support): score7d += 2 * 0.8 = 4.8 (cumulative)
-Message 4 (high risk):  score7d += 6 * 0.9 = 5.4 (cumulative 10.2)
-status: "watch"
-```
-
-**Repeated high-risk messages**
-
-```
-2+ high-risk messages within 7 days  ->  status: "flagged"
-OR
-score30d >= 18                        ->  status: "flagged"
-```
-
----
-
-## 5. Test MODE Transitions
-
-### Automatic switch from PLAY to SUPPORT
-
-```bash
-# Step 1: User is in PLAY mode
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_transition_test",
-    "animalId": "1",
-    "message": "Tell me a joke!"
-  }'
-
-# Expected: mode="play", chatMode="play"
-
-# Step 2: User suddenly expresses distress
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_transition_test",
-    "animalId": "1",
-    "message": "Actually, I am not okay. I am feeling really anxious and overwhelmed."
-  }'
-
-# Expected: mode="support", chatMode="support", supportTurnsLeft=3
-```
-
-### Staying in SUPPORT mode (hysteresis)
-
-```bash
-# User is in SUPPORT mode but sends a lighter message
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "user_transition_test",
-    "animalId": "1",
-    "message": "Maybe a joke would help"
-  }'
-
-# Expected: mode="support" (will not switch back to play unless confidence is very high)
-#           supportTurnsLeft decrements
-#           response remains warm and supportive (STF-N)
-```
-
----
-
-## Expected Results Summary
-
-| Message Type                          | Expected Mode | Risk Level | Status Change | Response Style      |
-| ------------------------------------- | ------------- | ---------- | ------------- | ------------------- |
-| Fun / playful                         | play          | none       | -             | Light and fun       |
-| Anxiety / stress                      | support       | none       | ok -> watch   | Warm, STF-N         |
-| High-risk self-harm                   | support       | high       | ok -> flagged | Crisis response     |
-| Repeated high-risk                    | support       | high       | -> flagged    | Crisis response     |
-| Inactive 14+ days with score30d >= 18 | -             | -          | ok -> flagged | - (background scan) |
-
----
-
-## Debugging Tips
-
-### 1. Check backend logs
-
-```bash
-# In the terminal running "npm run dev", look for:
-Router score: ...
-Safety risk:
-Staying in SUPPORT
-Early switch to PLAY
-```
-
-### 2. Adjust router confidence thresholds
-
-```bash
-# Add to .env to tune sensitivity
-HF_ROUTER_THRESHOLD=0.5       # Lower value makes mode switching more sensitive
-SUPPORT_EARLY_EXIT_CONF=0.9   # Higher value makes exiting SUPPORT harder
-```
-
-### 3. View the full response shape
-
-```bash
-curl -X POST http://localhost:5000/api/ai/chat `
-  -H "Content-Type: application/json" `
-  -d '{
-    "userId": "test",
-    "animalId": "1",
-    "message": "test"
-  }' | ConvertTo-Json -Depth 10
-```
-
----
-
-## Quick Start
-
-```powershell
-# Terminal 1: Start the backend
-cd backend
-npm install   # first time only
-npm run dev
-
-# Terminal 2: Run the automated test script
-cd backend
-node test-modes.js
-
-# Or in Terminal 2: Run manual curl tests
-# Copy any curl command from above and run it
-```
+| Symptom | Check |
+| --- | --- |
+| `spawn EPERM` during tests | The environment blocks child processes. Use `TEST_MONGO_URI` with a running test MongoDB. |
+| Login redirects to `/` unexpectedly | Rate limit or expired refresh; restart the API to reset memory budgets in development. |
+| Demo images 404 | Run from the repo root; images live in `frontend/public/animals`. |
+| Checks pass locally but not CI | Ensure the lockfiles are current (`npm install --package-lock-only`). |

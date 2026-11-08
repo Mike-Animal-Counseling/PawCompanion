@@ -1,107 +1,51 @@
-/**
- * Notification service used by local/dev flows.
- * Swap these stubs with real providers when credentials are configured.
- */
-
-// Twilio wiring placeholder for production rollout.
-// import twilio from 'twilio';
-// const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-
-// SendGrid wiring placeholder for production rollout.
-// import sgMail from '@sendgrid/mail';
-// sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+import Notification from '../models/Notification.js';
+import { logger } from '../lib/logger.js';
 
 /**
- * Send SMS notification (stub).
+ * In-app notification delivery. Notifications are persisted and surfaced in
+ * the web app; outbound email/SMS can be layered on later without changing
+ * domain call sites.
  */
-export const sendSMS = async (phoneNumber, message) => {
+export async function notify({ recipientId, recipientRole, type, title, body = '', link = '', data = {} }) {
+  if (!recipientId) return null;
+  try {
+    return await Notification.create({
+      recipientId,
+      recipientRole,
+      type,
+      title,
+      body,
+      link,
+      data,
+    });
+  } catch (error) {
+    // Notifications are best-effort and must never fail the business action.
+    logger.warn('notification.create_failed', { type, error: error.message });
+    return null;
+  }
+}
 
-// Replace with Twilio send call once credentials are available.
-  // const result = await twilioClient.messages.create({
-  //     body: message,
-  //     from: process.env.TWILIO_PHONE_NUMBER,
-  //     to: phoneNumber,
-  // });
-  // return result;
+export async function notifyMany(recipients, payload) {
+  return Promise.all(recipients.map((recipient) => notify({ ...recipient, ...payload })));
+}
 
-  return {
-    sid: `SM_mock_${Date.now()}`,
-    status: "mock_queued",
-    message: "Mock SMS sent (no real message)",
-  };
-};
+export async function unreadCount(recipientId, recipientRole) {
+  return Notification.countDocuments({ recipientId, recipientRole, readAt: null });
+}
 
-/**
- * Send email notification (stub).
- */
-export const sendEmail = async (to, subject, html) => {
+export async function markRead(recipientId, recipientRole, notificationId) {
+  const result = await Notification.findOneAndUpdate(
+    { _id: notificationId, recipientId, recipientRole },
+    { $set: { readAt: new Date() } },
+    { new: true },
+  );
+  return result;
+}
 
-// Replace with SendGrid send call once credentials are available.
-  // const msg = {
-  //     to,
-  //     from: process.env.SENDGRID_FROM_EMAIL,
-  //     subject,
-  //     html,
-  // };
-  // const result = await sgMail.send(msg);
-  // return result;
-
-  return {
-    id: `email_mock_${Date.now()}`,
-    status: "mock_delivered",
-    message: "Mock email sent (no real message)",
-  };
-};
-
-/**
- * Send push notification (stub).
- */
-export const sendPushNotification = async (userId, title, body, data = {}) => {
-
-// Replace with FCM provider call when push tokens are stored.
-  // const message = {
-  //     notification: { title, body },
-  //     data,
-  //     token: userDeviceToken,
-  // };
-  // const result = await admin.messaging().send(message);
-  // return result;
-
-  return {
-    messageId: `push_mock_${Date.now()}`,
-    status: "mock_sent",
-    message: "Mock push notification sent (no real notification)",
-  };
-};
-
-/**
- * Send order confirmation notification
- */
-export const sendOrderConfirmation = async (
-  userId,
-  email,
-  orderId,
-  animalName,
-) => {
-
-return {
-    sms: await sendSMS("+1234567890", `Order ${orderId} confirmed!`),
-    email: await sendEmail(
-      email,
-      `Order Confirmed: ${animalName}`,
-      `<p>Your order ${orderId} has been confirmed!</p>`,
-    ),
-    push: await sendPushNotification(
-      userId,
-      "Order Confirmed",
-      `Your ${animalName} order is confirmed!`,
-    ),
-  };
-};
-
-export default {
-  sendSMS,
-  sendEmail,
-  sendPushNotification,
-  sendOrderConfirmation,
-};
+export async function markAllRead(recipientId, recipientRole) {
+  const result = await Notification.updateMany(
+    { recipientId, recipientRole, readAt: null },
+    { $set: { readAt: new Date() } },
+  );
+  return result.modifiedCount;
+}

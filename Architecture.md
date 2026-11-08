@@ -1,295 +1,440 @@
-# Cat Delivery App — Project Review & Architecture
+# PawCompanion Architecture
 
-> A full-stack pet adoption/rental platform with AI-powered chat, risk scoring, and delivery booking.
+> An online + in-person pet companionship product. One relationship, two delivery tracks, a shared safety layer.
 
----
-
-## Table of Contents
-
-1. [Architecture Overview](#architecture-overview)
-2. [Features](#features)
-3. [User Authentication](#user-authentication)
-4. [Risk Scoring System](#risk-scoring-system)
-5. [Feature Status Summary](#feature-status-summary)
-6. [Testing the Risk Scoring System](#testing-the-risk-scoring-system)
-7. [What's Needed to Complete Auth](#whats-needed-to-complete-auth)
-
----
-
-## Architecture Overview
-
-### Frontend — React
-
-| Concern          | Technology       |
-| ---------------- | ---------------- |
-| Framework        | Create React App |
-| Routing          | React Router     |
-| State Management | Context API      |
-| Styling          | CSS Modules      |
-| HTTP Client      | Axios            |
-
-### Backend — Express + MongoDB
-
-| Concern           | Technology                 |
-| ----------------- | -------------------------- |
-| Server            | Express.js                 |
-| Database          | MongoDB + Mongoose         |
-| AI                | HuggingFace API            |
-| Image Generation  | HuggingFace Inference      |
-| Safety/Moderation | Custom risk scoring engine |
-
-```
-frontend/src/
-├── components/       # Reusable UI components
-├── context/          # UserContext (auth state)
-├── hooks/            # useCart
-├── pages/            # Route-level page components
-├── services/         # API call wrappers
-└── utils/            # sessionUserId helper
-
-backend/src/
-├── config/           # MongoDB connection
-├── models/           # Mongoose schemas
-├── routers/          # Express route handlers
-├── scripts/          # DB seed script
-└── services/         # Business logic (AI, risk, booking, etc.)
-```
+- [Product model](#product-model)
+- [System context](#system-context)
+- [Frontend architecture](#frontend-architecture)
+- [Backend architecture](#backend-architecture)
+- [Domain model](#domain-model)
+- [Online companionship flow](#online-companionship-flow)
+- [In-person companionship flow](#in-person-companionship-flow)
+- [Authentication and sessions](#authentication-and-sessions)
+- [Safety and risk](#safety-and-risk)
+- [API conventions](#api-conventions)
+- [Data integrity](#data-integrity)
+- [Operations](#operations)
+- [Trade-offs and limitations](#trade-offs-and-limitations)
+- [Next steps](#next-steps)
 
 ---
 
-## Features
+## Product model
 
-### 1. Animal Browsing & Search
+PawCompanion is not a pet marketplace. It is a companionship service built around a continuing relationship between a guest and an animal companion.
 
-- View all available pets on the home page
-- Search animals by name via the `Search` component
-- Filter by location tags via the `Tags` component
-- View individual animal details on the `AnimalPage`
+| Track | Delivery | Core loop |
+| --- | --- | --- |
+| **Online** | AI companion chat, daily check-ins, journal, support mode | check in → companion reply → conversation memory → bond |
+| **In-person** | Home visit, walk, café meetup, 30-minute video call | discover → choose service/time → reserve → host confirms → visit → review |
+| **Merchant** | Shelters, cafés, rescues and trainers | listing → availability → visit decisions → review replies |
+| **Operations** | Trust and safety | risk queue → acknowledge/resolve, partner suspension, moderation, audit |
 
-### 2. Shopping Cart
+The two tracks share identity, the companion record, favourites, notifications and the safety profile. A check-in can create a conversation turn; a completed visit can prompt a review; both contribute to the private bond.
 
-- Add / remove pets from cart via the `useCart` hook
-- Quantity management
-- Persists to `localStorage`
-- View and manage cart on `CartPage`
+**Design principles**
 
-### 3. AI Chat System
-
-- Chat with individual pet "personalities"
-- Two routing modes:
-  - **Play mode** — fun, personality-driven conversation
-  - **Support mode** — helpful assistance and information
-- Smart mode routing with confidence scoring
-- Chat history stored in MongoDB via `ChatMemory` model
-- Image generation triggered from chat prompts
-
-### 4. Booking System
-
-- Book pet delivery from `BookingPage`
-- Delivery cost calculation
-- Delivery date scheduling
-- Auto-generated tracking numbers
-
-### 5. Checkout & Payment
-
-- Mock payment processing via `CheckoutPage`
-- Credit card input formatting
-- Order confirmation simulation
+1. **Companionship over catalogue.** The member home is about today's mood, the next visit and a continuing conversation, not a wall of products.
+2. **Low pressure.** No streaks that punish, no forced subscription, no dark patterns around booking.
+3. **Safety is a product surface.** The support mode, crisis card and privacy controls are first-class screens.
+4. **Honest boundaries.** Sandbox payments and AI fallback are labelled, not disguised.
+5. **Small, legible modules.** HTTP, domain services, persistence and validation are separate.
 
 ---
 
-## User Authentication
+## System context
 
-**Status: ⚠️ Cosmetic Only — Not Implemented**
+```mermaid
+flowchart TB
+  subgraph Clients
+    Guest[Guest web / PWA]
+    Partner[Partner console]
+    Operator[Operator console]
+  end
 
-### What Exists
+  subgraph Edge
+    Web[React 19 + Vite build]
+    Nginx[nginx: SPA, /api, /uploads]
+  end
 
-- Login/logout UI in the `Header` and `LoginPage`
-- Anonymous session ID generated and persisted via `sessionUserId.js`
-- `UserContext` provides user state to the whole app
+  subgraph API
+    Express[Express 4]
+    Auth[Auth & RBAC]
+    Companion[Companion / discovery]
+    Online[Online track: check-ins, chat, safety]
+    Offline[Offline track: availability, bookings, payments, reviews]
+    Ops[Merchant & operator]
+  end
 
-### What's Missing
+  subgraph Infrastructure
+    Mongo[(MongoDB)]
+    Redis[(Redis — optional)]
+    HF[Hugging Face — optional]
+  end
 
+  Guest --> Web
+  Partner --> Web
+  Operator --> Web
+  Web --> Nginx
+  Nginx --> Express
+  Express --> Auth
+  Express --> Companion
+  Express --> Online
+  Express --> Offline
+  Express --> Ops
+  Auth --> Mongo
+  Companion --> Mongo
+  Online --> Mongo
+  Offline --> Mongo
+  Ops --> Mongo
+  Express -. shared budgets .-> Redis
+  Online -. chat / image .-> HF
 ```
-❌  No backend auth routes (register / login / logout)
-❌  No User model with password hashing
-❌  No JWT or session middleware
-❌  User name is hardcoded as "Mr.Liang" in UserContext
-```
 
-### Current Behaviour
-
-```js
-// UserContext.js — default user is hardcoded
-const [user, setUser] = useState({
-  name: "Mr.Liang",
-});
-
-// Logout only clears the local session and generates a new anonymous ID
-const logout = () => {
-  setUser(null);
-  clearSessionUserId();
-  setUserId(getOrCreateUserId());
-};
-```
-
-Every visitor receives an **anonymous UUID** for tracking purposes (used by the risk scoring system), but there is no real account system behind it.
+Deployment can be a single Node process plus MongoDB (demo), or a shared API behind a load balancer with Redis for cross-instance rate limits.
 
 ---
 
-## Risk Scoring System
-
-**Status: ✅ Fully Implemented**
-
-This is the most sophisticated backend subsystem. It monitors AI chat messages for safety concerns and maintains a time-decayed risk profile per user.
-
-### Components
-
-| File                        | Role                                             |
-| --------------------------- | ------------------------------------------------ |
-| `services/safety.js`        | Detects self-harm and crisis signals in messages |
-| `services/riskScoring.js`   | Calculates and updates the user's risk score     |
-| `models/RiskEvent.js`       | Stores individual risk incidents in MongoDB      |
-| `models/UserRiskProfile.js` | Stores the aggregated risk status per user       |
-| `routers/ai.router.js`      | Wires safety checks into the chat endpoint       |
-
-### Points System
+## Frontend architecture
 
 ```
-Low risk    →  0 points
-Medium risk →  score × 2
-High risk   →  score × 6
+src/
+  App.jsx                 providers, error boundary, auth gate, router
+  AppRoutes.jsx           route map, role guards, lazy page chunks
+  components/
+    Layout/               Header, Footer, SiteLayout, ConsoleLayout, MobileTabBar, NotificationBell
+    Auth/                 AuthLayout, RequireAuth
+    Home/                 MemberHome (the C-end dashboard)
+    Companions/           CompanionCard, FilterBar, ReviewList
+    Chat/                 ChatMessage
+    Dashboard/            BarChart
+    ui primitives         Icon, Logo, Rating, Modal, Field, EmptyState, Feedback
+  context/                AuthContext, ToastContext, FavoritesContext
+  hooks/                  useFetch, useDebouncedValue, useDocumentTitle
+  lib/                    api client, formatting, constants
+  pages/                  public, guest, partner, operator
+  styles/                 design tokens, base, shared UI
 ```
 
-### Time Decay
+**Key decisions**
 
-Scores decay exponentially over time so that old incidents have less impact:
+- **Auth gate before route mount.** `AuthProvider` restores the session from the rotating refresh cookie before rendering routes. That prevents pages from fetching public data before the access token is attached, which otherwise loses auth-aware fields such as `relationship` and `isFavorite` on a hard reload.
+- **Access token in memory, refresh cookie HttpOnly.** The frontend never stores a bearer token in `localStorage`. An Axios interceptor retries one failed request after a silent refresh.
+- **Route-level code splitting.** Public shell, home and layout stay in the initial bundle; every other page is a lazy chunk. The initial production JS is ~316 kB / 98 kB gzip instead of a single ~600 kB bundle.
+- **CSS Modules over tokens.** Colour, spacing, radius, shadow and type scales live in `styles/tokens.css`; shared primitives in `styles/ui.css`; page-specific composition in modules. No runtime CSS-in-JS.
+- **Mobile as a first-class shell.** A fixed, safe-area-aware tab bar (Home / Discover / Check-in / Chats / Me) appears below 820 px. The toast viewport moves above it.
+- **PWA.** Manifest, install shortcuts, theme colour, apple meta, and a production service worker that network-firsts navigation and cache-firsts hashed assets.
+- **Accessibility.** Skip links, focus trapping in modals, semantic labels, `aria-*` state on pickers and tabs, visible focus rings, reduced-motion support.
 
-```
-7-day window   →  half-life of 3 days
-30-day window  →  half-life of 10 days
-```
+**State model**
 
-### Status Thresholds
+| State | Owner | Lifetime |
+| --- | --- | --- |
+| Access token / user | `AuthContext` + `lib/api` | Memory; restored via refresh |
+| Refresh token | HttpOnly cookie | 30 days, rotated on refresh |
+| Favourites set | `FavoritesContext` | Session |
+| Toasts | `ToastContext` | Ephemeral |
+| Server data | `useFetch` per page | Component lifetime; explicit `refetch` |
+| Check-in draft | `CheckinPage` local state | Page lifetime |
 
-```
-score30d ≥ 18  OR  highEvents7d ≥ 2  →  status: "flagged"
-score7d  ≥ 10                         →  status: "watch"
-otherwise                             →  status: "ok"
-```
-
-### Crisis Response Flow
-
-```
-User sends message
-      │
-      ▼
-detectSelfHarm(message)
-      │
-      ├── risk.flagged = true ──► Return crisis resources (no AI response)
-      │
-      └── risk.flagged = false ─► recordRiskEventAndUpdateProfile()
-                                        │
-                                        ▼
-                                  Normal AI response
-```
-
-### API Endpoints
-
-| Method   | Endpoint                           | Description                                    |
-| -------- | ---------------------------------- | ---------------------------------------------- |
-| `POST`   | `/api/ai/chat`                     | Process message, run safety check, update risk |
-| `GET`    | `/api/ai/risk-profile/:userId`     | Retrieve risk profile and recent events        |
-| `DELETE` | `/api/ai/memory/:userId/:animalId` | Clear a user's chat history                    |
-
-### Background Scanning
-
-The service also includes `scanInactiveHighRiskUsers()` to periodically flag users who were elevated risk and have gone quiet.
+No global store is needed at this size. Optimistic updates are limited to favourites; bookings and check-ins refetch after mutation because server pricing, streaks and safety results are authoritative.
 
 ---
 
-## Feature Status Summary
+## Backend architecture
 
-| Feature                     | Frontend | Backend |   Database   | Status              |
-| --------------------------- | :------: | :-----: | :----------: | ------------------- |
-| Animal browsing             |    ✅    |   ✅    |  ⚠️ seeded   | **Working**         |
-| Search & filter             |    ✅    |   ✅    |  ⚠️ seeded   | **Working**         |
-| Shopping cart               |    ✅    |    —    | localStorage | **Working**         |
-| AI Chat                     |    ✅    |   ✅    |  ✅ MongoDB  | **Working**         |
-| Mode routing (Play/Support) |    ✅    |   ✅    |      ✅      | **Working**         |
-| Image generation            |    ✅    |   ✅    |      —       | **Working**         |
-| Booking                     |    ✅    |   ✅    |   ⚠️ mock    | **Partial**         |
-| Payment / Checkout          |    ✅    |   ✅    |   ⚠️ mock    | **Mock only**       |
-| User authentication         |  ✅ UI   |   ❌    |      ❌      | **Not implemented** |
-| Risk scoring                |    —     |   ✅    |  ✅ MongoDB  | **Fully working**   |
+```
+src/
+  app.js                  middleware, route mounting, static uploads, error boundary
+  server.js               connect, index sync, schedulers, graceful shutdown
+  config/
+    env.js                validated runtime configuration
+    db.js                 Mongo lifecycle + structured events
+  middleware/
+    auth.js               access-token verification, session check, roles
+    requestContext.js     request ID + structured HTTP log
+    errorHandler.js       AppError / Zod / Mongo / body-parser mapping
+  validators/             Zod schemas for bodies, queries, params
+  serializers/            stable API shapes; no raw Mongoose documents
+  services/
+    scheduling.js         service catalogue, pricing, slot math
+    availabilityService.js configured slots, booked slots, next opening
+    bookingService.js     create/reserve/confirm/decline/complete/cancel/reschedule/sweep
+    checkinService.js     mood journal, streak, companion reply, safety
+    reviewService.js      eligibility, rating recomputation, replies
+    safety.js             keyword + optional model detection, crisis copy
+    riskScoring.js        decayed 7/30-day profile, status thresholds
+    aiService.js          router, persona prompts, local fallback, provider call
+    sessionService.js     hashed refresh sessions, rotation, revocation
+    analyticsService.js   merchant 30-day dashboard, platform overview
+    auditService.js       append-only operational events
+    paymentService.js     sandbox charge/refund ledger
+    notificationService.js in-app notifications
+    secureImage.js        decode/re-encode/limit/strip metadata
+  routers/                thin HTTP adapters
+  scripts/                seed and one-command demo
+```
+
+**Request path**
+
+1. Request ID + security headers.
+2. Origin allowlist and HTTPS enforcement in production.
+3. CORS with credentials; JSON body limit.
+4. Shared rate budgets (IP, account, user, global).
+5. Route-specific auth / role guard.
+6. Zod validation; unknown keys stripped, object-shaped payloads rejected.
+7. Domain service; Mongoose models and indexes.
+8. Serializer; `{ data, meta? }` response.
+9. Central error handler; `{ error: { code, message, details? }, requestId }`.
+
+**Why services, not fat routers?** The booking and safety rules are reused by customer, partner and operator surfaces. Keeping them in services makes the invariants testable without HTTP and prevents three slightly different definitions of a refund or a slot.
 
 ---
 
-## Testing the Risk Scoring System
+## Domain model
 
-### Send a message that may trigger risk detection
+| Model | Purpose | Key constraints |
+| --- | --- | --- |
+| `Customer` | Guest account, goals, preferred species, safety consent | unique email; status active/suspended |
+| `Merchant` | Shelter/café/rescue/trainer | unique email; verified flag; status |
+| `Admin` | Operator account | unique email; separate collection |
+| `Session` | Hashed rotating refresh session | TTL on `expiresAt`; subject + role |
+| `Animal` | Companion listing | merchant ownership; public/private; moderation |
+| `AnimalAvailability` | Per-day configured slots | unique `(animalId, date)` |
+| `Booking` | A reserved service instance | partial unique `(animalId, date, startTime)` when `active:true` |
+| `Payment` | Sandbox ledger entry | provider ref unique; refund status |
+| `Review` | One review per completed booking | unique `bookingId`; rating 1–5 |
+| `Favorite` | Saved companion | unique `(customerId, animalId)` |
+| `Checkin` | Daily mood/energy/note + companion reply | unique `(customerId, date)` |
+| `ChatMemory` | Conversation per customer + companion | unique `(userId, animalId)`; last 80 messages |
+| `Notification` | In-app inbox per role | indexed by recipient + created |
+| `RiskEvent` | Derived safety signal | no raw text; 120-day TTL |
+| `UserRiskProfile` | Decayed 7/30-day profile | unique `userId`; status ok/watch/flagged |
+| `AuditEvent` | Operator/merchant actions | append-only; indexed by target |
 
-```bash
-curl -X POST http://localhost:5000/api/ai/chat \
-  -H "Content-Type: application/json" \
-  -d '{"userId":"test123","animalId":"1","message":"I feel very sad today"}'
-```
+**Service catalogue** (`services/scheduling.js`):
 
-### Check the user's risk profile
+| Type | Mode | Duration | Pricing |
+| --- | --- | --- | --- |
+| `home_visit` | in person | 120 min | hourly rate × 2 |
+| `walk` | in person | 120 min | hourly rate × 2 |
+| `cafe_meet` | in person | 120 min | hourly rate × 2 |
+| `video_call` | online | 30 min | hourly rate × 0.5 × 1.2 |
 
-```bash
-curl http://localhost:5000/api/ai/risk-profile/test123
-```
-
-### Expected profile response shape
-
-```json
-{
-  "userId": "test123",
-  "status": "ok | watch | flagged",
-  "score7d": 0,
-  "score30d": 0,
-  "recentEvents": []
-}
-```
-
----
-
-## What's Needed to Complete Auth
-
-To turn the cosmetic auth into a real system:
-
-### 1. Backend — add `auth.router.js`
-
-```
-POST  /api/auth/register   →  hash password, create User document
-POST  /api/auth/login      →  verify password, return JWT
-POST  /api/auth/logout     →  invalidate token / clear cookie
-GET   /api/auth/me         →  return current user from token
-```
-
-### 2. Backend — add `User` model
-
-```js
-// models/User.js
-{
-  (name, email, passwordHash, createdAt);
-}
-```
-
-Use **bcrypt** for password hashing and **jsonwebtoken** for JWT issuance.
-
-### 3. Backend — add auth middleware
-
-```js
-// middleware/auth.js
-// Verify JWT on protected routes
-```
-
-### 4. Frontend — update `UserContext.js`
-
-Replace the hardcoded `"Mr.Liang"` default with real API calls to `/api/auth/login` and `/api/auth/me`.
+An 8% service fee is added at checkout. Pricing is computed server-side; the client never sends a price.
 
 ---
 
-_Last reviewed: March 2, 2026_
+## Online companionship flow
+
+```mermaid
+sequenceDiagram
+  participant G as Guest
+  participant API as API
+  participant S as Safety
+  participant AI as Persona / model
+  participant DB as MongoDB
+
+  G->>API: POST /api/checkins {mood, energy, note, tags, animalId?}
+  API->>S: detectSelfHarm(note)
+  alt high risk
+    S-->>API: flagged + crisis resources
+    API->>DB: Checkin + RiskEvent (no text)
+    API-->>G: crisis reply + resources
+  else normal
+    API->>DB: resolve companion (favourite/recent chat)
+    API->>AI: generate check-in reply (support/play)
+    API->>DB: Checkin + append two turns to ChatMemory
+    API-->>G: reply, streak, 7-day series
+  end
+```
+
+**Check-in rules**
+
+- One per local calendar day; posting again updates the same row.
+- Streak counts consecutive days ending today or yesterday.
+- Notes are screened before any model call. A flagged note gets the crisis message, not a model-generated reply.
+- If a companion is resolved, the check-in is appended to the same chat thread so the relationship has memory. Guests can choose “just keep this for me” to avoid that.
+- Check-ins are included in “delete companion data”.
+
+**Chat rules**
+
+- The companion must be public, active and not moderated.
+- Memory is capped at 80 messages; provider context is capped separately.
+- Mode routing uses a model when configured and a local intent heuristic otherwise; a support lock keeps the next few turns gentle.
+- The model sees the persona profile, animal details and recent turns. If the provider fails, the local persona answers instead of returning a 500.
+- Crisis messages are stored with `meta.type = "crisis"` so history renders the same card.
+
+**Bond**
+
+`points = messages + visits × 20 + favourite × 5`, `level = max(1, floor(points / 60) + 1)`. It is a lightweight relationship signal, not a status or ranking. The animal detail endpoint returns it for the signed-in guest.
+
+---
+
+## In-person companionship flow
+
+```mermaid
+sequenceDiagram
+  participant G as Guest
+  participant API as Booking service
+  participant DB as MongoDB
+  participant P as Sandbox payments
+  participant H as Host
+  participant N as Notifications
+
+  G->>API: GET services + availability
+  G->>API: POST /api/bookings {serviceType, date, startTime, contact}
+  API->>API: validate 60-day window, slot enabled, daily cap
+  API->>DB: insert booking with partial unique slot key
+  API->>P: charge sandbox amount
+  API->>N: guest "requested", host "new request"
+  H->>API: accept / decline
+  API->>N: guest confirmed / refunded
+  H->>API: complete after the date
+  G->>API: review only when completed
+  API->>DB: recompute animal + merchant rating
+```
+
+**Status machine**
+
+```
+pending ──accept──► confirmed ──complete──► completed
+   │                    │
+   ├──decline──► declined (refund)
+   └──cancel───► cancelled (refund)
+```
+
+- Changes (cancel/reschedule) require more than 24 hours' notice.
+- A confirmed booking can be completed only on or after its date.
+- The hourly sweep completes confirmed visits whose date has passed and auto-declines/refunds unconfirmed past requests.
+- A cancelled or declined booking keeps its row for the receipt and audit trail but sets `active:false`, releasing the slot.
+- The partial unique index is the final authority on double-booking; service-level checks return friendly conflicts first.
+
+---
+
+## Authentication and sessions
+
+**Roles:** `customer`, `merchant`, `admin` — separate collections, shared guard.
+
+```mermaid
+sequenceDiagram
+  participant C as Client
+  participant API as Auth
+  participant DB as Sessions
+
+  C->>API: POST /login (email, password)
+  API->>DB: create hashed session + expiry
+  API-->>C: access JWT (15 min) + Set-Cookie pc_refresh (HttpOnly, 30d)
+  C->>API: Authorization: Bearer access
+  API->>DB: verify session id + account + email
+  C->>API: POST /refresh (cookie)
+  API->>DB: delete old session, create rotated session
+  API-->>C: new access JWT + rotated cookie
+```
+
+- Access tokens are HS256 JWTs with `sub`, `role`, `email`, `sid`, issuer/audience and a random `jti`, valid for 15 minutes by default.
+- Every authenticated request checks the session row, not only the signature. Logout, refresh rotation and password changes therefore take effect immediately.
+- Refresh tokens are 48 random bytes, stored only as SHA-256 hashes; the raw token exists only in the cookie.
+- Cookies are `HttpOnly`, `SameSite=Lax`, `Secure` in production, scoped to `/api/auth`.
+- Credential entry is limited per email/IP; refresh and session lookup have a looser IP budget because they happen on normal page loads.
+- Merchant and admin login share the same session model; operators are seeded separately and never self-register.
+- Account closure requires a password, active-visit check, PII anonymisation, session revocation and companion-data deletion.
+
+---
+
+## Safety and risk
+
+**Detection layers**
+
+1. **Local high-risk patterns** (English + Chinese) run synchronously and interrupt the conversation without a network call.
+2. **Medium-risk patterns** raise a support signal without interrupting.
+3. **Optional Hugging Face classifier** (`sentinet/suicidality`) runs only when configured. Its failures degrade to the keyword result; they never break chat.
+4. **Model routing** chooses support/play; the safety layer runs before it.
+
+**Risk profile**
+
+- Each medium/high event stores `{userId, animalId, level, score, source, timestamp}`. No raw message text.
+- 7-day and 30-day scores decay exponentially (half-lives 3 and 10 days).
+- `flagged`: 30-day score ≥18 or two high events in 7 days; `watch`: 7-day score ≥10.
+- The user can view a derived summary and delete all companion data.
+- Operators see the derived events and can acknowledge/resolve; the audit trail records the action. Risk events have a 120-day TTL.
+
+**Crisis response**
+
+The crisis card gives US 988, findahelpline.com and emergency services, states that the companion is not a person, and invites the guest to stay in the conversation. It does not diagnose, promise confidentiality or contact services automatically.
+
+**Privacy choices**
+
+- Chats and check-in notes are visible to the guest only.
+- Hosts receive only the contact details required for a visit.
+- Operators never receive raw conversation content — only derived levels/scores/timestamps.
+- Account deletion anonymises profile and booking contact fields while keeping financial receipts.
+
+See [docs/SAFETY.md](docs/SAFETY.md) for the operating model.
+
+---
+
+## API conventions
+
+- Base path `/api`; JSON only.
+- Success: `{ "data": ... }` for a resource or `{ "data": [...], "meta": { page, pageSize, total, totalPages, hasNext } }` for a list.
+- Error: `{ "error": { "code", "message", "details"? }, "requestId" }`.
+- Auth: `Authorization: Bearer <access>`; refresh cookie for `/api/auth/refresh`.
+- Status codes: 201 create, 204 no content, 400 malformed request, 401 unauthenticated, 403 role/ownership, 404 missing, 409 conflict, 413 too large, 422 validation, 429 budget, 503 dependency unavailable.
+- All dates are local `YYYY-MM-DD` strings; times are `HH:MM` local. The server treats the platform timezone as the business calendar.
+- Money is USD; server computes line items, fees and totals.
+
+Full endpoint list: [docs/API.md](docs/API.md).
+
+---
+
+## Data integrity
+
+- **One live booking per slot.** `Booking` has a partial unique index on `(animalId, date, startTime)` with `active:true`. Cancellations release the key; reschedules move it.
+- **One check-in per day.** `Checkin` has a unique `(customerId, date)` index.
+- **One review per visit.** `Review.bookingId` is unique; the booking stores the review id.
+- **One conversation per companion.** `ChatMemory` has a unique `(userId, animalId)` index.
+- **Aggregates are derived.** Animal and merchant rating averages are recomputed from published reviews rather than incremented in place, so hiding a review is correct.
+- **Index creation at boot.** `server.js` calls `createIndexes()` for registered models; seed/sync handles tests. This is safe for a single deployment but production migrations should be explicit for large collections.
+- **Idempotency boundaries.** Booking creation is protected by the unique index, but payment capture is not yet idempotency-keyed. A production payment provider must add an idempotency key at the booking boundary.
+
+---
+
+## Operations
+
+- **Health:** `GET /api/health` (process) and `GET /api/ready` (Mongo + budget layer).
+- **Logging:** one JSON line per request with request ID, method, path, status and duration. Bodies, messages, tokens and emails are redacted.
+- **Schedulers:** 30-minute booking sweep, daily inactive-risk scan. Both `unref()` and are cleared on shutdown.
+- **Graceful shutdown:** SIGINT/SIGTERM closes the HTTP server, budgets, Mongo and the demo MongoMemoryServer.
+- **Rate limits:** Redis when `REDIS_URL` is set (shared across instances), memory otherwise (single instance, documented fallback).
+- **Uploads:** decode and re-encode to JPEG (max 5 MiB, 16 MP), random owner-prefixed filename, public read-only `/uploads`; only the owner can delete.
+- **Audit:** booking decisions, cancellations, reschedules, reviews, moderation, partner status, password changes and account deletion.
+- **Seed:** development/demo only, refuses production unless explicitly allowed; demo reset is opt-in.
+
+---
+
+## Trade-offs and limitations
+
+| Decision | Why | Cost |
+| --- | --- | --- |
+| Local persona fallback | Demo and product work without an API key; provider outages degrade gracefully | Less fluent than a hosted model |
+| Sandbox payment ledger | Full booking/refund lifecycle is testable without PCI scope | No real revenue; must integrate a provider before launch |
+| Refresh-token rotation on every boot | Keeps stolen refresh tokens short-lived | Multiple tabs can churn sessions; interceptor handles it |
+| In-memory fallback rate limits | Single-instance demo is easy to run | Not shared across instances; production should set Redis |
+| Server-computed fixed time slots | Simple, auditable, avoids client trust | Merchant-specific opening hours are per-date overrides, not recurring rules |
+| No WebSocket layer | Simpler deployment; polling covers notifications | Human-to-human live chat and real-time updates are future work |
+| No TypeScript | Keeps the rewrite tractable across legacy files | Runtime validation and tests carry more of the contract burden |
+| Index creation at boot | Fresh deployments are correct without a migration step | Large production collections need a migration plan |
+
+---
+
+## Next steps
+
+1. **Live payments:** Stripe PaymentIntents + webhook + idempotency keys; move the booking hold into a payment-intent state.
+2. **Human online sessions:** scheduled audio/video companionship with vetted hosts, separate from the AI track.
+3. **Recurring availability:** weekly merchant schedules, holidays and travel time.
+4. **Real-time:** WebSocket/SSE notifications and a shared conversation inbox for hosts.
+5. **Mobile shell:** React Native/Expo client reusing the API and design tokens, with push notifications.
+6. **Safety operations:** on-call escalation policy, localized helplines, clinician-reviewed copy, consent and retention controls.
+7. **Observability:** OpenTelemetry traces, error reporting, product analytics with privacy review.
+8. **Type contracts:** migrate to TypeScript and generate the API client from an OpenAPI schema.

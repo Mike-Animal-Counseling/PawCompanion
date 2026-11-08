@@ -1,0 +1,147 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  margin-top: 10px;
+  font-size: clamp(2rem, 3.2vw, 2.7rem);
+}
+
+.head p {
+  margin-top: 6px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 330px;
+  gap: 20px;
+  align-items: start;
+}
+
+.panel {
+  padding: 24px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+}
+
+.panelHead {
+  margin-bottom: 20px;
+}
+
+.panelHead h2 {
+  font-family: var(--font-body);
+  font-size: 0.94rem;
+  font-weight: 650;
+}
+
+.panelHead p {
+  margin-top: 3px;
+  font-size: 0.74rem;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.68rem;
+  color: var(--muted);
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: sticky;
+  top: 18px;
+}
+
+.previewLabel {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 7px;
+  padding: 26px 22px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.card h2 {
+  margin-top: 6px;
+  font-size: 1.55rem;
+}
+
+.type {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.newHost {
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 0.64rem;
+  font-weight: 650;
+}
+
+.card p {
+  margin-top: 8px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .preview {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .panel {
+    padding: 18px;
+  }
+}

@@ -1,0 +1,167 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.head h1 {
+  margin-top: 10px;
+  font-size: clamp(2rem, 3.2vw, 2.7rem);
+}
+
+.head p {
+  margin-top: 6px;
+  max-width: 680px;
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--gold);
+}
+
+.summary div {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.summary span {
+  font-size: 0.62rem;
+  color: var(--muted);
+}
+
+.list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 20px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-xs);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.author {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.author strong {
+  font-size: 0.8rem;
+}
+
+.author span {
+  font-size: 0.66rem;
+  color: var(--muted);
+}
+
+.card h2 {
+  font-family: var(--font-body);
+  font-size: 0.94rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.body {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.reply {
+  width: 100%;
+  padding: 12px 14px;
+  border-left: 2px solid var(--coral);
+  background: var(--cream);
+  border-radius: 0 var(--radius-xs) var(--radius-xs) 0;
+}
+
+.replyHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.replyHead span {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--coral-deep);
+}
+
+.replyHead button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.66rem;
+  text-decoration: underline;
+}
+
+.reply p {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+.replyForm {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.replyActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+@media (max-width: 900px) {
+  .list {
+    grid-template-columns: 1fr;
+  }
+}

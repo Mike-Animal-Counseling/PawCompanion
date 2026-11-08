@@ -1,70 +1,58 @@
-# Getting Started with Create React App
+# PawCompanion web
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React 19 + Vite 8 + React Router 7. CSS Modules over a design-token system, route-level chunks and a mobile-first PWA shell.
 
-## Available Scripts
+## Scripts
 
-In the project directory, you can run:
+```bash
+npm ci
+npm run dev       # http://127.0.0.1:3000, proxies /api and /uploads to :5000
+npm run build     # production bundle in dist/
+npm run preview   # preview the build
+```
 
-### `npm start`
+Environment (`.env.example`):
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+```ini
+VITE_API_URL=
+VITE_API_TARGET=http://127.0.0.1:5000
+VITE_SHOW_DEMO_CREDENTIALS=false
+```
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Keep `VITE_API_URL` empty when the web app and API share an origin. The Vite proxy is development-only.
 
-### `npm test`
+## Structure
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```
+src/
+  App.jsx            providers, auth gate, error boundary
+  AppRoutes.jsx      route map, role guards, lazy pages
+  components/
+    Layout/          Header, Footer, SiteLayout, ConsoleLayout, MobileTabBar, NotificationBell
+    Auth/            AuthLayout, RequireAuth
+    Home/            MemberHome
+    Companions/      CompanionCard, FilterBar, ReviewList
+    Chat/            ChatMessage
+    Dashboard/       BarChart
+    shared primitives Icon, Logo, Rating, Modal, Field, EmptyState, Feedback
+  context/           Auth, Toast, Favorites
+  hooks/             useFetch, useDebouncedValue, useDocumentTitle
+  lib/               API client, formatting, constants
+  pages/             public, guest, partner, operator
+  styles/            tokens, base, shared UI
+```
 
-### `npm run build`
+## Notes
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- The access token lives in memory; the refresh token is an HttpOnly cookie. `lib/api.js` retries one 401 after a silent refresh.
+- The auth gate waits for session restoration before mounting routes, so auth-aware public data (`relationship`, `isFavorite`) is correct on a hard reload.
+- The production build must not include source maps; CI checks this.
+- CSS: tokens in `src/styles/tokens.css`, shared primitives in `src/styles/ui.css`, page composition in `*.module.css`.
+- Accessibility: labels, focus trapping in dialogs, `aria-*` on pickers/tabs, skip links and reduced-motion support.
+- Service worker registration is production-only.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## Design references
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- Product and flows: root [README](../README.md)
+- Architecture: [Architecture.md](../Architecture.md)
+- Screenshots: [docs/screenshots/v2](../docs/screenshots/v2)
