@@ -1,4 +1,4 @@
-﻿# PawCompanion Architecture
+# PawCompanion Architecture
 
 > An online + in-person pet companionship product. One relationship, two delivery tracks, a shared safety layer.
 
@@ -25,10 +25,10 @@ PawCompanion is not a pet marketplace. It is a companionship service built aroun
 
 | Track | Delivery | Core loop |
 | --- | --- | --- |
-| **Online** | AI companion chat, daily check-ins, journal, support mode | check in 鈫?companion reply 鈫?conversation memory 鈫?bond |
-| **In-person** | Home visit, walk, caf茅 meetup, 30-minute video call | discover 鈫?choose service/time 鈫?reserve 鈫?host confirms 鈫?visit 鈫?review |
-| **Merchant** | Shelters, caf茅s, rescues and trainers | listing 鈫?availability 鈫?visit decisions 鈫?review replies |
-| **Operations** | Trust and safety | risk queue 鈫?acknowledge/resolve, partner suspension, moderation, audit |
+| **Online** | AI companion chat, daily check-ins, journal, support mode | check in → companion reply → conversation memory → bond |
+| **In-person** | Home visit, walk, café meetup, 30-minute video call | discover → choose service/time → reserve → host confirms → visit → review |
+| **Merchant** | Shelters, cafés, rescues and trainers | listing → availability → visit decisions → review replies |
+| **Operations** | Trust and safety | risk queue → acknowledge/resolve, partner suspension, moderation, audit |
 
 The two tracks share identity, the companion record, favourites, notifications and the safety profile. A check-in can create a conversation turn; a completed visit can prompt a review; both contribute to the private bond.
 
@@ -68,8 +68,8 @@ flowchart TB
 
   subgraph Infrastructure
     Mongo[(MongoDB)]
-    Redis[(Redis 鈥?optional)]
-    HF[Hugging Face 鈥?optional]
+    Redis[(Redis — optional)]
+    HF[Hugging Face — optional]
   end
 
   Guest --> Web
@@ -196,14 +196,14 @@ src/
 | Model | Purpose | Key constraints |
 | --- | --- | --- |
 | `Customer` | Guest account, goals, preferred species, safety consent | unique email; status active/suspended |
-| `Merchant` | Shelter/caf茅/rescue/trainer | unique email; verified flag; status |
+| `Merchant` | Shelter/café/rescue/trainer | unique email; verified flag; status |
 | `Admin` | Operator account | unique email; separate collection |
 | `Session` | Hashed rotating refresh session | TTL on `expiresAt`; subject + role |
 | `Animal` | Companion listing | merchant ownership; public/private; moderation |
 | `AnimalAvailability` | Per-day configured slots | unique `(animalId, date)` |
 | `Booking` | A reserved service instance | partial unique `(animalId, date, startTime)` when `active:true` |
 | `Payment` | Sandbox ledger entry | provider ref unique; refund status |
-| `Review` | One review per completed booking | unique `bookingId`; rating 1鈥? |
+| `Review` | One review per completed booking | unique `bookingId`; rating 1–5 |
 | `Favorite` | Saved companion | unique `(customerId, animalId)` |
 | `Checkin` | Daily mood/energy/note + companion reply | unique `(customerId, date)` |
 | `ChatMemory` | Conversation per customer + companion | unique `(userId, animalId)`; last 80 messages |
@@ -216,10 +216,10 @@ src/
 
 | Type | Mode | Duration | Pricing |
 | --- | --- | --- | --- |
-| `home_visit` | in person | 120 min | hourly rate 脳 2 |
-| `walk` | in person | 120 min | hourly rate 脳 2 |
-| `cafe_meet` | in person | 120 min | hourly rate 脳 2 |
-| `video_call` | online | 30 min | hourly rate 脳 0.5 脳 1.2 |
+| `home_visit` | in person | 120 min | hourly rate × 2 |
+| `walk` | in person | 120 min | hourly rate × 2 |
+| `cafe_meet` | in person | 120 min | hourly rate × 2 |
+| `video_call` | online | 30 min | hourly rate × 0.5 × 1.2 |
 
 An 8% service fee is added at checkout. Pricing is computed server-side; the client never sends a price.
 
@@ -254,8 +254,8 @@ sequenceDiagram
 - One per local calendar day; posting again updates the same row.
 - Streak counts consecutive days ending today or yesterday.
 - Notes are screened before any model call. A flagged note gets the crisis message, not a model-generated reply.
-- If a companion is resolved, the check-in is appended to the same chat thread so the relationship has memory. Guests can choose 鈥渏ust keep this for me鈥?to avoid that.
-- Check-ins are included in 鈥渄elete companion data鈥?
+- If a companion is resolved, the check-in is appended to the same chat thread so the relationship has memory. Guests can choose “just keep this for me” to avoid that.
+- Check-ins are included in “delete companion data”.
 
 **Chat rules**
 
@@ -267,7 +267,7 @@ sequenceDiagram
 
 **Bond**
 
-`points = messages + visits 脳 20 + favourite 脳 5`, `level = max(1, floor(points / 60) + 1)`. It is a lightweight relationship signal, not a status or ranking. The animal detail endpoint returns it for the signed-in guest.
+`points = messages + visits × 20 + favourite × 5`, `level = max(1, floor(points / 60) + 1)`. It is a lightweight relationship signal, not a status or ranking. The animal detail endpoint returns it for the signed-in guest.
 
 ---
 
@@ -298,9 +298,10 @@ sequenceDiagram
 **Status machine**
 
 ```
-pending 鈹€鈹€accept鈹€鈹€鈻?confirmed 鈹€鈹€complete鈹€鈹€鈻?completed
-   鈹?                   鈹?   鈹溾攢鈹€decline鈹€鈹€鈻?declined (refund)
-   鈹斺攢鈹€cancel鈹€鈹€鈹€鈻?cancelled (refund)
+pending ──accept──► confirmed ──complete──► completed
+   │                    │
+   ├──decline──► declined (refund)
+   └──cancel───► cancelled (refund)
 ```
 
 - Changes (cancel/reschedule) require more than 24 hours' notice.
@@ -313,7 +314,7 @@ pending 鈹€鈹€accept鈹€鈹€鈻?confirmed 鈹€鈹€complete鈹€�
 
 ## Authentication and sessions
 
-**Roles:** `customer`, `merchant`, `admin` 鈥?separate collections, shared guard.
+**Roles:** `customer`, `merchant`, `admin` — separate collections, shared guard.
 
 ```mermaid
 sequenceDiagram
@@ -354,7 +355,7 @@ sequenceDiagram
 
 - Each medium/high event stores `{userId, animalId, level, score, source, timestamp}`. No raw message text.
 - 7-day and 30-day scores decay exponentially (half-lives 3 and 10 days).
-- `flagged`: 30-day score 鈮?18 or two high events in 7 days; `watch`: 7-day score 鈮?10.
+- `flagged`: 30-day score ≥18 or two high events in 7 days; `watch`: 7-day score ≥10.
 - The user can view a derived summary and delete all companion data.
 - Operators see the derived events and can acknowledge/resolve; the audit trail records the action. Risk events have a 120-day TTL.
 
@@ -366,7 +367,7 @@ The crisis card gives US 988, findahelpline.com and emergency services, states t
 
 - Chats and check-in notes are visible to the guest only.
 - Hosts receive only the contact details required for a visit.
-- Operators never receive raw conversation content 鈥?only derived levels/scores/timestamps.
+- Operators never receive raw conversation content — only derived levels/scores/timestamps.
 - Account deletion anonymises profile and booking contact fields while keeping financial receipts.
 
 See [docs/SAFETY.md](docs/SAFETY.md) for the operating model.

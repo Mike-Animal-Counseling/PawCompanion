@@ -1,4 +1,4 @@
-﻿# Deployment
+# Deployment
 
 ## Demo stack (Docker Compose)
 
@@ -27,11 +27,12 @@ docker compose up --build
 ## Production topology
 
 ```
-Client 鈹€鈹€ HTTPS 鈹€鈹€> CDN / nginx
-                      鈹溾攢鈹€ /            -> frontend dist (SPA fallback)
-                      鈹溾攢鈹€ /api/*       -> Node API (2+ instances)
-                      鈹斺攢鈹€ /uploads/*   -> shared object storage or API
-                                            鈹?                         MongoDB (replica set, auth, TLS)
+Client ── HTTPS ──> CDN / nginx
+                      ├── /            -> frontend dist (SPA fallback)
+                      ├── /api/*       -> Node API (2+ instances)
+                      └── /uploads/*   -> shared object storage or API
+                                            │
+                         MongoDB (replica set, auth, TLS)
                          Redis (TLS, shared budgets)
                          Object storage (listing images)
                          AI provider (optional)
@@ -46,11 +47,11 @@ See `backend/.env.example`. The important production values:
 | Variable | Production requirement |
 | --- | --- |
 | `NODE_ENV` | `production` |
-| `JWT_SECRET` | 鈮?2 random bytes, not a placeholder |
+| `JWT_SECRET` | ≥32 random bytes, not a placeholder |
 | `MONGO_URI` | Authenticated MongoDB, TLS in transit |
 | `CORS_ORIGIN` | Explicit HTTPS origins, no wildcards |
 | `APP_URL` | HTTPS public URL |
-| `REDIS_URL` | `rediss://鈥 for shared rate limits (recommended for >1 instance) |
+| `REDIS_URL` | `rediss://…` for shared rate limits (recommended for >1 instance) |
 | `TRUST_PROXY` | Correct hop count or trusted proxy CIDR |
 | `PAYMENTS_MODE` | `sandbox` only for an explicit demo |
 | `ALLOW_SANDBOX_PAYMENTS` | `true` only if you accept that no real money moves |
@@ -78,7 +79,7 @@ Run at least two API instances behind the proxy for availability. Use Redis so t
 
 1. Review the index list (`scripts` or `model.indexes()`).
 2. Create indexes in a maintenance window.
-3. Keep the partial unique booking index 鈥?it is the last line of defence against double booking.
+3. Keep the partial unique booking index — it is the last line of defence against double booking.
 4. Plan schema changes rather than relying on Mongoose defaults for existing documents.
 
 ### Seed policy
@@ -87,12 +88,12 @@ Run at least two API instances behind the proxy for availability. Use Redis so t
 
 ### Uploads
 
-Local uploads are JPEG-only, re-encoded, 鈮? MiB, 鈮?6 MP, and served from `/uploads/<ownerId>-<uuid>.jpeg`. For multi-instance deployments mount a shared volume or replace the storage service with object storage and signed URLs. Do not use the public upload directory for private images.
+Local uploads are JPEG-only, re-encoded, ≤5 MiB, ≤16 MP, and served from `/uploads/<ownerId>-<uuid>.jpeg`. For multi-instance deployments mount a shared volume or replace the storage service with object storage and signed URLs. Do not use the public upload directory for private images.
 
 ### Health checks
 
-- `GET /api/health` 鈥?process liveness.
-- `GET /api/ready` 鈥?Mongo connection and budget layer.
+- `GET /api/health` — process liveness.
+- `GET /api/ready` — Mongo connection and budget layer.
 - Configure the load balancer to drain on `SIGTERM`; the server closes HTTP, budgets and Mongo gracefully.
 
 ### Backups and retention
