@@ -159,7 +159,7 @@ PawCompanion/
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/Mike-Animal-Counseling/PawCompanion.git
+git clone https://github.com/Mike-Animal-Counseling/paw-companion.git
 cd PawCompanion
 ```
 
