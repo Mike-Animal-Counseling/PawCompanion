@@ -202,14 +202,14 @@ frontend/src/
 - **Production safety ops:** on-call escalation, localised helplines, clinician-reviewed copy, consent and retention controls.
 - **Recurring partner schedules:** weekly opening hours, holidays and travel time instead of per-date overrides.
 - **Real-time layer:** WebSocket/SSE notifications and a shared host inbox.
-- **Native shell:** Expo/React Native client reusing the API and design tokens, plus push notifications.
+- **PWA polish:** offline shell, install prompts and web push. Native shells and app-store distribution are intentionally out of scope; the product is a responsive web app.
 - **Type contracts:** migrate to TypeScript and generate the client from OpenAPI.
 
 ---
 
 ## Honest limitations
 
-This is not a production therapy or emergency service. It is companionship with a safety layer. There is no 24/7 human crisis team, no live payment processor, no email/SMS delivery, no email verification or password reset, and no native app yet. See [docs/SAFETY.md](docs/SAFETY.md) and [docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md) before any public launch.
+This is not a production therapy or emergency service. It is companionship with a safety layer. There is no 24/7 human crisis team, no live payment processor, no email/SMS delivery, and no email verification or password reset. Native apps and app-store distribution are intentionally out of scope: this is a responsive web/PWA product. See [docs/SAFETY.md](docs/SAFETY.md) and [docs/PRODUCTION_SECURITY.md](docs/PRODUCTION_SECURITY.md) before any public launch.
 
 ## Publishing this project
 
