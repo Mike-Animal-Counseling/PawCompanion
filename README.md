@@ -12,7 +12,7 @@ PawCompanion is a full-stack consumer product, not a pet marketplace. It combine
 
 **Stack:** React 19 · Vite 8 · Express 4 · MongoDB · Zod · JWT sessions · Playwright · Docker · GitHub Actions
 
-**Proof:** 41 backend tests · 9-step browser E2E · 0 audit vulnerabilities · route-level code splitting · PWA
+**Verified:** 41 backend tests · 9-step Playwright E2E · green CI · Docker Compose smoke test
 
 ---
 
@@ -223,6 +223,7 @@ The recommended setup is **one public code repo + one private deployment repo**:
 | [Architecture.md](Architecture.md) | Domain model, flows, auth, safety, trade-offs |
 | [docs/API.md](docs/API.md) | Endpoint reference and examples |
 | [docs/SAFETY.md](docs/SAFETY.md) | Crisis detection, support mode, risk scoring, privacy |
+| [docs/IMAGES.md](docs/IMAGES.md) | Merchant image pipeline, limits, demo-asset policy |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker, production configuration, operations |
 | [docs/PUBLISHING.md](docs/PUBLISHING.md) | Public/private repo strategy and privacy audit |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Local setup, tests, conventions |
