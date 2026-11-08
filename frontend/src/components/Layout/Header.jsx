@@ -159,6 +159,9 @@ export default function Header() {
               <Link to="/register" className="btn btn-sm hide-mobile">
                 Join free
               </Link>
+              <Link to="/register" className={`btn btn-sm ${classes.mobileJoin}`}>
+                Join
+              </Link>
             </>
           )}
 

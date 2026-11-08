@@ -126,7 +126,7 @@ export default function HomePage() {
                 type="search"
                 value={heroQuery}
                 onChange={(event) => setHeroQuery(event.target.value)}
-                placeholder="Try “quiet cat in Portland” or “golden retriever”"
+                placeholder="Search companions or breeds"
                 aria-label="Search companions"
               />
               <button type="submit" className="btn">
@@ -141,21 +141,6 @@ export default function HomePage() {
                   {link.label}
                 </button>
               ))}
-            </div>
-
-            <div className={classes.heroProof}>
-              <div>
-                <strong>{facets?.total ?? '14'}</strong>
-                <span>verified companions</span>
-              </div>
-              <div>
-                <strong>{facets?.hosts ?? '4'}</strong>
-                <span>partner hosts</span>
-              </div>
-              <div>
-                <strong>24/7</strong>
-                <span>AI company between visits</span>
-              </div>
             </div>
           </div>
 
