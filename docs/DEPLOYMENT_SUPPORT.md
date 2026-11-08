@@ -59,10 +59,10 @@ The first boot runs the seed because `SEED_DEMO=true`. Every restart/reseed rese
 4. Copy the SRV URI and append the database name:
 
 ```text
-mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/pawcompanion?retryWrites=true&w=majority
+mongodb+srv://<cluster-host>/pawcompanion?retryWrites=true&w=majority
 ```
 
-5. Put it in Render as `MONGO_URI` (secret).
+Atlas supplies the database username/password; put the complete URI only in Render as `MONGO_URI` (secret).
 
 ## Environment variables
 
