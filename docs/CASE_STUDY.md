@@ -92,8 +92,7 @@ I would instrument these with privacy review; no message content in analytics.
 2. **Safety readiness:** localised helplines, reviewed copy, documented escalation, incident log, data deletion rehearsal.
 3. **Payments:** live provider with webhooks, idempotency, refunds and reconciliation; remove all sandbox copy from the guest path.
 4. **Trust supply:** partner verification, insurance/background checks where required, animal welfare guidelines.
-5. **Then distribution:** PWA install + SEO city pages first; native shell only after retention is proven.
-6. **App store later:** a Trusted Web Activity or Expo shell, with privacy labels, payment compliance and review readiness.
+5. **Distribution:** PWA install + SEO city pages. The product is web/PWA-only; native shells and app-store listings are intentionally out of scope.
 
 ## Risks and trade-offs
 
@@ -102,7 +101,7 @@ I would instrument these with privacy review; no message content in analytics.
 - **AI can harm if over-claimed.** The product deliberately says it is not therapy and keeps a local fallback with the same boundaries.
 - **Two tracks can blur.** The UI keeps online check-ins and in-person visits distinct, while the companion and bond connect them.
 - **Payments are sandboxed.** The lifecycle is complete and auditable, but no money moves. Live payments are a launch blocker.
-- **No native app yet.** The PWA is the deliberate first shell; a native app adds distribution but also review/compliance overhead.
+- **No native app by design.** The PWA is the product shell. Native distribution is intentionally out of scope, which keeps the surface area and compliance burden focused on the web app.
 
 ## What this project demonstrates
 
@@ -113,7 +112,7 @@ I would instrument these with privacy review; no message content in analytics.
 
 ## Next
 
-Live payments · human online sessions · recurring partner schedules · real-time notifications · native shell · TypeScript/OpenAPI contracts · production safety operations.
+Live payments · human online sessions · recurring partner schedules · real-time notifications · PWA polish · TypeScript/OpenAPI contracts · production safety operations.
 
 ---
 

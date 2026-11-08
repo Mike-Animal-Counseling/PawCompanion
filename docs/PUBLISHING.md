@@ -98,11 +98,13 @@ A credible portfolio link is a deployed demo, not a screenshot.
 
 If you use a separate API origin, test login/refresh, image URLs and CORS in a private window before sharing the link.
 
-## App store?
+## App store? (out of scope)
 
-The current build is an installable PWA, not a native app. That is enough for a portfolio link and a beta.
+The product decision is **responsive web + installable PWA**. There is no native shell, and App Store / Play Store distribution is intentionally not planned.
 
-Before submitting to the App Store / Play Store:
+That is enough for a portfolio link and a beta. Put the web demo online first.
+
+If that decision ever changes, the prerequisites would be:
 
 - live payments (or a clear free-beta model) and store-compliant billing;
 - email verification, password reset and account deletion that satisfies store policy;
@@ -110,8 +112,6 @@ Before submitting to the App Store / Play Store:
 - 24/7-ish safety escalation or a product scope that does not imply crisis support;
 - native shell (Capacitor/Expo or Trusted Web Activity), push notifications, offline states;
 - review of the AI/mental-health claims with legal counsel.
-
-Trying to “just ship” the current sandbox build to a store would create more risk than portfolio value. Put the web demo online first.
 
 ## Portfolio presentation
 

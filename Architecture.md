@@ -434,7 +434,7 @@ Full endpoint list: [docs/API.md](docs/API.md).
 2. **Human online sessions:** scheduled audio/video companionship with vetted hosts, separate from the AI track.
 3. **Recurring availability:** weekly merchant schedules, holidays and travel time.
 4. **Real-time:** WebSocket/SSE notifications and a shared conversation inbox for hosts.
-5. **Mobile shell:** React Native/Expo client reusing the API and design tokens, with push notifications.
+5. **PWA polish:** offline shell, install prompts, web push and share targets. Native shells are out of scope; the product is a responsive web app.
 6. **Safety operations:** on-call escalation policy, localized helplines, clinician-reviewed copy, consent and retention controls.
 7. **Observability:** OpenTelemetry traces, error reporting, product analytics with privacy review.
 8. **Type contracts:** migrate to TypeScript and generate the API client from an OpenAPI schema.
