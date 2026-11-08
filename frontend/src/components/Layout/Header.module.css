@@ -159,6 +159,10 @@
   display: none;
 }
 
+.mobileJoin {
+  display: none;
+}
+
 .mobilePanel {
   position: fixed;
   inset: var(--header-h) 0 0;
@@ -214,6 +218,15 @@
   }
   .userButton {
     padding: 2px;
+  }
+}
+
+@media (max-width: 760px) {
+  .mobileJoin {
+    display: inline-flex;
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 0.76rem;
   }
 }
 
