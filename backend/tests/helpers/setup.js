@@ -24,13 +24,14 @@ const { default: Review } = await import('../../src/models/Review.js');
 const { default: Favorite } = await import('../../src/models/Favorite.js');
 const { default: ChatMemory } = await import('../../src/models/ChatMemory.js');
 const { default: Checkin } = await import('../../src/models/Checkin.js');
+const { default: DigitalPetState } = await import('../../src/models/DigitalPetState.js');
 const { default: Notification } = await import('../../src/models/Notification.js');
 const { default: RiskEvent } = await import('../../src/models/RiskEvent.js');
 const { default: UserRiskProfile } = await import('../../src/models/UserRiskProfile.js');
 const { default: Session } = await import('../../src/models/Session.js');
 const { default: AuditEvent } = await import('../../src/models/AuditEvent.js');
 
-const MODELS = [Customer, Merchant, Admin, Animal, AnimalAvailability, Booking, Payment, Review, Favorite, ChatMemory, Checkin, Notification, RiskEvent, UserRiskProfile, Session, AuditEvent];
+const MODELS = [Customer, Merchant, Admin, Animal, AnimalAvailability, Booking, Payment, Review, Favorite, ChatMemory, Checkin, DigitalPetState, Notification, RiskEvent, UserRiskProfile, Session, AuditEvent];
 let mongoServer;
 let config;
 

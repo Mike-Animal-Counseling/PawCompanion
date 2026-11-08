@@ -195,7 +195,7 @@ export default function VisitDetailPage() {
               {formatDate(booking.date, { weekday: true })} · {formatTimeRange(booking.startTime, booking.endTime)}
             </p>
             <p className={classes.heroHost}>
-              {booking.service?.label || 'Home visit'} · {booking.service?.mode === 'online' ? 'Online video call' : 'In person'} · Hosted by {booking.merchant?.name} · {booking.merchant?.city}
+              {booking.service?.label || 'Home visit'} · In person · Hosted by {booking.merchant?.name} · {booking.merchant?.city}
             </p>
 
             <div className={classes.statusNote}>

@@ -4,6 +4,30 @@ import { SPECIES } from './animal.js';
 
 const tags = z.array(z.string().trim().min(1).max(40)).max(8);
 const gallery = z.array(imageUrl).max(4);
+const digitalList = z.array(z.string().trim().min(1).max(100)).max(12);
+
+const digitalProfile = z
+  .object({
+    enabled: z.boolean(),
+    voice: z.enum(['cat', 'dog', 'rabbit', 'other']),
+    traits: z
+      .object({
+        energy: z.coerce.number().int().min(1).max(5),
+        sociability: z.coerce.number().int().min(1).max(5),
+        curiosity: z.coerce.number().int().min(1).max(5),
+        anxiety: z.coerce.number().int().min(1).max(5),
+        playfulness: z.coerce.number().int().min(1).max(5),
+      })
+      .partial(),
+    routines: digitalList,
+    favorites: digitalList,
+    comforts: digitalList,
+    boundaries: digitalList,
+    hostNotes: z.string().trim().max(1000),
+    voiceStyle: z.string().trim().max(200),
+    soundPack: z.string().trim().max(60),
+  })
+  .partial();
 
 // Fields shared by create and update. No defaults here: defaults belong only to
 // create, otherwise a PATCH would silently reset every unsubmitted field.
@@ -18,6 +42,7 @@ const animalFields = {
   description: z.string().trim().max(3000),
   personality: z.string().trim().max(400),
   personalityProfile: z.string().trim().max(60),
+  digital: digitalProfile.optional(),
   tags,
   imageUrl: imageUrl.refine((value) => value.length > 0, 'Add a photo of this companion'),
   gallery,

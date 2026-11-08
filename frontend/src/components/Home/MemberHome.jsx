@@ -200,7 +200,7 @@ export default function MemberHome() {
               <>
                 <span className={classes.nextLabel}>Nothing booked</span>
                 <h3>Make some time for a visit.</h3>
-                <p>Choose a companion, pick a time, and the host confirms. Home visits, walks, cafés or a video call.</p>
+                <p>Choose a companion, pick a time, and the host confirms. Home visits, walks or cafés.</p>
                 <Link to="/#companions" className="btn btn-sm">Browse companions</Link>
               </>
             )}
@@ -215,7 +215,7 @@ export default function MemberHome() {
           </Link>
           <Link to="/#companions" className={classes.trackCard}>
             <span className={`${classes.trackIcon} ${classes.trackIconCoral}`}><Icon name="paw" size={21} /></span>
-            <div><strong>In-person companionship</strong><span>Home visits, walks, café meetups and short video calls.</span></div>
+            <div><strong>In-person companionship</strong><span>Home visits, walks and café meetups.</span></div>
             <Icon name="arrow-right" size={16} />
           </Link>
         </div>

@@ -1,5 +1,27 @@
 import mongoose from 'mongoose';
 
+const digitalProfileSchema = new mongoose.Schema(
+  {
+    enabled: { type: Boolean, default: true },
+    voice: { type: String, enum: ['cat', 'dog', 'rabbit', 'other'], default: 'other' },
+    traits: {
+      energy: { type: Number, min: 1, max: 5, default: 3 },
+      sociability: { type: Number, min: 1, max: 5, default: 3 },
+      curiosity: { type: Number, min: 1, max: 5, default: 3 },
+      anxiety: { type: Number, min: 1, max: 5, default: 2 },
+      playfulness: { type: Number, min: 1, max: 5, default: 3 },
+    },
+    routines: [{ type: String, trim: true, maxlength: 100 }],
+    favorites: [{ type: String, trim: true, maxlength: 100 }],
+    comforts: [{ type: String, trim: true, maxlength: 100 }],
+    boundaries: [{ type: String, trim: true, maxlength: 100 }],
+    hostNotes: { type: String, trim: true, maxlength: 1000, default: '' },
+    voiceStyle: { type: String, trim: true, maxlength: 200, default: '' },
+    soundPack: { type: String, trim: true, maxlength: 60, default: 'species' },
+  },
+  { _id: false },
+);
+
 const animalSchema = new mongoose.Schema(
   {
     merchantId: { type: mongoose.Schema.Types.ObjectId, ref: 'Merchant', required: true, index: true },
@@ -21,6 +43,7 @@ const animalSchema = new mongoose.Schema(
     tags: [{ type: String, trim: true, maxlength: 40, index: true }],
     imageUrl: { type: String, trim: true, maxlength: 500, default: '' },
     gallery: [{ type: String, trim: true, maxlength: 500 }],
+    digital: { type: digitalProfileSchema, default: () => ({}) },
     city: { type: String, trim: true, maxlength: 80, default: '', index: true },
     region: { type: String, trim: true, maxlength: 80, default: '' },
     energyLevel: { type: Number, min: 1, max: 5, default: 3 },

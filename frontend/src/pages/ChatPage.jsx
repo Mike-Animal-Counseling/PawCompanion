@@ -18,6 +18,8 @@ const FALLBACK_PROMPTS = [
   'What makes you feel safe?',
 ];
 
+const SpeechRecognition = typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
+
 export default function ChatPage() {
   const { id } = useParams();
   const toast = useToast();
@@ -28,25 +30,99 @@ export default function ChatPage() {
   const [error, setError] = useState('');
   const [clearOpen, setClearOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [digital, setDigital] = useState(null);
+  const [animation, setAnimation] = useState('breathe');
+  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [listening, setListening] = useState(false);
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
+  const audioRef = useRef(null);
+  const recognitionRef = useRef(null);
 
   const { data: conversation, loading, error: loadError, refetch } = useFetch(`/api/ai/conversations/${id}`);
   const { data: aiStatus } = useFetch('/api/ai/status');
   const animal = conversation?.animal;
 
-  useDocumentTitle(animal ? `Chat with ${animal.name}` : 'Companion chat', 'Talk with a safety-aware AI companion on PawCompanion.');
+  useDocumentTitle(animal ? `${animal.name}'s digital self` : 'Digital pet', 'Talk with a safety-aware digital companion: animal sounds, translated text and a private bond.');
 
   useEffect(() => {
     if (conversation) {
       setMessages(conversation.messages || []);
       setMode(conversation.chatMode || 'play');
+      setDigital(conversation.digital || null);
     }
   }, [conversation]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [messages, sending]);
+
+  useEffect(() => () => {
+    audioRef.current?.pause();
+    recognitionRef.current?.stop();
+  }, []);
+
+  const playPetSound = (nextDigital = digital, force = false) => {
+    const sound = nextDigital?.sound;
+    if ((!soundEnabled && !force) || !sound?.url) return;
+    try {
+      audioRef.current?.pause();
+      const audio = new Audio(sound.url);
+      audio.volume = 0.45;
+      audio.playbackRate = sound.rate || 1;
+      audioRef.current = audio;
+      audio.play().catch(() => {});
+      window.setTimeout(() => {
+        if (audioRef.current === audio) audio.pause();
+      }, 2200);
+    } catch {
+      // Audio is an enhancement; text remains the source of truth.
+    }
+  };
+
+  const toggleListening = () => {
+    if (!SpeechRecognition) {
+      toast.info('Voice input is not supported in this browser. You can type instead.');
+      return;
+    }
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.lang = navigator.language || 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognitionRef.current = recognition;
+    setListening(true);
+    recognition.onresult = (event) => {
+      const transcript = Array.from(event.results)
+        .map((result) => result[0]?.transcript || '')
+        .join(' ')
+        .trim();
+      if (transcript) setInput(transcript);
+    };
+    recognition.onerror = (event) => {
+      if (event.error !== 'aborted') toast.error('Could not hear that. Try again or type it.');
+      setListening(false);
+    };
+    recognition.onend = () => setListening(false);
+    try {
+      recognition.start();
+    } catch {
+      setListening(false);
+    }
+  };
+
+  const toggleSound = () => {
+    if (soundEnabled) {
+      audioRef.current?.pause();
+      setSoundEnabled(false);
+      return;
+    }
+    setSoundEnabled(true);
+    setTimeout(() => playPetSound(digital, true), 0);
+  };
 
   const send = async (text) => {
     const content = String(text ?? input).trim();
@@ -76,6 +152,11 @@ export default function ChatPage() {
         },
       ]);
       setMode(payload.routeMeta?.mode || mode);
+      if (payload.digital) {
+        setDigital(payload.digital);
+        setAnimation(payload.digital.animation || 'breathe');
+        playPetSound(payload.digital);
+      }
       if (payload.meta?.type === 'crisis') {
         toast.info('Support resources have been shared in the conversation.');
       }
@@ -141,13 +222,24 @@ export default function ChatPage() {
       <div className={`container ${classes.shell}`}>
         <aside className={classes.sidebar}>
           <Link to={`/companions/${animal.id}`} className={classes.profileLink}>
-            <div className={classes.avatar}>
+            <div className={classes.avatar} data-animation={animation}>
               {animal.imageUrl ? <img src={animal.imageUrl} alt={animal.name} /> : <Icon name="paw" size={30} />}
             </div>
-            <span className={classes.online}><span /> Online now</span>
+            <span className={classes.online}><span /> Digital companion</span>
             <h1>{animal.name}</h1>
-            <p>{speciesLabel(animal.species)} · AI companion</p>
+            <p>{speciesLabel(animal.species)} · AI, not the real animal</p>
           </Link>
+
+          <div className={classes.petState} aria-label="Digital companion state">
+            <span><Icon name="heart" size={13} /> {digital?.state?.mood || 'calm'}</span>
+            <span><Icon name="sparkles" size={13} /> {digital?.state?.energy ?? 70}% energy</span>
+            <span><Icon name="shield" size={13} /> {digital?.state?.trust ?? 40}% trust</span>
+          </div>
+          {digital?.sound && (
+            <button type="button" className={classes.replay} onClick={() => playPetSound(digital, true)}>
+              <Icon name="volume" size={14} /> Hear {animal.name}
+            </button>
+          )}
 
           <div className={classes.modeCard}>
             <span className={mode === 'support' ? classes.modeSupport : classes.modePlay}>
@@ -175,7 +267,7 @@ export default function ChatPage() {
           <div className={classes.sideSection}>
             <span className={classes.sideLabel}>Make it real</span>
             <Link to={`/book/${animal.id}`} className="btn btn-secondary btn-block btn-sm">
-              <Icon name="calendar" size={15} /> Book a visit or video call
+              <Icon name="calendar" size={15} /> Book an in-person visit
             </Link>
           </div>
 
@@ -189,14 +281,26 @@ export default function ChatPage() {
             <div>
               <strong>{animal.name}</strong>
               <span>
-                <span className={classes.headDot} /> Companion chat
-                {demo ? ' · demo voice' : ' · model voice'}
+                <span className={classes.headDot} /> Digital pet
+                {demo ? ' · local voice' : ' · model voice'} · text is translated
               </span>
             </div>
-            <span className={`badge ${mode === 'support' ? 'badge-danger' : 'badge-info'}`}>
-              <Icon name={mode === 'support' ? 'heart' : 'sparkles'} size={12} />
-              {mode === 'support' ? 'Support' : 'Play'}
-            </span>
+            <div className={classes.chatActions}>
+              <button
+                type="button"
+                className={classes.soundToggle}
+                onClick={toggleSound}
+                aria-pressed={soundEnabled}
+                aria-label={soundEnabled ? 'Mute animal sounds' : 'Enable animal sounds'}
+                title={soundEnabled ? 'Mute animal sounds' : 'Enable animal sounds'}
+              >
+                <Icon name={soundEnabled ? 'volume' : 'volume-off'} size={17} />
+              </button>
+              <span className={`badge ${mode === 'support' ? 'badge-danger' : 'badge-info'}`}>
+                <Icon name={mode === 'support' ? 'heart' : 'sparkles'} size={12} />
+                {mode === 'support' ? 'Support' : 'Play'}
+              </span>
+            </div>
           </header>
 
           {mode === 'support' && (
@@ -216,6 +320,9 @@ export default function ChatPage() {
                 </div>
                 <h2>Say hello to {animal.name}.</h2>
                 <p>{animal.personality || 'A companion who is glad you stopped by.'}</p>
+                <span className={classes.translationNote}>
+                  <Icon name="volume" size={13} /> The sounds are {speciesLabel(animal.species).toLowerCase()}; the words are a translation.
+                </span>
                 <div className={classes.welcomePrompts}>
                   {prompts.map((prompt) => (
                     <button key={prompt} type="button" className="chip" onClick={() => send(prompt)}>
@@ -257,6 +364,18 @@ export default function ChatPage() {
               maxLength={4000}
               aria-label={`Message ${animal.name}`}
             />
+            {SpeechRecognition && (
+              <button
+                type="button"
+                className={`${classes.mic} ${listening ? classes.micActive : ''}`}
+                onClick={toggleListening}
+                disabled={sending}
+                aria-label={listening ? 'Stop listening' : 'Speak to your companion'}
+                title={listening ? 'Stop listening' : 'Speak to your companion'}
+              >
+                <Icon name="mic" size={18} />
+              </button>
+            )}
             <button type="submit" disabled={sending || !input.trim()} className={classes.send} aria-label="Send message">
               <Icon name="send" size={18} />
             </button>

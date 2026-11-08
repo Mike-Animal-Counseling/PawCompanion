@@ -422,11 +422,11 @@ export const reviewSeeds = [
 
 export const upcomingBookings = [
   { animal: 'milo', customer: 'maya', daysFromNow: 5, start: '11:00', status: 'confirmed', note: 'Confirmed by host', service: 'home_visit' },
-  { animal: 'clementine', customer: 'maya', daysFromNow: 9, start: '13:00', status: 'pending', note: '', service: 'video_call' },
+  { animal: 'clementine', customer: 'maya', daysFromNow: 9, start: '13:00', status: 'pending', note: '', service: 'cafe_meet' },
   { animal: 'marmalade', customer: 'jordan', daysFromNow: 3, start: '17:00', status: 'confirmed', note: 'See you Thursday', service: 'walk' },
   { animal: 'clover', customer: 'priya', daysFromNow: 6, start: '15:00', status: 'pending', note: '', service: 'cafe_meet' },
   { animal: 'mochi', customer: 'maya', daysFromNow: 14, start: '09:00', status: 'confirmed', note: '', service: 'home_visit' },
-  { animal: 'misty', customer: 'maya', daysFromNow: 2, start: '15:00', status: 'confirmed', note: 'A quiet video hello', service: 'video_call' },
+  { animal: 'misty', customer: 'maya', daysFromNow: 2, start: '15:00', status: 'confirmed', note: 'A quiet first visit', service: 'home_visit' },
 ];
 
 export const checkinSeeds = [

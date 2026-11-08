@@ -29,18 +29,20 @@ function contact() {
   };
 }
 
-test('service catalogue exposes online and in-person options with different pricing', async () => {
+test('service catalogue exposes the three in-person visit types', async () => {
   const { animalRecord } = await fixture();
   const response = await request(app()).get(`/api/bookings/services/${animalRecord._id}`);
   assert.equal(response.status, 200);
-  assert.equal(response.body.data.length, 4);
-  const home = response.body.data.find((service) => service.type === 'home_visit');
-  const video = response.body.data.find((service) => service.type === 'video_call');
-  assert.equal(home.mode, 'in_person');
-  assert.equal(home.durationMinutes, 120);
-  assert.equal(video.mode, 'online');
-  assert.equal(video.durationMinutes, 30);
-  assert.ok(video.pricing.total < home.pricing.total);
+  assert.equal(response.body.data.length, 3);
+  assert.deepEqual(
+    response.body.data.map((service) => service.type).sort(),
+    ['cafe_meet', 'home_visit', 'walk'],
+  );
+  for (const service of response.body.data) {
+    assert.equal(service.mode, 'in_person');
+    assert.equal(service.durationMinutes, 120);
+    assert.ok(service.pricing.total > 0);
+  }
 });
 
 test('creating a booking prices a service, blocks duplicate slots and prevents overlap', async () => {
@@ -64,15 +66,15 @@ test('creating a booking prices a service, blocks duplicate slots and prevents o
     .send({ animalId: animalRecord._id, serviceType: 'walk', date, startTime: '09:00', contact: contact(), acceptTerms: true });
   assert.equal(duplicate.status, 409);
 
-  const video = await request(app())
+  const cafe = await request(app())
     .post('/api/bookings')
     .set(auth(token))
-    .send({ animalId: animalRecord._id, serviceType: 'video_call', date, startTime: '11:00', contact: contact(), acceptTerms: true });
-  assert.equal(video.status, 201);
-  assert.equal(video.body.data.service.mode, 'online');
-  assert.equal(video.body.data.endTime, '11:30');
-  assert.equal(video.body.data.pricing.hours, 0.5);
-  assert.ok(video.body.data.pricing.total > 0);
+    .send({ animalId: animalRecord._id, serviceType: 'cafe_meet', date, startTime: '11:00', contact: contact(), acceptTerms: true });
+  assert.equal(cafe.status, 201);
+  assert.equal(cafe.body.data.service.mode, 'in_person');
+  assert.equal(cafe.body.data.endTime, '13:00');
+  assert.equal(cafe.body.data.pricing.hours, 2);
+  assert.ok(cafe.body.data.pricing.total > 0);
 
   const badService = await request(app())
     .post('/api/bookings')

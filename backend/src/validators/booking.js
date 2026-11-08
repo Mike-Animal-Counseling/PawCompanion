@@ -10,7 +10,7 @@ export const bookingListQuerySchema = z.object({
 
 export const bookingCreateSchema = z.object({
   animalId: objectId,
-  serviceType: z.enum(['home_visit', 'walk', 'cafe_meet', 'video_call']).default('home_visit'),
+  serviceType: z.enum(['home_visit', 'walk', 'cafe_meet']).default('home_visit'),
   date: dateString,
   startTime: slotTime,
   contact: z.object({
@@ -49,5 +49,5 @@ export const merchantRescheduleSchema = z.object({
 export const reviewEligibility = z.object({});
 
 export const serviceQuoteQuerySchema = z.object({
-  service: z.enum(['home_visit', 'walk', 'cafe_meet', 'video_call']).optional(),
+  service: z.enum(['home_visit', 'walk', 'cafe_meet']).optional(),
 });

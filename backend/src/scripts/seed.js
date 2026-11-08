@@ -10,6 +10,7 @@ import Booking from '../models/Booking.js';
 import ChatMemory from '../models/ChatMemory.js';
 import Checkin from '../models/Checkin.js';
 import Customer from '../models/Customer.js';
+import DigitalPetState from '../models/DigitalPetState.js';
 import Favorite from '../models/Favorite.js';
 import Merchant from '../models/Merchant.js';
 import Notification from '../models/Notification.js';
@@ -31,6 +32,29 @@ function receipt(index) {
   return `PC-SEED-${String(index).padStart(5, '0')}`;
 }
 
+function seedDigitalProfile(entry) {
+  const tags = new Set(entry.tags || []);
+  const voice = ['cat', 'dog', 'rabbit'].includes(entry.species) ? entry.species : 'other';
+  return {
+    enabled: true,
+    voice,
+    traits: {
+      energy: entry.energyLevel || 3,
+      sociability: tags.has('social') || tags.has('friendly') || tags.has('affectionate') ? 5 : tags.has('shy') || tags.has('quiet') ? 2 : 3,
+      curiosity: tags.has('curious') || tags.has('playful') ? 5 : 3,
+      anxiety: tags.has('shy') || tags.has('anxious') ? 4 : 2,
+      playfulness: tags.has('playful') || tags.has('energetic') ? 5 : 3,
+    },
+    routines: voice === 'cat' ? ['window watch', 'late-afternoon nap'] : ['morning walk', 'sniff route'],
+    favorites: [...tags].slice(0, 3),
+    comforts: voice === 'cat' ? ['slow blink', 'quiet room'] : ['a familiar blanket', 'gentle voice'],
+    boundaries: ['no grabbing', 'no loud crowds'],
+    hostNotes: entry.personality || '',
+    voiceStyle: entry.personality || '',
+    soundPack: 'species',
+  };
+}
+
 async function resetData() {
   await Promise.all(
     [
@@ -42,6 +66,7 @@ async function resetData() {
       ChatMemory,
       Checkin,
       Customer,
+      DigitalPetState,
       Favorite,
       Merchant,
       Notification,
@@ -194,6 +219,7 @@ export async function seedDatabase({ reset = false } = {}) {
     const animal = await Animal.create({
       ...entry,
       merchantId: merchant._id,
+      digital: seedDigitalProfile(entry),
       gallery: [entry.imageUrl],
       visibility: 'public',
       isActive: true,

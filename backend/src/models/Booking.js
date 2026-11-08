@@ -23,7 +23,7 @@ const bookingSchema = new mongoose.Schema(
       breed: { type: String, default: '' },
     },
     service: {
-      type: { type: String, enum: ['home_visit', 'walk', 'cafe_meet', 'video_call'], default: 'home_visit' },
+      type: { type: String, enum: ['home_visit', 'walk', 'cafe_meet'], default: 'home_visit' },
       label: { type: String, default: 'Home visit' },
       mode: { type: String, enum: ['in_person', 'online'], default: 'in_person' },
       durationMinutes: { type: Number, default: 120 },

@@ -25,8 +25,8 @@ PawCompanion is not a pet marketplace. It is a companionship service built aroun
 
 | Track | Delivery | Core loop |
 | --- | --- | --- |
-| **Online** | AI companion chat, daily check-ins, journal, support mode | check in → companion reply → conversation memory → bond |
-| **In-person** | Home visit, walk, café meetup, 30-minute video call | discover → choose service/time → reserve → host confirms → visit → review |
+| **Online** | Digital pet, daily check-ins, journal, support mode | check in / talk → behaviour + animal sound + translated text → state/memory → bond |
+| **In-person** | Home visit, walk, café meetup | discover → choose service/time → reserve → host confirms → visit → review |
 | **Merchant** | Shelters, cafés, rescues and trainers | listing → availability → visit decisions → review replies |
 | **Operations** | Trust and safety | risk queue → acknowledge/resolve, partner suspension, moderation, audit |
 
@@ -207,6 +207,7 @@ src/
 | `Favorite` | Saved companion | unique `(customerId, animalId)` |
 | `Checkin` | Daily mood/energy/note + companion reply | unique `(customerId, date)` |
 | `ChatMemory` | Conversation per customer + companion | unique `(userId, animalId)`; last 80 messages |
+| `DigitalPetState` | Private mood/energy/attention/trust per user + companion | unique `(userId, animalId)` |
 | `Notification` | In-app inbox per role | indexed by recipient + created |
 | `RiskEvent` | Derived safety signal | no raw text; 120-day TTL |
 | `UserRiskProfile` | Decayed 7/30-day profile | unique `userId`; status ok/watch/flagged |
@@ -219,7 +220,6 @@ src/
 | `home_visit` | in person | 120 min | hourly rate × 2 |
 | `walk` | in person | 120 min | hourly rate × 2 |
 | `cafe_meet` | in person | 120 min | hourly rate × 2 |
-| `video_call` | online | 30 min | hourly rate × 0.5 × 1.2 |
 
 An 8% service fee is added at checkout. Pricing is computed server-side; the client never sends a price.
 
@@ -264,6 +264,18 @@ sequenceDiagram
 - Mode routing uses a model when configured and a local intent heuristic otherwise; a support lock keeps the next few turns gentle.
 - The model sees the persona profile, animal details and recent turns. If the provider fails, the local persona answers instead of returning a 500.
 - Crisis messages are stored with `meta.type = "crisis"` so history renders the same card.
+
+**Digital pet turn**
+
+The online reply is not a free-form chatbot turn:
+
+1. Load the host-authored `Animal.digital` profile and the private `DigitalPetState`.
+2. A deterministic planner chooses mood/body/animation and a sound from the allowed species palette.
+3. The LLM receives the profile, relationship state and sound contract, and writes the translated text.
+4. The response stores `{ text, mood, behaviour, animation, sound, state }`; the state update is small and legible.
+5. The UI plays the animal sound and shows the translation. It never uses human TTS for the animal.
+
+Full behaviour/sound contract: [docs/DIGITAL_PET.md](docs/DIGITAL_PET.md). Sound licensing: [docs/SOUND_CREDITS.md](docs/SOUND_CREDITS.md).
 
 **Bond**
 
@@ -431,7 +443,7 @@ Full endpoint list: [docs/API.md](docs/API.md).
 ## Next steps
 
 1. **Live payments:** Stripe PaymentIntents + webhook + idempotency keys; move the booking hold into a payment-intent state.
-2. **Human online sessions:** scheduled audio/video companionship with vetted hosts, separate from the AI track.
+2. **Host sound packs:** host-recorded animal vocalizations, audio-analysis/embedding adapter, per-animal palettes and consent records.
 3. **Recurring availability:** weekly merchant schedules, holidays and travel time.
 4. **Real-time:** WebSocket/SSE notifications and a shared conversation inbox for hosts.
 5. **PWA polish:** offline shell, install prompts, web push and share targets. Native shells are out of scope; the product is a responsive web app.

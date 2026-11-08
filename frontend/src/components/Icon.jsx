@@ -36,6 +36,24 @@ const PATHS = {
       <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" strokeWidth="2.4" strokeLinecap="round" />
     </>
   ),
+  volume: (
+    <>
+      <path d="M4 9.5h3.2L12 5.8v12.4l-4.8-3.7H4Z" />
+      <path d="M15.2 9.2a4 4 0 0 1 0 5.6M17.8 6.6a7.6 7.6 0 0 1 0 10.8" />
+    </>
+  ),
+  'volume-off': (
+    <>
+      <path d="M4 9.5h3.2L12 5.8v12.4l-4.8-3.7H4Z" />
+      <path d="m16 9 5 5m0-5-5 5" />
+    </>
+  ),
+  mic: (
+    <>
+      <rect x="8.8" y="3" width="6.4" height="11" rx="3.2" />
+      <path d="M5.5 11.2a6.5 6.5 0 0 0 13 0M12 17.7V21" />
+    </>
+  ),
   bell: (
     <>
       <path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6Z" />

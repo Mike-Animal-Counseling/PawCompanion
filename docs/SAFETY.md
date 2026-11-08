@@ -43,6 +43,7 @@ The safety check runs **before** any model call. A flagged message never receive
 When distress is detected, the companion:
 
 - Switches to a slower rhythm (STF-N-style: situation, thought, feeling, next).
+- The digital pet does not play a playful animal sound over a crisis response; crisis text and resources always take precedence.
 - Validates first and asks at most one question per message.
 - Avoids diagnosis, clinical claims and promises of confidentiality.
 - Never claims to be human or a therapist.

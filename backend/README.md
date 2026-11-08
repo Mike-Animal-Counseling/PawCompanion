@@ -1,4 +1,4 @@
-# PawCompanion API
+﻿# PawCompanion API
 
 Express 4 + MongoDB. See the root [README](../README.md) for the product, [Architecture](../Architecture.md) for the design and [API reference](../docs/API.md) for endpoints.
 
@@ -10,7 +10,7 @@ npm run dev        # node --watch src/server.js
 npm run demo:api   # in-memory Mongo + seed + API (no web)
 npm run demo       # full demo (API + web)
 npm run seed       # reset demo data in MONGO_URI
-npm test           # 41 tests (uses TEST_MONGO_URI or mongodb-memory-server)
+npm test           # 45 tests (uses TEST_MONGO_URI or mongodb-memory-server)
 npm start          # production process
 ```
 

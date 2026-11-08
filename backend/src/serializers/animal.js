@@ -1,4 +1,5 @@
 import { toId } from '../lib/ids.js';
+import { getDigitalProfile } from '../services/digitalPetService.js';
 import { serializeMerchantPublic } from './account.js';
 
 export function ageLabel(months) {
@@ -10,6 +11,7 @@ export function ageLabel(months) {
 
 export function serializeAnimal(animal, { isFavorite = false } = {}) {
   const merchant = animal.merchantId && animal.merchantId.name ? animal.merchantId : null;
+  const digital = getDigitalProfile(animal);
   return {
     id: toId(animal),
     name: animal.name,
@@ -37,6 +39,16 @@ export function serializeAnimal(animal, { isFavorite = false } = {}) {
     bookingCount: animal.bookingCount || 0,
     featured: Boolean(animal.featured),
     isFavorite: Boolean(isFavorite),
+    digital: {
+      enabled: digital.enabled,
+      voice: digital.voice,
+      traits: digital.traits,
+      routines: digital.routines,
+      favorites: digital.favorites,
+      comforts: digital.comforts,
+      boundaries: digital.boundaries,
+      voiceStyle: digital.voiceStyle,
+    },
     merchant: serializeMerchantPublic(merchant),
     createdAt: animal.createdAt,
   };

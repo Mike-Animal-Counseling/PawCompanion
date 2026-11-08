@@ -1,8 +1,8 @@
-# PawCompanion
+﻿# PawCompanion
 
 ### A companionship app for pet people — online and offline.
 
-PawCompanion is a full-stack consumer product, not a pet marketplace. It combines an AI companion you can talk to every day with real, bookable visits from verified shelters, cafés and trainers. One relationship, two delivery tracks, and a safety layer that treats a bad day as a product requirement.
+PawCompanion is a full-stack consumer product, not a pet marketplace. It combines a digital pet you can talk to every day with real, bookable visits from verified shelters, cafés and trainers. One relationship, two delivery tracks, and a safety layer that treats a bad day as a product requirement.
 
 [Demo](#demo) · [Product tour](#product-tour) · [How it works](#how-it-works) · [Engineering](#engineering) · [Case study](docs/CASE_STUDY.md) · [Publishing strategy](docs/PUBLISHING.md)
 
@@ -12,7 +12,7 @@ PawCompanion is a full-stack consumer product, not a pet marketplace. It combine
 
 **Stack:** React 19 · Vite 8 · Express 4 · MongoDB · Zod · JWT sessions · Playwright · Docker · GitHub Actions
 
-**Verified:** 41 backend tests · 9-step Playwright E2E · green CI · Docker Compose smoke test
+**Verified:** 45 backend tests · 10-step Playwright E2E · green CI · Docker Compose smoke test
 
 ---
 
@@ -22,8 +22,8 @@ Most apps for lonely pet lovers stop at a listing or a feed. The actual need is 
 
 PawCompanion makes that relationship concrete:
 
-- **Online:** a daily check-in, a private journal, an AI companion with a personality and memory, a support mode when the day is heavy, and a visible bond that grows from messages and visits.
-- **Offline:** a home visit, a walk, a café meetup or a 30-minute video call. Real availability, a real host decision, a real refund path.
+- **Online:** a daily check-in, a private journal, and a **digital pet** with a host-authored personality, private state, memory, animal vocalizations and translated text. Support mode is there when the day is heavy.
+- **Offline:** a home visit, a walk or a café meetup. Real availability, a real host decision, a real refund path.
 - **Around it:** browsing, favourites, notifications, bookings, reviews, a partner console and an operator safety queue.
 
 The design constraints were deliberate: low pressure, no engagement dark patterns, no diagnosis language, and no pretending that a sandbox payment is real.
@@ -40,26 +40,28 @@ The signed-in home starts with a check-in, the next visit, the conversations you
 
 ### 2. Online companionship: check in, talk, keep a thread
 
-| Daily check-in | AI companion chat |
+| Daily check-in | Digital pet |
 | --- | --- |
-| ![Daily check-in](docs/screenshots/v2/app-checkin.webp) | ![Chat with a companion](docs/screenshots/v2/app-chat.webp) |
+| ![Daily check-in](docs/screenshots/v2/app-checkin.webp) | ![Digital pet](docs/screenshots/v2/app-digital-pet.webp) |
 
 - One check-in per day: mood, energy, tags and an optional private note.
-- A companion replies, the check-in joins the same conversation, and a seven-day chart plus streak make the relationship visible without turning it into a score.
-- Support mode is chosen from intent, not sentiment. A high-risk message interrupts the model and returns crisis resources.
+- The online companion is a **digital pet**: the app plays a species-appropriate animal sound (meow, purr, bark) and shows the human-language translation. It does not use human TTS or pretend to be the real animal.
+- The host supplies the personality profile: traits, routines, favourites, comforts and boundaries. A deterministic behaviour planner sets mood/body/animation, then the LLM writes the short in-character line.
+- Push-to-talk is available where the browser supports the Web Speech API; the transcript goes through the same text path.
+- Support mode is chosen from intent, not sentiment. A high-risk message interrupts the model and returns crisis resources, not a playful sound.
 - Chat memory, a local persona fallback and optional hosted models share the same safety layer.
 
 ### 3. A companion profile that connects the two tracks
 
 ![Companion profile](docs/screenshots/v2/app-companion.webp)
 
-The profile shows the host, reviews, the next opening, in-person and video-call pricing, and — for a signed-in guest — the private bond built from messages, visits and favourites.
+The profile shows the host, reviews, the next opening, in-person pricing, and — for a signed-in guest — the private bond built from messages, visits and favourites.
 
 ### 4. Offline companionship: a booking that behaves like a real one
 
 ![Booking a visit](docs/screenshots/v2/app-booking.webp)
 
-- Four services: home visit, walk & talk, café meetup, online video call.
+- Three services: home visit, walk & talk, café meetup.
 - Server-computed pricing with an 8% service fee; the client never sends a price.
 - Atomic slot reservation, 2-booking daily cap, host accept/decline, reschedule, cancellation with refund, completion and a review that recomputes ratings.
 - The same visit appears correctly in the guest’s **My visits** and the partner’s **Bookings**.
@@ -160,9 +162,9 @@ The same companion appears in discovery, chat, check-in, favourites and visits. 
 ## Engineering
 
 ```bash
-npm test              # 41 backend tests
+npm test              # 45 backend tests
 npm run build         # lazy route chunks, no source maps
-npm run e2e           # 9-step Playwright smoke test (demo running)
+npm run e2e           # 10-step Playwright smoke test (demo running)
 npm run check:privacy # scan tracked files for local paths / key material
 ```
 
@@ -179,9 +181,11 @@ npm run check:privacy # scan tracked files for local paths / key material
 ```
 backend/src/
   routers/        auth, me, checkins, animals, favorites, bookings, ai, notifications, merchant, admin
-  services/       scheduling, availability, booking, checkin, review, safety, risk, session, AI, analytics
+  services/       scheduling, availability, booking, checkin, review, safety, risk, session, AI,
+                  digital pet behaviour/state, analytics
   models/         Customer, Merchant, Admin, Session, Animal, Booking, Payment, Review, Favorite,
-                  Checkin, ChatMemory, Notification, RiskEvent, UserRiskProfile, AuditEvent
+                  Checkin, ChatMemory, DigitalPetState, Notification, RiskEvent, UserRiskProfile,
+                  AuditEvent
   validators/     Zod request contracts
   serializers/    stable API shapes
   lib/            errors, logger, validation, IDs, time
@@ -198,7 +202,7 @@ frontend/src/
 ## What I would build next
 
 - **Live payments:** Stripe PaymentIntents, webhooks, idempotency keys, real refund reconciliation.
-- **Human online companionship:** scheduled audio/video sessions with vetted hosts, separate from the AI track.
+- **Host sound packs:** host-recorded clips, audio-analysis adapter, and per-animal sound palettes. The current build ships a licensed generic species library.
 - **Production safety ops:** on-call escalation, localised helplines, clinician-reviewed copy, consent and retention controls.
 - **Recurring partner schedules:** weekly opening hours, holidays and travel time instead of per-date overrides.
 - **Real-time layer:** WebSocket/SSE notifications and a shared host inbox.
@@ -223,6 +227,8 @@ The recommended setup is **one public code repo + one private deployment repo**:
 | [Architecture.md](Architecture.md) | Domain model, flows, auth, safety, trade-offs |
 | [docs/API.md](docs/API.md) | Endpoint reference and examples |
 | [docs/SAFETY.md](docs/SAFETY.md) | Crisis detection, support mode, risk scoring, privacy |
+| [docs/DIGITAL_PET.md](docs/DIGITAL_PET.md) | Digital pet state, behaviour planner, sound/text contract |
+| [docs/SOUND_CREDITS.md](docs/SOUND_CREDITS.md) | Licensed animal sound sources |
 | [docs/IMAGES.md](docs/IMAGES.md) | Merchant image pipeline, limits, demo-asset policy |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker, production configuration, operations |
 | [docs/PUBLISHING.md](docs/PUBLISHING.md) | Public/private repo strategy and privacy audit |

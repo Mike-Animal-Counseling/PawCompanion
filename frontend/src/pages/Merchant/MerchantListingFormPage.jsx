@@ -30,9 +30,23 @@ const EMPTY = {
   neutered: false,
   visibility: 'public',
   isActive: true,
+  digitalEnabled: true,
+  digitalVoice: 'cat',
+  digitalEnergy: 3,
+  digitalSociability: 3,
+  digitalCuriosity: 3,
+  digitalAnxiety: 2,
+  digitalPlayfulness: 3,
+  digitalNotes: '',
+  digitalVoiceStyle: '',
+  digitalRoutines: '',
+  digitalFavorites: '',
+  digitalComforts: '',
+  digitalBoundaries: '',
 };
 
 const SPECIES = SPECIES_OPTIONS.filter((option) => option.value);
+const TRAIT_LEVELS = [1, 2, 3, 4, 5];
 
 export default function MerchantListingFormPage() {
   const { animalId } = useParams();
@@ -72,6 +86,19 @@ export default function MerchantListingFormPage() {
         neutered: Boolean(existing.neutered),
         visibility: existing.visibility || 'public',
         isActive: existing.isActive !== false,
+        digitalEnabled: existing.digital?.enabled !== false,
+        digitalVoice: existing.digital?.voice || existing.species || 'cat',
+        digitalEnergy: existing.digital?.traits?.energy || existing.energyLevel || 3,
+        digitalSociability: existing.digital?.traits?.sociability || 3,
+        digitalCuriosity: existing.digital?.traits?.curiosity || 3,
+        digitalAnxiety: existing.digital?.traits?.anxiety || 2,
+        digitalPlayfulness: existing.digital?.traits?.playfulness || 3,
+        digitalNotes: existing.digital?.hostNotes || '',
+        digitalVoiceStyle: existing.digital?.voiceStyle || '',
+        digitalRoutines: (existing.digital?.routines || []).join(', '),
+        digitalFavorites: (existing.digital?.favorites || []).join(', '),
+        digitalComforts: (existing.digital?.comforts || []).join(', '),
+        digitalBoundaries: (existing.digital?.boundaries || []).join(', '),
       });
     } else {
       setForm((current) => ({ ...current, city: current.city || user?.city || '' }));
@@ -143,6 +170,23 @@ export default function MerchantListingFormPage() {
       neutered: form.neutered,
       visibility: form.visibility,
       isActive: form.isActive,
+      digital: {
+        enabled: form.digitalEnabled,
+        voice: form.digitalVoice,
+        traits: {
+          energy: Number(form.digitalEnergy),
+          sociability: Number(form.digitalSociability),
+          curiosity: Number(form.digitalCuriosity),
+          anxiety: Number(form.digitalAnxiety),
+          playfulness: Number(form.digitalPlayfulness),
+        },
+        routines: form.digitalRoutines.split(',').map((item) => item.trim()).filter(Boolean),
+        favorites: form.digitalFavorites.split(',').map((item) => item.trim()).filter(Boolean),
+        comforts: form.digitalComforts.split(',').map((item) => item.trim()).filter(Boolean),
+        boundaries: form.digitalBoundaries.split(',').map((item) => item.trim()).filter(Boolean),
+        hostNotes: form.digitalNotes.trim(),
+        voiceStyle: form.digitalVoiceStyle.trim(),
+      },
     };
 
     try {
@@ -230,7 +274,7 @@ export default function MerchantListingFormPage() {
           <section className={classes.panel}>
             <div className={classes.panelHead}>
               <span className={classes.sectionNumber}>02</span>
-              <div><h2>Personality &amp; story</h2><p>This becomes the AI companion’s voice and the profile copy.</p></div>
+              <div><h2>Personality &amp; story</h2><p>This becomes the digital companion’s profile and the public listing copy.</p></div>
             </div>
             <div className="form-grid">
               <div className="field span-2">
@@ -255,6 +299,71 @@ export default function MerchantListingFormPage() {
           <section className={classes.panel}>
             <div className={classes.panelHead}>
               <span className={classes.sectionNumber}>03</span>
+              <div><h2>Digital self</h2><p>How this companion behaves, sounds and remembers in the online digital-pet mode.</p></div>
+            </div>
+            <label className="checkbox">
+              <input type="checkbox" checked={form.digitalEnabled} onChange={update('digitalEnabled')} />
+              <span>Enable the digital companion for this listing</span>
+            </label>
+            <div className="form-grid" style={{ marginTop: 16 }}>
+              <div className="field">
+                <label className="label" htmlFor="digital-voice">Vocal species</label>
+                <select id="digital-voice" className="select" value={form.digitalVoice} onChange={update('digitalVoice')}>
+                  <option value="cat">Cat</option>
+                  <option value="dog">Dog</option>
+                  <option value="rabbit">Rabbit</option>
+                  <option value="other">Other / quiet</option>
+                </select>
+              </div>
+              <div className="field">
+                <label className="label" htmlFor="digital-voice-style">Voice style</label>
+                <input id="digital-voice-style" className="input" maxLength={200} value={form.digitalVoiceStyle} onChange={update('digitalVoiceStyle')} placeholder="Soft, dry, unhurried" />
+              </div>
+              {[
+                ['digitalEnergy', 'Energy', 'digital-energy'],
+                ['digitalSociability', 'Sociability', 'digital-sociability'],
+                ['digitalCuriosity', 'Curiosity', 'digital-curiosity'],
+                ['digitalAnxiety', 'Anxiety', 'digital-anxiety'],
+                ['digitalPlayfulness', 'Playfulness', 'digital-playfulness'],
+              ].map(([key, label, id]) => (
+                <div className="field" key={key}>
+                  <label className="label" htmlFor={id}>{label}</label>
+                  <select id={id} className="select" value={form[key]} onChange={update(key)}>
+                    {TRAIT_LEVELS.map((level) => <option key={level} value={level}>{level}</option>)}
+                  </select>
+                </div>
+              ))}
+              <div className="field span-2">
+                <label className="label" htmlFor="digital-notes">What the host knows about this individual</label>
+                <textarea id="digital-notes" className="textarea" rows={4} maxLength={1000} value={form.digitalNotes} onChange={update('digitalNotes')} placeholder="Favourite window, how they ask for attention, what overwhelmed them, how they are comforted." />
+                <span className="hint">This is injected into the digital companion's behaviour context. It is not public profile copy.</span>
+              </div>
+              <div className="field span-2">
+                <label className="label" htmlFor="digital-routines">Routines</label>
+                <input id="digital-routines" className="input" value={form.digitalRoutines} onChange={update('digitalRoutines')} placeholder="window watch, late-afternoon nap" />
+              </div>
+              <div className="field">
+                <label className="label" htmlFor="digital-favorites">Favourite things</label>
+                <input id="digital-favorites" className="input" value={form.digitalFavorites} onChange={update('digitalFavorites')} placeholder="sunbeam, chin scratches" />
+              </div>
+              <div className="field">
+                <label className="label" htmlFor="digital-comforts">Comforts</label>
+                <input id="digital-comforts" className="input" value={form.digitalComforts} onChange={update('digitalComforts')} placeholder="slow blink, quiet room" />
+              </div>
+              <div className="field span-2">
+                <label className="label" htmlFor="digital-boundaries">Boundaries</label>
+                <input id="digital-boundaries" className="input" value={form.digitalBoundaries} onChange={update('digitalBoundaries')} placeholder="no grabbing, no loud crowds" />
+              </div>
+            </div>
+            <div className="notice" style={{ marginTop: 16 }}>
+              <Icon name="volume" size={16} />
+              <span>The digital companion plays a species-appropriate animal sound and a text translation. It never speaks with a human voice or claims to be the real animal.</span>
+            </div>
+          </section>
+
+          <section className={classes.panel}>
+            <div className={classes.panelHead}>
+              <span className={classes.sectionNumber}>04</span>
               <div><h2>Practical details</h2><p>Helps guests decide if the fit is right.</p></div>
             </div>
             <div className="form-grid">
@@ -283,7 +392,7 @@ export default function MerchantListingFormPage() {
 
           <section className={classes.panel}>
             <div className={classes.panelHead}>
-              <span className={classes.sectionNumber}>04</span>
+              <span className={classes.sectionNumber}>05</span>
               <div><h2>Photo</h2><p>A real photo of the companion. No stock images, no people.</p></div>
             </div>
             <div className={classes.photoRow}>
@@ -307,7 +416,7 @@ export default function MerchantListingFormPage() {
 
           <section className={classes.panel}>
             <div className={classes.panelHead}>
-              <span className={classes.sectionNumber}>05</span>
+              <span className={classes.sectionNumber}>06</span>
               <div><h2>Visibility</h2><p>Pause a listing without losing its history.</p></div>
             </div>
             <div className="form-grid">

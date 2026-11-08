@@ -29,7 +29,7 @@ function nextDates(days = 14) {
 
 const STEPS = ['Choose a time', 'Your details', 'Review & pay'];
 
-const SERVICE_ICONS = { home_visit: 'paw', walk: 'sun', cafe_meet: 'map-pin', video_call: 'chat' };
+const SERVICE_ICONS = { home_visit: 'paw', walk: 'sun', cafe_meet: 'map-pin' };
 
 function endTimeFor(start, minutes) {
   const [hour, minute] = String(start).split(':').map(Number);
@@ -222,9 +222,9 @@ export default function BookingPage() {
 
         <div className={classes.head}>
           <div>
-            <span className="eyebrow">Online &amp; in-person companionship</span>
+            <span className="eyebrow">In-person companionship</span>
             <h1>Book time with {animal.name}.</h1>
-            <p>Choose a home visit, a walk, a café meetup or a short video call. The host confirms every request.</p>
+            <p>Choose a home visit, a walk or a café meetup. The host confirms every request.</p>
           </div>
           <ol className={classes.steps}>
             {STEPS.map((label, index) => {
@@ -246,7 +246,7 @@ export default function BookingPage() {
                 <div className={classes.panelHead}>
                   <div>
                     <h2>What kind of time together?</h2>
-                    <p>Online is a thirty-minute video call. In-person visits last two hours. The host confirms every request.</p>
+                    <p>In-person visits last two hours. The host confirms every request; the digital companion is available separately from chat.</p>
                   </div>
                 </div>
 
@@ -262,7 +262,7 @@ export default function BookingPage() {
                     >
                       <span className={classes.serviceIcon}><Icon name={SERVICE_ICONS[service.type] || 'paw'} size={18} /></span>
                       <span className={classes.serviceBody}>
-                        <span className={classes.serviceMode}>{service.mode === 'online' ? 'Online' : 'In person'}{service.badge ? ` · ${service.badge}` : ''}</span>
+                        <span className={classes.serviceMode}>In person{service.badge ? ` · ${service.badge}` : ''}</span>
                         <strong>{service.label}</strong>
                         <small>{service.durationMinutes} min · {formatCurrency(service.pricing.total)}</small>
                       </span>
@@ -427,7 +427,7 @@ export default function BookingPage() {
                   </div>
                   <div className={classes.reviewRow}>
                     <span>Service</span>
-                    <strong>{selectedService?.label} · {selectedService?.mode === 'online' ? 'Online video call' : 'In person'} · {selectedService?.durationMinutes} min</strong>
+                    <strong>{selectedService?.label} · In person · {selectedService?.durationMinutes} min</strong>
                   </div>
                   <div className={classes.reviewRow}>
                     <span>Host</span>
@@ -499,7 +499,7 @@ export default function BookingPage() {
               </div>
 
               <div className={classes.summaryRows}>
-                <div><span>Service</span><strong>{selectedService?.label || 'Home visit'} · {selectedService?.mode === 'online' ? 'Online' : 'In person'}</strong></div>
+                <div><span>Service</span><strong>{selectedService?.label || 'Home visit'} · In person</strong></div>
                 <div><span>Date</span><strong>{date ? formatDate(date, { weekday: true, year: false }) : 'Choose a date'}</strong></div>
                 <div><span>Time</span><strong>{slot ? formatTimeRange(slot.startTime, selectedEndTime) : 'Choose a time'}</strong></div>
                 <div><span>Duration</span><strong>{selectedService?.durationMinutes || 120} minutes</strong></div>
