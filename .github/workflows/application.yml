@@ -13,8 +13,6 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      MONGOMS_DOWNLOAD_DIR: ${{ runner.temp }}/mongodb-binaries
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
         with:
@@ -36,6 +34,8 @@ jobs:
         run: npm audit --audit-level=low
       - name: Backend tests (auth, dual-track bookings, check-ins, safety)
         working-directory: backend
+        env:
+          MONGOMS_DOWNLOAD_DIR: ${{ runner.temp }}/mongodb-binaries
         run: npm test
       - name: Install frontend locked dependencies
         working-directory: frontend
