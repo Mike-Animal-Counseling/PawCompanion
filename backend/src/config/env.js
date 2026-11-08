@@ -57,6 +57,7 @@ export function loadConfig(env = process.env) {
     production,
     test,
     port: parsePositiveInt(env.PORT, 5000, 'PORT', { max: 65535 }),
+    host: env.HOST || (production ? '0.0.0.0' : '127.0.0.1'),
     mongoUri: env.MONGO_URI || (test ? 'mongodb://127.0.0.1:27017/pawcompanion-test' : ''),
     jwtSecret: secret,
     corsOrigins: parseOrigins(env.CORS_ORIGIN, production),

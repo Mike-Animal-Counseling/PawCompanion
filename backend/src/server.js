@@ -18,9 +18,10 @@ await Promise.all(mongoose.modelNames().map((name) => mongoose.model(name).creat
 const budgets = await createBudgets();
 
 const app = createApp({ config, budgets });
-const server = app.listen(config.port, config.production ? '0.0.0.0' : '127.0.0.1', () => {
+const server = app.listen(config.port, config.host, () => {
   logger.info('server.started', {
     port: config.port,
+    host: config.host,
     environment: config.nodeEnv,
     ai: config.ai.enabled ? 'enabled' : 'local_fallback',
     payments: 'sandbox',
