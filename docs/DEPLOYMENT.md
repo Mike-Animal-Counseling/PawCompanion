@@ -57,8 +57,8 @@ See `backend/.env.example`. The important production values:
 | `TRUST_PROXY` | Correct hop count or trusted proxy CIDR |
 | `PAYMENTS_MODE` | `sandbox` only for an explicit demo |
 | `ALLOW_SANDBOX_PAYMENTS` | `true` only if you accept that no real money moves |
-| `ENABLE_AI` | `true` only with a provider key and privacy review |
-| `HUGGINGFACE_API_KEY` | Provider key, billing limits enabled |
+| `ENABLE_AI` | `true` only with a primary provider key/model and privacy review |
+| `LLM_PRIMARY_API_KEY` / `LLM_PRIMARY_MODEL` | Provider key and model id, billing limits enabled |
 | `UPLOAD_DIR` | Writable persistent volume or mounted object storage |
 
 The server refuses to start in production when the sandbox provider is enabled without `ALLOW_SANDBOX_PAYMENTS=true`, when CORS uses HTTP, when `APP_URL` is missing/non-HTTPS, or when the JWT secret is weak.

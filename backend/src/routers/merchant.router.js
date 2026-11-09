@@ -29,7 +29,8 @@ import { replyToReview } from '../services/reviewService.js';
 import { merchantOverview } from '../services/analyticsService.js';
 import { storeImage, ownsImage } from '../services/secureImage.js';
 import { analyzeAudio, audioExtension, AUDIO_LIMIT_BYTES } from '../services/secureAudio.js';
-import { draftDigitalProfile } from '../services/digitalProfileDraft.js';
+import { draftDigitalProfile, draftDigitalProfileWithModel } from '../services/digitalProfileDraft.js';
+import { hasChatProvider } from '../services/llmProvider.js';
 import { recordAudit } from '../services/auditService.js';
 import { localDateString } from '../lib/time.js';
 import {
@@ -162,9 +163,16 @@ router.post(
   '/animals',
   validate(merchantAnimalCreateSchema),
   asyncHandler(async (req, res) => {
+    const config = req.app.locals.config;
+    let digital = req.body.digital;
+    if (!digital) {
+      if (config.test || process.env.ALLOW_LOCAL_FALLBACK === 'true') digital = draftDigitalProfile(req.body);
+      else if (hasChatProvider(config)) digital = await draftDigitalProfileWithModel({ animal: req.body, config });
+      else throw new AppError(503, 'AI_UNAVAILABLE', 'Provide a digital profile or configure a model provider');
+    }
     const animal = await Animal.create({
       ...req.body,
-      digital: req.body.digital || draftDigitalProfile(req.body),
+      digital,
       merchantId: req.auth.sub,
       city: req.body.city || req.account.city || '',
       ratingAverage: 0,
@@ -430,7 +438,10 @@ router.post(
   validate(merchantAnimalParamsSchema, 'params'),
   asyncHandler(async (req, res) => {
     const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
-    return ok(res, draftDigitalProfile(animal));
+    const config = req.app.locals.config;
+    if (config.test || process.env.ALLOW_LOCAL_FALLBACK === 'true') return ok(res, draftDigitalProfile(animal));
+    if (!hasChatProvider(config)) throw new AppError(503, 'AI_UNAVAILABLE', 'Onboarding extraction requires a configured model provider');
+    return ok(res, await draftDigitalProfileWithModel({ animal, config }));
   }),
 );
 

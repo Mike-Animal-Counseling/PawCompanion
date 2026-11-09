@@ -1,7 +1,5 @@
-import { providerFetch } from './providerFetch.js';
+import { completeChat, hasChatProvider } from './llmProvider.js';
 import { buildSystemPrompt, getPersonalityProfile } from './personalityProfiles.js';
-
-const HF_CHAT_URL = 'https://router.huggingface.co/v1/chat/completions';
 
 const ROUTER_PROMPT = `You are a routing classifier for an AI pet companion app.
 Decide the best mode for the next reply.
@@ -67,34 +65,16 @@ function safeJsonParse(text) {
   }
 }
 
-async function callChat(config, messages, { model, temperature, maxTokens }) {
-  if (!config.ai.apiKey) throw new Error('AI provider is not configured');
-  const response = await providerFetch(
-    HF_CHAT_URL,
-    {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.ai.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        temperature,
-        max_tokens: Math.min(Math.max(Number(maxTokens) || 220, 1), 512),
-      }),
-    },
-    1024 * 1024,
-  );
-  const data = await response.json();
-  const content = data?.choices?.[0]?.message?.content;
-  if (!content || !String(content).trim()) throw new Error('Empty response from AI provider');
-  return String(content).trim();
+function localAllowed(config) {
+  return config.test || process.env.ALLOW_LOCAL_FALLBACK === 'true';
 }
 
 export async function detectMode({ animal, messages = [], message, config }) {
   const local = classifyModeLocally(message);
-  if (!config.ai.enabled || !config.ai.apiKey) return local;
+  if (!config.ai.enabled || !hasChatProvider(config)) {
+    if (localAllowed(config)) return local;
+    throw new Error('AI provider is required for support-mode classification');
+  }
 
   const recentUsers = messages
     .filter((item) => item.role === 'user')
@@ -102,7 +82,7 @@ export async function detectMode({ animal, messages = [], message, config }) {
     .map((item) => String(item.content || '').slice(0, 400));
 
   try {
-    const raw = await callChat(
+    const result = await completeChat(
       config,
       [
         { role: 'system', content: ROUTER_PROMPT },
@@ -117,6 +97,7 @@ export async function detectMode({ animal, messages = [], message, config }) {
       ],
       { model: config.ai.routerModel, temperature: 0, maxTokens: 80 },
     );
+    const raw = result.text;
     const parsed = safeJsonParse(raw);
     if (!parsed) return local;
     const confidence = clamp01(parsed.confidence);
@@ -125,10 +106,11 @@ export async function detectMode({ animal, messages = [], message, config }) {
       mode: parsed.mode === 'support' ? 'support' : 'play',
       confidence,
       rationale: String(parsed.rationale || '').slice(0, 80),
-      provider: 'huggingface',
+      provider: result.provider,
     };
-  } catch {
-    return { ...local, rationale: local.rationale };
+  } catch (error) {
+    if (localAllowed(config)) return { ...local, rationale: local.rationale };
+    throw error;
   }
 }
 
@@ -200,8 +182,9 @@ export function localCompanionReply({ animal, messages = [], message, mode = 'pl
 }
 
 export async function generateResponse({ animal, messages = [], message, mode = 'play', config, digitalContext = '' }) {
-  if (!config.ai.enabled || !config.ai.apiKey) {
-    return localCompanionReply({ animal, messages, message, mode });
+  if (!config.ai.enabled || !hasChatProvider(config)) {
+    if (localAllowed(config)) return localCompanionReply({ animal, messages, message, mode });
+    throw new Error('AI provider is required for companion chat');
   }
 
   const history = messages
@@ -216,16 +199,16 @@ export async function generateResponse({ animal, messages = [], message, mode = 
   }
 
   try {
-    const text = await callChat(config, payload, {
+    const result = await completeChat(config, payload, {
       model: config.ai.chatModel,
       temperature: config.ai.temperature,
       maxTokens: config.ai.maxTokens,
     });
-    const trimmed = text.length > 800 ? `${text.slice(0, 800)}…` : text;
-    return { text: trimmed, provider: 'huggingface' };
-  } catch {
-    // Provider outages should degrade to the local companion, not a 500 page.
-    return localCompanionReply({ animal, messages, message, mode });
+    const trimmed = result.text.length > 800 ? `${result.text.slice(0, 800)}…` : result.text;
+    return { text: trimmed, provider: result.provider };
+  } catch (error) {
+    if (localAllowed(config)) return localCompanionReply({ animal, messages, message, mode });
+    throw error;
   }
 }
 

@@ -90,7 +90,7 @@ If a real secret was ever committed, **rotate it first**, then clean history. Re
 A credible portfolio link is a deployed demo, not a screenshot.
 
 1. **Database:** MongoDB Atlas free/shared tier, separate database `pawcompanion-demo`, restricted network access.
-2. **API:** Render/Fly.io/Railway container from `backend/Dockerfile`; set `NODE_ENV=production`, HTTPS `CORS_ORIGIN`, `APP_URL`, a fresh `JWT_SECRET`, `PAYMENTS_MODE=sandbox`, `ALLOW_SANDBOX_PAYMENTS=true` only for the demo, `ENABLE_AI=false` unless you accept provider cost.
+2. **API:** Render/Fly.io/Railway container from `Dockerfile.render`; set `NODE_ENV=production`, HTTPS `CORS_ORIGIN`, `APP_URL`, a fresh `JWT_SECRET`, `PAYMENTS_MODE=sandbox`, `ALLOW_SANDBOX_PAYMENTS=true` only for the demo, and a provider key/model for chat. There is no production keyword fallback.
 3. **Web:** Vercel/Netlify/Cloudflare Pages from `frontend/`, with `VITE_API_URL` pointing at the HTTPS API if it is on another origin. If the API is on another origin, configure cookies/CORS carefully; same-origin is simpler.
 4. **Seed:** run the seed once against the demo database, then disable the seed command in that environment.
 5. **Label it:** add a “Demo” badge and a line that payments are sandboxed and data is reset periodically.

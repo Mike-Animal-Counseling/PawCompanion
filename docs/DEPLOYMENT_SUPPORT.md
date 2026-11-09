@@ -23,7 +23,7 @@ Optional:
 
 - a custom domain
 - Upstash Redis URL (`rediss://…`) for shared rate limits
-- Hugging Face API key if you want hosted AI instead of the local persona fallback
+- model/provider keys. Chat and onboarding need a primary model; see [PROVIDER_MATRIX.md](PROVIDER_MATRIX.md) for all task-specific slots and the strongest recommended stack.
 
 Do not paste secrets into chat or commit them. Enter them in Render's environment UI, or provide them through a secret manager.
 
@@ -80,7 +80,11 @@ Atlas supplies the database username/password; put the complete URI only in Rend
 | `ALLOW_SANDBOX_PAYMENTS` | `true` (demo only) |
 | `SEED_DEMO` | `true` |
 | `ALLOW_SEED_IN_PRODUCTION` | `true` (demo only) |
-| `ENABLE_AI` | `false` |
+| `ENABLE_AI` | `true` |
+| `LLM_PRIMARY_PROVIDER` | e.g. `openai`, `anthropic`, `google`, `deepseek`, `huggingface` |
+| `LLM_PRIMARY_API_KEY` | provider secret |
+| `LLM_PRIMARY_MODEL` | model id |
+| `LLM_PRIMARY_ROUTER_MODEL` | small/fast model id |
 | `DEMO_MODE` | `true` |
 
 `RENDER_EXTERNAL_URL` is provided automatically and used as `APP_URL` + `CORS_ORIGIN`. Do not set `APP_URL`/`CORS_ORIGIN` to localhost.
@@ -90,7 +94,7 @@ Atlas supplies the database username/password; put the complete URI only in Rend
 | Variable | When |
 | --- | --- |
 | `REDIS_URL` | `rediss://…` for shared rate limits across instances |
-| `HUGGINGFACE_API_KEY` | only if `ENABLE_AI=true`; set provider budget limits |
+| `HUGGINGFACE_API_KEY` | optional legacy safety/image adapter; set provider budget limits |
 | `HF_CHAT_MODEL` / `HF_ROUTER_MODEL` | only with a provider key |
 | `AUDIO_EMBEDDING_PROVIDER` / `AUDIO_EMBEDDING_API_KEY` / `AUDIO_EMBEDDING_MODEL` | optional; reserved for a deep acoustic embedding provider |
 | `TRUST_PROXY` | `1` behind Render's proxy |

@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { providerBaseUrl } from '../services/llmProvider.js';
 
 const PLACEHOLDER_SECRET = /replace|change.?me|dev[._-]?secret|example|your[._-]?secret|placeholder/i;
 const ROLES = new Set(['customer', 'merchant', 'admin']);
@@ -73,12 +74,28 @@ export function loadConfig(env = process.env) {
     ai: {
       enabled: env.ENABLE_AI === 'true',
       apiKey: env.HUGGINGFACE_API_KEY || '',
-      chatModel: env.HF_CHAT_MODEL || 'meta-llama/Llama-3.1-8B-Instruct',
-      routerModel: env.HF_ROUTER_MODEL || 'meta-llama/Llama-3.2-3B-Instruct',
+      safetyApiKey: env.HUGGINGFACE_API_KEY || '',
+      chatModel: env.LLM_PRIMARY_MODEL || env.HF_CHAT_MODEL || 'meta-llama/Llama-3.1-8B-Instruct',
+      routerModel: env.LLM_PRIMARY_ROUTER_MODEL || env.HF_ROUTER_MODEL || 'meta-llama/Llama-3.2-3B-Instruct',
       imageModel: env.HF_IMAGE_MODEL || 'stabilityai/stable-diffusion-xl-base-1.0',
-      maxTokens: parsePositiveInt(env.HF_MAX_TOKENS, 220, 'HF_MAX_TOKENS', { max: 512 }),
+      maxTokens: parsePositiveInt(env.HF_MAX_TOKENS || env.LLM_MAX_TOKENS, 220, 'HF_MAX_TOKENS', { max: 1024 }),
       temperature: Number(env.HF_TEMPERATURE || 0.7),
       routerThreshold: Number(env.HF_ROUTER_THRESHOLD || 0.55),
+    },
+    llm: {
+      primary: {
+        provider: env.LLM_PRIMARY_PROVIDER || (env.HUGGINGFACE_API_KEY ? 'huggingface' : 'openai'),
+        baseUrl: env.LLM_PRIMARY_BASE_URL || providerBaseUrl(env.LLM_PRIMARY_PROVIDER || (env.HUGGINGFACE_API_KEY ? 'huggingface' : 'openai')),
+        apiKey: env.LLM_PRIMARY_API_KEY || env.HUGGINGFACE_API_KEY || '',
+        model: env.LLM_PRIMARY_MODEL || env.HF_CHAT_MODEL || 'meta-llama/Llama-3.1-8B-Instruct',
+        routerModel: env.LLM_PRIMARY_ROUTER_MODEL || env.HF_ROUTER_MODEL || '',
+      },
+      fallback: {
+        provider: env.LLM_FALLBACK_PROVIDER || '',
+        baseUrl: env.LLM_FALLBACK_BASE_URL || providerBaseUrl(env.LLM_FALLBACK_PROVIDER),
+        apiKey: env.LLM_FALLBACK_API_KEY || '',
+        model: env.LLM_FALLBACK_MODEL || '',
+      },
     },
     demoMode: env.DEMO_MODE === 'true' || (!production && env.DEMO_MODE !== 'false'),
   };

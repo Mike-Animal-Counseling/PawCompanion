@@ -164,7 +164,7 @@ src/
     reviewService.js      eligibility, rating recomputation, replies
     safety.js             keyword + optional model detection, crisis copy
     riskScoring.js        decayed 7/30-day profile, status thresholds
-    aiService.js          router, persona prompts, local fallback, provider call
+    aiService.js          router, persona prompts, provider-first chat
     sessionService.js     hashed refresh sessions, rotation, revocation
     analyticsService.js   merchant 30-day dashboard, platform overview
     auditService.js       append-only operational events
@@ -263,7 +263,7 @@ sequenceDiagram
 - The companion must be public, active and not moderated.
 - Memory is capped at 80 messages; provider context is capped separately.
 - Mode routing uses a model when configured and a local intent heuristic otherwise; a support lock keeps the next few turns gentle.
-- The model sees the persona profile, animal details and recent turns. If the provider fails, the local persona answers instead of returning a 500.
+- The model sees the persona profile, animal details and recent turns. If the primary provider fails, the configured fallback is tried; if both fail, the API returns a `503` rather than a silent keyword reply.
 - Crisis messages are stored with `meta.type = "crisis"` so history renders the same card.
 
 **Digital pet turn**
@@ -430,7 +430,8 @@ Full endpoint list: [docs/API.md](docs/API.md).
 
 | Decision | Why | Cost |
 | --- | --- | --- |
-| Local persona fallback | Demo and product work without an API key; provider outages degrade gracefully | Less fluent than a hosted model |
+| Provider-first chat | Primary + fallback model; no silent keyword reply in production | Requires a key and budget; 503 when unconfigured |
+| Deterministic safety floor | Explicit crisis language never waits for a model | Narrower than a trained classifier; classifier slot is separate |
 | Sandbox payment ledger | Full booking/refund lifecycle is testable without PCI scope | No real revenue; must integrate a provider before launch |
 | Refresh-token rotation on every boot | Keeps stolen refresh tokens short-lived | Multiple tabs can churn sessions; interceptor handles it |
 | In-memory fallback rate limits | Single-instance demo is easy to run | Not shared across instances; production should set Redis |

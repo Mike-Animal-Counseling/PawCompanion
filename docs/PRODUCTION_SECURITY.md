@@ -1,4 +1,4 @@
-﻿# Production security requirements
+# Production security requirements
 
 This build has security controls that are real, and demo boundaries that are explicit. Do not describe it as an audited production service until the checklist in [DEPLOYMENT.md](DEPLOYMENT.md) is complete.
 
@@ -49,8 +49,8 @@ This build has security controls that are real, and demo boundaries that are exp
 
 ## AI and safety
 
-- AI is disabled by default. `ENABLE_AI=true` requires a provider key, billing limits, a privacy review and updated consent copy.
-- Without a key, the local persona fallback keeps the product usable; it is not a clinical service.
+- Companion chat is provider-first. `ENABLE_AI=true` plus a primary key/model is required; production returns `503` when unconfigured rather than using keyword replies. Set billing limits, a privacy review and updated consent copy.
+- Without a configured model, companion chat fails closed with `503`; it never substitutes keyword replies in production. It is not a clinical service.
 - Safety screening runs before every model call. High-risk messages return crisis resources and are not sent to the model.
 - Risk events store derived levels/scores/timestamps, not raw text. Operators never receive raw conversation content.
 - There is no 24/7 human crisis team. Publish that limitation and localise helplines before launch.
