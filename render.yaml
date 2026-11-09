@@ -18,6 +18,8 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: DEMO_ADMIN_PASSWORD
+        generateValue: true
       - key: SEED_DEMO
         value: true
       - key: ALLOW_SEED_IN_PRODUCTION
