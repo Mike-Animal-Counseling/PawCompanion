@@ -1,4 +1,80 @@
+import { completeChat } from './llmProvider.js';
+
 const DEFAULT_TRAITS = { energy: 3, sociability: 3, curiosity: 3, anxiety: 2, playfulness: 3 };
+
+function clampTrait(value) {
+  const number = Math.round(Number(value));
+  return Number.isFinite(number) ? Math.min(5, Math.max(1, number)) : 3;
+}
+
+function stringList(value) {
+  return Array.isArray(value)
+    ? value.map((item) => String(item).trim()).filter(Boolean).slice(0, 8)
+    : [];
+}
+
+function parseJson(text) {
+  const raw = String(text || '').replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '').trim();
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start < 0 || end <= start) throw new Error('Model did not return a profile object');
+  return JSON.parse(raw.slice(start, end + 1));
+}
+
+/**
+ * Model-first onboarding extraction. The result is still a draft: the host
+ * reviews every field before saving. No keyword scoring is used here.
+ */
+export async function draftDigitalProfileWithModel({ animal, config }) {
+  const source = [animal.personality, animal.description, ...(animal.tags || [])].filter(Boolean).join(' ');
+  const result = await completeChat(
+    config,
+    [
+      {
+        role: 'system',
+        content: `You extract a digital-pet profile for a pet companionship product. Return ONLY JSON with:
+{"voice":"cat|dog|rabbit|other","traits":{"energy":1-5,"sociability":1-5,"curiosity":1-5,"anxiety":1-5,"playfulness":1-5},"routines":["..."],"favorites":["..."],"comforts":["..."],"boundaries":["..."],"hostNotes":"<=1000 chars","voiceStyle":"<=200 chars"}
+Do not invent medical facts. Do not claim to know the animal personally. Use only the supplied profile copy. Keep lists to 4-8 short phrases. If a dimension is not supported, use 3; anxiety defaults to 2. voice must match the species when it is cat/dog/rabbit, otherwise "other".`,
+      },
+      {
+        role: 'user',
+        content: JSON.stringify({
+          name: animal.name,
+          species: animal.species,
+          breed: animal.breed || '',
+          ageMonths: animal.ageMonths,
+          energyLevel: animal.energyLevel,
+          personality: animal.personality || '',
+          description: animal.description || '',
+          tags: animal.tags || [],
+        }).slice(0, 8000),
+      },
+    ],
+    { temperature: 0.2, maxTokens: 500 },
+  );
+  const parsed = parseJson(result.text);
+  const traits = parsed.traits && typeof parsed.traits === 'object' ? parsed.traits : {};
+  return {
+    enabled: true,
+    voice: ['cat', 'dog', 'rabbit'].includes(parsed.voice) ? parsed.voice : (['cat', 'dog', 'rabbit'].includes(animal.species) ? animal.species : 'other'),
+    traits: {
+      energy: clampTrait(traits.energy ?? animal.energyLevel ?? DEFAULT_TRAITS.energy),
+      sociability: clampTrait(traits.sociability ?? DEFAULT_TRAITS.sociability),
+      curiosity: clampTrait(traits.curiosity ?? DEFAULT_TRAITS.curiosity),
+      anxiety: clampTrait(traits.anxiety ?? DEFAULT_TRAITS.anxiety),
+      playfulness: clampTrait(traits.playfulness ?? DEFAULT_TRAITS.playfulness),
+    },
+    routines: stringList(parsed.routines),
+    favorites: stringList(parsed.favorites),
+    comforts: stringList(parsed.comforts),
+    boundaries: stringList(parsed.boundaries),
+    hostNotes: String(parsed.hostNotes || source).slice(0, 1000),
+    voiceStyle: String(parsed.voiceStyle || animal.personality || '').slice(0, 200),
+    soundPack: 'species',
+    draft: true,
+    confidence: 'model',
+  };
+}
 
 function score(text, patterns, base = 3) {
   const matches = patterns.reduce((count, pattern) => count + (pattern.test(text) ? 1 : 0), 0);

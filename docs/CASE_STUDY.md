@@ -98,7 +98,7 @@ I would instrument these with privacy review; no message content in analytics.
 
 - **Supply is hard.** A beautiful booking flow cannot fix unreliable hosts. Concentrate on one city and a small number of high-quality partners.
 - **Safety cannot be fully automated.** Keyword detection is a floor. A real launch needs human escalation and clinical/legal review.
-- **AI can harm if over-claimed.** The product deliberately says it is not therapy and keeps a local fallback with the same boundaries.
+- **AI can harm if over-claimed.** The product deliberately says it is not therapy, keeps a deterministic crisis floor, and requires a configured primary model for chat rather than hiding provider failures behind keyword replies.
 - **Two tracks can blur.** The UI keeps online check-ins and in-person visits distinct, while the companion and bond connect them.
 - **Payments are sandboxed.** The lifecycle is complete and auditable, but no money moves. Live payments are a launch blocker.
 - **No native app by design.** The PWA is the product shell. Native distribution is intentionally out of scope, which keeps the surface area and compliance burden focused on the web app.

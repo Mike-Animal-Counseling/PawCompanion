@@ -29,7 +29,15 @@ services:
       - key: ALLOW_SANDBOX_PAYMENTS
         value: true
       - key: ENABLE_AI
-        value: false
+        value: true
+      - key: LLM_PRIMARY_PROVIDER
+        value: openai
+      - key: LLM_PRIMARY_API_KEY
+        sync: false
+      - key: LLM_PRIMARY_MODEL
+        sync: false
+      - key: LLM_PRIMARY_ROUTER_MODEL
+        sync: false
       - key: DEMO_MODE
         value: true
       - key: LOG_LEVEL

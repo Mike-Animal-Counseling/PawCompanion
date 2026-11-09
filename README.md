@@ -8,7 +8,7 @@ PawCompanion is a full-stack consumer product, not a pet marketplace. It combine
 
 ![PawCompanion member home](docs/screenshots/v2/app-home-member.webp)
 
-> **Status:** portfolio-ready demo. The product is complete enough to review end to end; payments are sandboxed, AI is optional, and the safety operations are not a 24/7 clinical service. I would not put real users on this build without the launch work listed at the bottom.
+> **Status:** portfolio-ready demo. The product is complete enough to review end to end; payments are sandboxed, companion chat requires a configured model provider, and the safety operations are not a 24/7 clinical service. I would not put real users on this build without the launch work listed at the bottom.
 
 **Stack:** React 19 · Vite 8 · Express 4 · MongoDB · Zod · JWT sessions · Playwright · Docker · GitHub Actions
 
@@ -49,7 +49,7 @@ The signed-in home starts with a check-in, the next visit, the conversations you
 - The host supplies the personality profile: traits, routines, favourites, comforts and boundaries. A deterministic behaviour planner sets mood/body/animation, then the LLM writes the short in-character line.
 - Push-to-talk is available where the browser supports the Web Speech API; the transcript goes through the same text path.
 - Support mode is chosen from intent, not sentiment. A high-risk message interrupts the model and returns crisis resources, not a playful sound.
-- Chat memory, a local persona fallback and optional hosted models share the same safety layer.
+- Chat memory and a provider router (primary + fallback model) share the same safety layer. Production chat fails closed with a 503 if no provider is configured; local persona stubs are test-only.
 
 ### 3. A companion profile that connects the two tracks
 
@@ -126,7 +126,7 @@ flowchart LR
   Operator[Operator console] --> API
   API --> Mongo[(MongoDB)]
   API -. optional .-> Redis[(Redis budgets)]
-  API -. optional .-> AI[Hugging Face chat / image]
+  API -. provider-required .-> AI[chat primary + fallback / image]
   API --> Safety[Safety engine]
   Safety --> Risk[Derived risk profile + audit]
   API --> Booking[Booking engine]
@@ -230,6 +230,7 @@ The recommended setup is **one public code repo + one private deployment repo**:
 | [docs/DIGITAL_PET.md](docs/DIGITAL_PET.md) | Digital pet state, behaviour planner, sound/text contract |
 | [docs/SOUND_CREDITS.md](docs/SOUND_CREDITS.md) | Licensed animal sound sources |
 | [docs/IMAGES.md](docs/IMAGES.md) | Merchant image pipeline, limits, demo-asset policy |
+| [docs/PROVIDER_MATRIX.md](docs/PROVIDER_MATRIX.md) | Strongest task-specific provider stack, slots, 2D avatar runtime |
 | [docs/PRIVACY_AUDIT.md](docs/PRIVACY_AUDIT.md) | Public-repo privacy audit, secret scanning, image metadata |
 | [docs/DEPLOYMENT_SUPPORT.md](docs/DEPLOYMENT_SUPPORT.md) | Render + Atlas setup, required values, live-demo checklist |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker, production configuration, operations |

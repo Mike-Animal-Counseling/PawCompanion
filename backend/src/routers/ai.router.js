@@ -5,7 +5,7 @@ import ChatMemory from '../models/ChatMemory.js';
 import Checkin from '../models/Checkin.js';
 import RiskEvent from '../models/RiskEvent.js';
 import UserRiskProfile from '../models/UserRiskProfile.js';
-import { asyncHandler, conflict, notFound } from '../lib/errors.js';
+import { asyncHandler, conflict, notFound, unavailable } from '../lib/errors.js';
 import { isObjectId } from '../lib/ids.js';
 import { ok } from '../lib/http.js';
 import { validate } from '../lib/validate.js';
@@ -13,6 +13,7 @@ import { requireAuth, requireRole } from '../middleware/auth.js';
 import { detectSelfHarm, buildCrisisResponse, SAFETY_DISCLAIMER, safetyResources } from '../services/safety.js';
 import { recordRiskEventAndUpdateProfile, deleteRiskData } from '../services/riskScoring.js';
 import { detectMode, generateResponse } from '../services/aiService.js';
+import { hasChatProvider } from '../services/llmProvider.js';
 import { extractTextAndImagePrompt, generateImage } from '../services/imageGeneration.js';
 import { suggestedPrompts } from '../services/personalityProfiles.js';
 import {
@@ -86,6 +87,9 @@ router.post(
     const config = req.app.locals.config;
     const userId = req.auth.sub;
     const { animalId, message } = req.body;
+    if (!config.test && (!config.ai.enabled || !hasChatProvider(config))) {
+      throw unavailable('Companion chat requires a configured model provider');
+    }
 
     const animal = await Animal.findOne({ _id: animalId, ...PUBLIC_FILTER }).lean();
     if (!animal) throw notFound('Companion not found');
