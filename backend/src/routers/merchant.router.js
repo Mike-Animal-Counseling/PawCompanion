@@ -479,6 +479,9 @@ router.post(
     const filename = `${req.auth.sub}-${randomUUID()}.${audioExtension(analysis.mimeType)}`;
     const directory = uploadDir(req);
     await fs.promises.mkdir(directory, { recursive: true, mode: 0o700 });
+    // The filename is generated locally; the validated audio bytes are the
+    // only network-derived data written. This is the intended upload sink.
+    // codeql[js/http-to-file-access]
     await fs.promises.writeFile(path.join(directory, filename), req.file.buffer, { flag: 'wx', mode: 0o600 });
     const sound = await AnimalSound.create({
       animalId: req.params.animalId,

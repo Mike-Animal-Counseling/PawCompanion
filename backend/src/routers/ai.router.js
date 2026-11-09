@@ -89,18 +89,19 @@ router.post(
 
     const animal = await Animal.findOne({ _id: animalId, ...PUBLIC_FILTER }).lean();
     if (!animal) throw notFound('Companion not found');
+    const animalRef = animal._id;
     const digitalProfile = getDigitalProfile(animal);
     if (!digitalProfile.enabled) throw conflict('This companion has not enabled their digital self yet');
     const [digitalState, hostSounds] = await Promise.all([
-      getOrCreateDigitalState(userId, animalId),
-      AnimalSound.find({ animalId, status: 'active' }).sort({ createdAt: 1 }).lean(),
+      getOrCreateDigitalState(userId, animalRef),
+      AnimalSound.find({ animalId: animalRef, status: 'active' }).sort({ createdAt: 1 }).lean(),
     ]);
 
-    let memory = await ChatMemory.findOne({ userId, animalId });
+    let memory = await ChatMemory.findOne({ userId, animalId: animalRef });
     if (!memory) {
       memory = new ChatMemory({
         userId,
-        animalId,
+        animalId: animalRef,
         animalName: animal.name,
         messages: [],
         chatMode: 'play',
@@ -292,11 +293,12 @@ router.get(
   asyncHandler(async (req, res) => {
     const animal = await Animal.findOne({ _id: req.params.animalId, ...PUBLIC_FILTER }).lean();
     if (!animal) throw notFound('Companion not found');
-    const memory = await ChatMemory.findOne({ userId: req.auth.sub, animalId: req.params.animalId }).lean();
+    const animalRef = animal._id;
+    const memory = await ChatMemory.findOne({ userId: req.auth.sub, animalId: animalRef }).lean();
     const digitalProfile = getDigitalProfile(animal);
     const [digitalState, hostSounds] = await Promise.all([
-      getOrCreateDigitalState(req.auth.sub, req.params.animalId),
-      AnimalSound.find({ animalId: req.params.animalId, status: 'active' }).sort({ createdAt: 1 }).lean(),
+      getOrCreateDigitalState(req.auth.sub, animalRef),
+      AnimalSound.find({ animalId: animalRef, status: 'active' }).sort({ createdAt: 1 }).lean(),
     ]);
     return ok(res, {
       animal: {
