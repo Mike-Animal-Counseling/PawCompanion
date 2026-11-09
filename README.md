@@ -30,6 +30,12 @@ The design constraints were deliberate: low pressure, no engagement dark pattern
 
 ![Guest discovery](docs/screenshots/v2/guest-home.webp)
 
+## System architecture
+
+![PawCompanion system architecture](docs/diagrams/system-architecture.webp)
+
+Same-origin React/PWA → Express API → digital-pet state, bookings and provider slots. Solid lines are current paths; dashed lines are optional/provider slots. Full diagram notes: [docs/PROJECT_SUMMARY.md](docs/PROJECT_SUMMARY.md).
+
 ---
 
 ## Product tour
