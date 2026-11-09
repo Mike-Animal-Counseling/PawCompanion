@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1280" viewBox="0 0 2200 1280">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L10,5 L0,10 z" fill="#6B756F"/></marker></defs>
+<rect width="2200" height="1280" fill="#FBF8F1"/>
+<rect x="0" y="0" width="2200" height="8" fill="#2F5D50"/>
+<text x="60" y="76" font-family="Segoe UI, Arial, sans-serif" font-size="38" font-weight="700" fill="#1E2A26" text-anchor="start">PawCompanion</text>
+<text x="370" y="76" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="400" fill="#6B756F" text-anchor="start">/ system architecture</text>
+<text x="60" y="110" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#6B756F" text-anchor="start">Digital pet + real-world visits, one relationship. Same-origin web/PWA.</text>
+<circle cx="1748" cy="66" r="5" fill="#6B756F"/>
+<text x="1762" y="72" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#6B756F" text-anchor="start">current path</text>
+<line x1="1880" y1="66" x2="1925" y2="66" stroke="#6B756F" stroke-width="2.2" stroke-dasharray="7 7"/>
+<path d="M1925,61 L1934,66 L1925,71 z" fill="#6B756F"/>
+<text x="1944" y="72" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#6B756F" text-anchor="start">provider slot / optional</text>
+<rect x="60" y="150" width="450" height="520" rx="26" fill="#FFFFFF" fill-opacity="0.6" stroke="#2F5D50" stroke-opacity="0.28" stroke-width="1.2"/>
+<text x="86" y="184" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#2F5D50" text-anchor="start">CLIENT</text>
+<rect x="550" y="150" width="270" height="250" rx="26" fill="#FFFFFF" fill-opacity="0.6" stroke="#8A5A3B" stroke-opacity="0.28" stroke-width="1.2"/>
+<text x="576" y="184" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#8A5A3B" text-anchor="start">EDGE</text>
+<rect x="860" y="150" width="520" height="520" rx="26" fill="#FFFFFF" fill-opacity="0.6" stroke="#2F5D50" stroke-opacity="0.28" stroke-width="1.2"/>
+<text x="886" y="184" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#2F5D50" text-anchor="start">API</text>
+<rect x="60" y="720" width="640" height="420" rx="26" fill="#FFFFFF" fill-opacity="0.6" stroke="#B45535" stroke-opacity="0.28" stroke-width="1.2"/>
+<text x="86" y="754" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#B45535" text-anchor="start">AI ORCHESTRATION</text>
+<rect x="740" y="720" width="420" height="420" rx="26" fill="#FFFFFF" fill-opacity="0.6" stroke="#3F4C6B" stroke-opacity="0.28" stroke-width="1.2"/>
+<text x="766" y="754" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#3F4C6B" text-anchor="start">DATA</text>
+<rect x="1200" y="720" width="640" height="420" rx="26" fill="#FFFFFF" fill-opacity="0.6" stroke="#5D4368" stroke-opacity="0.28" stroke-width="1.2"/>
+<text x="1226" y="754" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#5D4368" text-anchor="start">PROVIDER SLOTS</text>
+<rect x="60" y="1160" width="1780" height="80" rx="26" fill="#FFFFFF" fill-opacity="0.6" stroke="#6B756F" stroke-opacity="0.28" stroke-width="1.2"/>
+<text x="86" y="1194" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#6B756F" text-anchor="start">DEPLOYMENT</text>
+<rect x="84" y="198" width="402" height="92" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="106" y="230" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Guest / member</text>
+<circle cx="111" cy="254" r="3" fill="#2F5D50"/>
+<text x="124" y="260" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Browse, book, check in, bond</text>
+<rect x="84" y="306" width="402" height="92" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="106" y="338" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Digital pet</text>
+<circle cx="111" cy="362" r="3" fill="#2F5D50"/>
+<text x="124" y="368" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Animal sound + translated text</text>
+<rect x="84" y="414" width="402" height="92" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="106" y="446" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Partner / operator</text>
+<circle cx="111" cy="470" r="3" fill="#2F5D50"/>
+<text x="124" y="476" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Listings, sounds, safety queue</text>
+<rect x="84" y="522" width="402" height="92" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="106" y="554" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">PWA shell</text>
+<circle cx="111" cy="578" r="3" fill="#2F5D50"/>
+<text x="124" y="584" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Installable, offline shell</text>
+<rect x="574" y="198" width="222" height="150" rx="16" fill="#F7EDE2" stroke="#8A5A3B" stroke-width="1.5"/>
+<text x="596" y="230" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Same-origin edge</text>
+<circle cx="601" cy="254" r="3" fill="#8A5A3B"/>
+<text x="614" y="260" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">nginx (compose)</text>
+<circle cx="601" cy="280" r="3" fill="#8A5A3B"/>
+<text x="614" y="286" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Express static (Render)</text>
+<circle cx="601" cy="306" r="3" fill="#8A5A3B"/>
+<text x="614" y="312" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">HTTPS + cookie</text>
+<rect x="884" y="198" width="472" height="86" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="906" y="230" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Auth &amp; RBAC</text>
+<circle cx="911" cy="254" r="3" fill="#2F5D50"/>
+<text x="924" y="260" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Sessions, roles, rate limits</text>
+<rect x="884" y="300" width="472" height="86" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="906" y="332" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Animals &amp; visits</text>
+<circle cx="911" cy="356" r="3" fill="#2F5D50"/>
+<text x="924" y="362" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Discovery, favourites, bond</text>
+<rect x="884" y="402" width="472" height="86" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="906" y="434" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Bookings</text>
+<circle cx="911" cy="458" r="3" fill="#2F5D50"/>
+<text x="924" y="464" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Availability, sandbox refunds</text>
+<rect x="884" y="504" width="472" height="86" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="906" y="536" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">AI router</text>
+<circle cx="911" cy="560" r="3" fill="#2F5D50"/>
+<text x="924" y="566" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Chat, check-in, safety gate</text>
+<rect x="884" y="606" width="472" height="72" rx="16" fill="#EEF4EF" stroke="#2F5D50" stroke-width="1.5"/>
+<text x="906" y="638" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Merchant + admin</text>
+<circle cx="911" cy="662" r="3" fill="#2F5D50"/>
+<text x="924" y="668" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Listings, moderation, audit</text>
+<rect x="84" y="768" width="592" height="78" rx="16" fill="#FBEDE6" stroke="#B45535" stroke-width="1.5"/>
+<text x="106" y="800" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Safety</text>
+<circle cx="111" cy="824" r="3" fill="#B45535"/>
+<text x="124" y="830" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Crisis floor + classifier slot</text>
+<rect x="84" y="860" width="592" height="78" rx="16" fill="#FBEDE6" stroke="#B45535" stroke-width="1.5"/>
+<text x="106" y="892" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Digital pet planner</text>
+<circle cx="111" cy="916" r="3" fill="#B45535"/>
+<text x="124" y="922" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Mood / body / animation / sound</text>
+<rect x="84" y="952" width="592" height="78" rx="16" fill="#FBEDE6" stroke="#B45535" stroke-width="1.5"/>
+<text x="106" y="984" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Persona + memory</text>
+<circle cx="111" cy="1008" r="3" fill="#B45535"/>
+<text x="124" y="1014" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Host profile + relationship state</text>
+<rect x="84" y="1044" width="592" height="78" rx="16" fill="#FBEDE6" stroke="#B45535" stroke-width="1.5"/>
+<text x="106" y="1076" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">LLM provider router</text>
+<circle cx="111" cy="1100" r="3" fill="#B45535"/>
+<text x="124" y="1106" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Primary + fallback, fail closed</text>
+<rect x="764" y="768" width="372" height="70" rx="16" fill="#E9ECF4" stroke="#3F4C6B" stroke-width="1.5"/>
+<text x="786" y="800" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">MongoDB / Atlas</text>
+<circle cx="791" cy="824" r="3" fill="#3F4C6B"/>
+<text x="804" y="830" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Users, animals, bookings, state</text>
+<rect x="764" y="850" width="372" height="70" rx="16" fill="#E9ECF4" stroke="#3F4C6B" stroke-width="1.5"/>
+<text x="786" y="882" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Redis</text>
+<circle cx="791" cy="906" r="3" fill="#3F4C6B"/>
+<text x="804" y="912" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Shared rate limits (optional)</text>
+<rect x="764" y="932" width="372" height="70" rx="16" fill="#E9ECF4" stroke="#3F4C6B" stroke-width="1.5"/>
+<text x="786" y="964" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Uploads</text>
+<circle cx="791" cy="988" r="3" fill="#3F4C6B"/>
+<text x="804" y="994" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Images + host audio</text>
+<rect x="764" y="1014" width="372" height="70" rx="16" fill="#E9ECF4" stroke="#3F4C6B" stroke-width="1.5"/>
+<text x="786" y="1046" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Vector index</text>
+<circle cx="791" cy="1070" r="3" fill="#3F4C6B"/>
+<text x="804" y="1076" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Memory / sound recall (optional)</text>
+<rect x="1224" y="768" width="592" height="70" rx="16" fill="#F1EAF4" stroke="#5D4368" stroke-width="1.5"/>
+<text x="1246" y="800" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Chat models</text>
+<circle cx="1251" cy="824" r="3" fill="#5D4368"/>
+<text x="1264" y="830" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">OpenAI · Claude · Gemini · DeepSeek · HF</text>
+<rect x="1224" y="842" width="592" height="70" rx="16" fill="#F1EAF4" stroke="#5D4368" stroke-width="1.5"/>
+<text x="1246" y="874" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Safety + moderation</text>
+<circle cx="1251" cy="898" r="3" fill="#5D4368"/>
+<text x="1264" y="904" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Classifier / content moderation</text>
+<rect x="1224" y="916" width="592" height="70" rx="16" fill="#F1EAF4" stroke="#5D4368" stroke-width="1.5"/>
+<text x="1246" y="948" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Embeddings</text>
+<circle cx="1251" cy="972" r="3" fill="#5D4368"/>
+<text x="1264" y="978" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Text memory · CLAP animal audio</text>
+<rect x="1224" y="990" width="592" height="70" rx="16" fill="#F1EAF4" stroke="#5D4368" stroke-width="1.5"/>
+<text x="1246" y="1022" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Speech + image</text>
+<circle cx="1251" cy="1046" r="3" fill="#5D4368"/>
+<text x="1264" y="1052" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">STT · generated image</text>
+<rect x="1224" y="1064" width="592" height="70" rx="16" fill="#F1EAF4" stroke="#5D4368" stroke-width="1.5"/>
+<text x="1246" y="1096" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Avatar + observability</text>
+<circle cx="1251" cy="1120" r="3" fill="#5D4368"/>
+<text x="1264" y="1126" font-family="Segoe UI, Arial, sans-serif" font-size="17" font-weight="400" fill="#4C5A53" text-anchor="start">Rive / Live2D · Langfuse</text>
+<rect x="84" y="1202" width="820" height="48" rx="16" fill="#F4F1EA" stroke="#6B756F" stroke-width="1.5"/>
+<text x="106" y="1234" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Local</text>
+<text x="200" y="1233" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#6B756F" text-anchor="start">Compose: web + API + MongoDB</text>
+<rect x="940" y="1202" width="876" height="48" rx="16" fill="#F4F1EA" stroke="#6B756F" stroke-width="1.5"/>
+<text x="962" y="1234" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700" fill="#1E2A26" text-anchor="start">Public target</text>
+<text x="1120" y="1233" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#6B756F" text-anchor="start">Render single container + MongoDB Atlas</text>
+<path d="M 486 330 L 574 330" fill="none" stroke="#6B756F" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="506.5" y="304.0" width="47.0" height="24" rx="7" fill="#FBF8F1" opacity="0.95"/>
+<text x="530.0" y="320.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#6B756F" text-anchor="middle">HTTPS</text>
+<path d="M 796 330 L 884 330" fill="none" stroke="#6B756F" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="778.9" y="304.0" width="122.2" height="24" rx="7" fill="#FBF8F1" opacity="0.95"/>
+<text x="840.0" y="320.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#6B756F" text-anchor="middle">REST / cookie</text>
+<path d="M 1120 668 C 1160 668, 720 768, 760 768" fill="none" stroke="#6B756F" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="883.6" y="692.0" width="112.80000000000001" height="24" rx="7" fill="#FBF8F1" opacity="0.95"/>
+<text x="940.0" y="708.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#6B756F" text-anchor="middle">chat / state</text>
+<path d="M 676 800 C 656 800, 784 800, 764 800" fill="none" stroke="#6B756F" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="696.5" y="774.0" width="47.0" height="24" rx="7" fill="#FBF8F1" opacity="0.95"/>
+<text x="720.0" y="790.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#6B756F" text-anchor="middle">state</text>
+<path d="M 1120 640 C 1100 640, 1020 768, 1000 768" fill="none" stroke="#6B756F" stroke-width="2.2" marker-end="url(#arrow)"/>
+<rect x="1027.1" y="678.0" width="65.8" height="24" rx="7" fill="#FBF8F1" opacity="0.95"/>
+<text x="1060.0" y="694.0" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#6B756F" text-anchor="middle">persist</text>
+
+
+
+</svg>
