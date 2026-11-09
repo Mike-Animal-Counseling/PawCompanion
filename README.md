@@ -12,7 +12,7 @@ PawCompanion is a full-stack consumer product, not a pet marketplace. It combine
 
 **Stack:** React 19 · Vite 8 · Express 4 · MongoDB · Zod · JWT sessions · Playwright · Docker · GitHub Actions
 
-**Verified:** 47 backend tests · 10-step Playwright E2E · green CI · Docker Compose smoke test
+**Verified:** 50 backend tests · 10-step Playwright E2E · green CI · Docker Compose smoke test
 
 ---
 
@@ -105,6 +105,8 @@ npm run demo
 
 This starts an in-memory MongoDB, seeds the demo, starts the API on `:5000` and the web app on `:3000`. The first run downloads a MongoDB binary once.
 
+Companion chat is provider-first. Set `LLM_PRIMARY_API_KEY` and `LLM_PRIMARY_MODEL` (and `ENABLE_AI=true`) for the digital pet; without a provider the chat endpoint returns `503` instead of a keyword reply. The explicit local stub is test-only (`ALLOW_LOCAL_FALLBACK=true` is for tests, not production).
+
 | Role | Email | Password |
 | --- | --- | --- |
 | Guest | `maya@example.com` | `PawCompanion!2026` |
@@ -162,9 +164,9 @@ The same companion appears in discovery, chat, check-in, favourites and visits. 
 ## Engineering
 
 ```bash
-npm test              # 47 backend tests
+npm test              # 50 backend tests
 npm run build         # lazy route chunks, no source maps
-npm run e2e           # 10-step Playwright smoke test (demo running)
+npm run e2e           # 10-step smoke test (demo + provider configured)
 npm run check:privacy # scan tracked files for local paths / key material
 ```
 

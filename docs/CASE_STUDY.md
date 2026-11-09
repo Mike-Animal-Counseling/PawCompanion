@@ -108,7 +108,7 @@ I would instrument these with privacy review; no message content in analytics.
 - Product thinking: a clear user, a non-obvious dual-track thesis, explicit trade-offs and a launch plan.
 - Full-stack execution: domain modelling, atomic booking, auth/session rotation, validation, rate limits, admin/moderation, responsive design.
 - Safety engineering: layered detection, privacy-preserving risk data, operator workflows and honest limitations.
-- Engineering quality: 47 backend tests, browser E2E, CI, Docker, structured logs, graceful shutdown and documentation.
+- Engineering quality: 50 backend tests, browser E2E, CI, Docker, structured logs, graceful shutdown and documentation.
 
 ## Next
 

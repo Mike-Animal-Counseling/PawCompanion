@@ -22,7 +22,7 @@ A full product and engineering rewrite that turns the original demo into an onli
 - **Digital pet:** host-authored traits/routines/comforts, per-user state, behaviour planner, licensed animal sounds, translated text and push-to-talk.
 - **Host sound packs:** MP3/OGG/WAV/M4A upload with duration/codec validation, browser acoustic signature, mood-based selection and owner-only deletion.
 - **Host onboarding draft:** deterministic trait/routine/favourite/comfort/boundary draft from listing copy, reviewed before save.
-- **Engineering:** 47 backend tests, 10-step browser E2E, CI, Dockerfiles, Docker Compose demo, seeded demo, API/safety/deployment docs.
+- **Engineering:** 50 backend tests, 10-step browser E2E, CI, Dockerfiles, Docker Compose demo, seeded demo, API/safety/deployment docs.
 - **Design system:** Fraunces/Inter, warm forest/cream/coral identity, accessible components and responsive layouts.
 - **Portfolio materials:** curated README, product case study, public/private publishing strategy and a privacy check for tracked files.
 

@@ -10,7 +10,7 @@ npm run dev        # node --watch src/server.js
 npm run demo:api   # in-memory Mongo + seed + API (no web)
 npm run demo       # full demo (API + web)
 npm run seed       # reset demo data in MONGO_URI
-npm test           # 47 tests (uses TEST_MONGO_URI or mongodb-memory-server)
+npm test           # 50 tests (uses TEST_MONGO_URI or mongodb-memory-server)
 npm start          # production process
 ```
 

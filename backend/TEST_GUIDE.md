@@ -19,6 +19,7 @@ TEST_MONGO_URI=mongodb://127.0.0.1:27018/pawcompanion-test npm test
 | `tests/animals.test.js` | discovery pagination/filter/sort, facets, detail, relationship, favourites, invalid queries |
 | `tests/bookings.test.js` | service pricing, duplicate slots, in-person services, ownership, reschedule, refunds, reviews, merchant decisions, availability |
 | `tests/digital.test.js` | digital-pet state, mood/body/sound contract, host sound upload/signature, profile draft, support turns, host opt-out |
+| `tests/provider.test.js` | primary/fallback OpenAI-compatible provider and fail-closed behavior |
 | `tests/checkins.test.js` | check-in create/update/streak/history, crisis screening, dashboard, bond, deletion, validation |
 | `tests/security.test.js` | headers, origin, auth, forged tokens, payload limits, NoSQL shapes, static paths, budget failure, production config |
 | `tests/safety.test.js` | English/Chinese high/medium/none patterns and crisis resources |
@@ -37,6 +38,8 @@ CI additionally checks that the build contains no `.map` files.
 Use the demo credentials printed by `npm run demo`.
 
 ### Online track
+
+Companion chat needs a configured provider. Set `ENABLE_AI=true`, `LLM_PRIMARY_API_KEY` and `LLM_PRIMARY_MODEL` before this section; otherwise the API deliberately returns `503`.
 
 1. Sign in as Maya. The member home shows the check-in card, 9-day streak, next visit, conversations, recommendations and stats.
 2. Open **Check-in**. Change mood, energy and tags; add a note; submit. A companion reply appears and the entry is added to the chosen conversation.
