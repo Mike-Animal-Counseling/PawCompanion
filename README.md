@@ -230,6 +230,7 @@ The recommended setup is **one public code repo + one private deployment repo**:
 | [docs/DIGITAL_PET.md](docs/DIGITAL_PET.md) | Digital pet state, behaviour planner, sound/text contract |
 | [docs/SOUND_CREDITS.md](docs/SOUND_CREDITS.md) | Licensed animal sound sources |
 | [docs/IMAGES.md](docs/IMAGES.md) | Merchant image pipeline, limits, demo-asset policy |
+| [docs/PRIVACY_AUDIT.md](docs/PRIVACY_AUDIT.md) | Public-repo privacy audit, secret scanning, image metadata |
 | [docs/DEPLOYMENT_SUPPORT.md](docs/DEPLOYMENT_SUPPORT.md) | Render + Atlas setup, required values, live-demo checklist |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Docker, production configuration, operations |
 | [docs/PUBLISHING.md](docs/PUBLISHING.md) | Public/private repo strategy and privacy audit |
