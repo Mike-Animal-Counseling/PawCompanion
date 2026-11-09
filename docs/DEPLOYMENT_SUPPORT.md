@@ -75,6 +75,7 @@ Atlas supplies the database username/password; put the complete URI only in Rend
 | `PORT` | `5000` |
 | `MONGO_URI` | Atlas SRV URI (secret) |
 | `JWT_SECRET` | Render `generateValue: true` |
+| `DEMO_ADMIN_PASSWORD` | Render `generateValue: true`; required for a production demo seed and never published |
 | `PAYMENTS_MODE` | `sandbox` |
 | `ALLOW_SANDBOX_PAYMENTS` | `true` (demo only) |
 | `SEED_DEMO` | `true` |

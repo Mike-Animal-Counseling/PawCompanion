@@ -109,7 +109,7 @@ This starts an in-memory MongoDB, seeds the demo, starts the API on `:5000` and 
 | --- | --- | --- |
 | Guest | `maya@example.com` | `PawCompanion!2026` |
 | Partner | `hello@willowandwhiskers.example` | `MerchantDemo!2026` |
-| Operator | `admin@pawcompanion.app` | `AdminDemo!2026` |
+| Operator | `admin@pawcompanion.app` | `AdminDemo!2026` (local demo only) |
 
 Docker demo: `docker compose up --build` → `http://localhost:8080`.
 

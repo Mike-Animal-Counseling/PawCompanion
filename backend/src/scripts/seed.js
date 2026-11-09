@@ -26,8 +26,9 @@ import { recomputeAnimalRating, recomputeMerchantRating } from '../services/revi
 import { logger } from '../lib/logger.js';
 import { animals, checkinSeeds, customers, DEMO_PASSWORD, merchants, reviewSeeds, upcomingBookings } from '../data/seedData.js';
 
-const MERCHANT_PASSWORD = 'MerchantDemo!2026';
-const ADMIN_PASSWORD = 'AdminDemo!2026';
+const CUSTOMER_PASSWORD = process.env.DEMO_CUSTOMER_PASSWORD || DEMO_PASSWORD;
+const MERCHANT_PASSWORD = process.env.DEMO_MERCHANT_PASSWORD || 'MerchantDemo!2026';
+const ADMIN_PASSWORD = process.env.DEMO_ADMIN_PASSWORD || 'AdminDemo!2026';
 
 function receipt(index) {
   return `PC-SEED-${String(index).padStart(5, '0')}`;
@@ -157,6 +158,9 @@ export async function seedDatabase({ reset = false } = {}) {
   if (process.env.NODE_ENV === 'production' && process.env.ALLOW_SEED_IN_PRODUCTION !== 'true') {
     throw new Error('Refusing to seed production. Set ALLOW_SEED_IN_PRODUCTION=true for an explicit demo deployment.');
   }
+  if (process.env.NODE_ENV === 'production' && !process.env.DEMO_ADMIN_PASSWORD) {
+    throw new Error('Production demo seed requires DEMO_ADMIN_PASSWORD. Do not publish the default admin password.');
+  }
 
   if (reset) await resetData();
   else if (await Animal.countDocuments()) {
@@ -164,7 +168,7 @@ export async function seedDatabase({ reset = false } = {}) {
     return { skipped: true };
   }
 
-  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
+  const passwordHash = await bcrypt.hash(CUSTOMER_PASSWORD, 12);
   const merchantHash = await bcrypt.hash(MERCHANT_PASSWORD, 12);
   const adminHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
@@ -579,7 +583,7 @@ export async function seedDatabase({ reset = false } = {}) {
   return {
     skipped: false,
     credentials: {
-      customer: { email: 'maya@example.com', password: DEMO_PASSWORD },
+      customer: { email: 'maya@example.com', password: CUSTOMER_PASSWORD },
       merchant: { email: 'hello@willowandwhiskers.example', password: MERCHANT_PASSWORD },
       admin: { email: 'admin@pawcompanion.app', password: ADMIN_PASSWORD },
     },

@@ -38,7 +38,7 @@ Repository: `Mike-Animal-Counseling/paw-companion` (public)
 
 ## Findings and dispositions
 
-1. **Demo accounts are intentionally public.** `maya@example.com`, `hello@willowandwhiskers.example`, `admin@pawcompanion.app` and the seed passwords are synthetic demo credentials. They are not production accounts. A public demo must never reuse these passwords with real data.
+1. **Demo accounts are synthetic, and the public demo admin password is not.** Local seed accounts use example emails and documented demo passwords. For a production demo, `render.yaml` generates a private `DEMO_ADMIN_PASSWORD`; the seed refuses to run in production without it. The public README operator password applies to local development only. Never reuse any demo password with real data.
 2. **Historical placeholders are not secrets.** An older commit contained a credential-shaped Mongo URI with the literal words `USER` and `PASSWORD`, plus a Hugging Face token placeholder. Secret scanning confirms no real credential. The current docs use a non-credential cluster example.
 3. **CodeQL `js/http-to-file-access` (medium).** The merchant sound upload writes a validated audio buffer to a generated filename. The alert was reviewed and dismissed with the rationale: authenticated owner, 2 MB limit, MIME/duration validation, generated filename, owner-scoped deletion, static serving with CSP. It is an intentional upload sink, not a path traversal.
 4. **Screenshots contain only synthetic demo data.** The partner form screenshot shows the demo partner email; no real host, guest or address data.
