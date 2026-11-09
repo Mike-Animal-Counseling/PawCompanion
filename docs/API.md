@@ -270,6 +270,10 @@ All routes require a merchant session.
 | PATCH | `/merchant/profile` | Business profile |
 | POST | `/merchant/uploads` | Multipart `image` (JPG/PNG, ≤5 MB) |
 | DELETE | `/merchant/uploads` | `{ imageUrl }` owned by merchant |
+| POST | `/merchant/animals/:animalId/digital/draft` | Deterministic digital profile draft from listing copy |
+| GET | `/merchant/animals/:animalId/sounds` | Host sound pack |
+| POST | `/merchant/animals/:animalId/sounds` | Multipart `audio` (MP3/OGG/WAV/M4A, ≤2 MB, ≤8 s) + label/mood/behaviour/optional embedding |
+| DELETE | `/merchant/sounds/:soundId` | Owner-only sound removal |
 
 ---
 
@@ -298,6 +302,7 @@ All routes require an admin session.
 | Path | Description |
 | --- | --- |
 | `/uploads/:ownerId-:uuid.jpeg` | Merchant-uploaded listing images; strict filename shape, immutable cache |
+| `/uploads/:ownerId-:uuid.{mp3,ogg,wav,m4a}` | Host-uploaded animal sounds; validated duration/codec, immutable cache |
 | `/api/health`, `/api/ready` | See above |
 
 There is no live payment endpoint in this build. The sandbox charge and refund happen inside the booking service and are recorded in the `Payment` collection.

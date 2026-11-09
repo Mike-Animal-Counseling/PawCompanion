@@ -91,6 +91,7 @@ Atlas supplies the database username/password; put the complete URI only in Rend
 | `REDIS_URL` | `rediss://…` for shared rate limits across instances |
 | `HUGGINGFACE_API_KEY` | only if `ENABLE_AI=true`; set provider budget limits |
 | `HF_CHAT_MODEL` / `HF_ROUTER_MODEL` | only with a provider key |
+| `AUDIO_EMBEDDING_PROVIDER` / `AUDIO_EMBEDDING_API_KEY` / `AUDIO_EMBEDDING_MODEL` | optional; reserved for a deep acoustic embedding provider |
 | `TRUST_PROXY` | `1` behind Render's proxy |
 | `LOG_LEVEL` | `info` |
 

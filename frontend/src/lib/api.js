@@ -117,4 +117,18 @@ export async function uploadImage(file) {
   return response.data.data;
 }
 
+export async function uploadAnimalSound(animalId, file, { label, mood, behaviour, embedding } = {}) {
+  const form = new FormData();
+  form.append('audio', file);
+  form.append('label', label || '');
+  form.append('mood', mood || 'gentle');
+  form.append('behaviour', behaviour || '');
+  if (embedding?.length) form.append('embedding', JSON.stringify(embedding));
+  const response = await api.post(`/api/merchant/animals/${animalId}/sounds`, form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 30000,
+  });
+  return response.data.data;
+}
+
 export default api;

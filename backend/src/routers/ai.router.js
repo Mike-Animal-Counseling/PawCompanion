@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Animal from '../models/Animal.js';
+import AnimalSound from '../models/AnimalSound.js';
 import ChatMemory from '../models/ChatMemory.js';
 import Checkin from '../models/Checkin.js';
 import RiskEvent from '../models/RiskEvent.js';
@@ -90,7 +91,10 @@ router.post(
     if (!animal) throw notFound('Companion not found');
     const digitalProfile = getDigitalProfile(animal);
     if (!digitalProfile.enabled) throw conflict('This companion has not enabled their digital self yet');
-    const digitalState = await getOrCreateDigitalState(userId, animalId);
+    const [digitalState, hostSounds] = await Promise.all([
+      getOrCreateDigitalState(userId, animalId),
+      AnimalSound.find({ animalId, status: 'active' }).sort({ createdAt: 1 }).lean(),
+    ]);
 
     let memory = await ChatMemory.findOne({ userId, animalId });
     if (!memory) {
@@ -180,6 +184,7 @@ router.post(
       state: digitalState,
       mode,
       message,
+      hostSounds,
     });
     const digitalContext = digitalPromptContext(digitalProfile, digitalPlan, digitalState);
 
@@ -289,7 +294,10 @@ router.get(
     if (!animal) throw notFound('Companion not found');
     const memory = await ChatMemory.findOne({ userId: req.auth.sub, animalId: req.params.animalId }).lean();
     const digitalProfile = getDigitalProfile(animal);
-    const digitalState = await getOrCreateDigitalState(req.auth.sub, req.params.animalId);
+    const [digitalState, hostSounds] = await Promise.all([
+      getOrCreateDigitalState(req.auth.sub, req.params.animalId),
+      AnimalSound.find({ animalId: req.params.animalId, status: 'active' }).sort({ createdAt: 1 }).lean(),
+    ]);
     return ok(res, {
       animal: {
         id: String(animal._id),
@@ -309,6 +317,14 @@ router.get(
         routines: digitalProfile.routines,
         favorites: digitalProfile.favorites,
         state: digitalStateView(digitalState),
+        sounds: hostSounds.map((sound) => ({
+          id: String(sound._id),
+          label: sound.label,
+          mood: sound.mood,
+          behaviour: sound.behaviour,
+          url: sound.url,
+          durationMs: sound.durationMs,
+        })),
       },
       suggestedPrompts: suggestedPrompts(animal),
     });

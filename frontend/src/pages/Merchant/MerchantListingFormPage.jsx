@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import api, { errorMessage, fieldErrors, uploadImage } from '../../lib/api';
+import api, { errorMessage, fieldErrors, uploadAnimalSound, uploadImage } from '../../lib/api';
+import { computeAudioSignature } from '../../lib/audioSignature';
 import { useFetch, useDocumentTitle } from '../../hooks/useFetch';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -55,8 +56,15 @@ export default function MerchantListingFormPage() {
   const toast = useToast();
   const navigate = useNavigate();
   const fileRef = useRef(null);
+  const soundRef = useRef(null);
   const { data: existing, loading } = useFetch(editing ? `/api/merchant/animals/${animalId}` : null, { enabled: editing });
+  const { data: soundData, refetch: refetchSounds } = useFetch(editing ? `/api/merchant/animals/${animalId}/sounds` : null, { enabled: editing });
   const [form, setForm] = useState(EMPTY);
+  const [sounds, setSounds] = useState([]);
+  const [soundName, setSoundName] = useState('');
+  const [soundMood, setSoundMood] = useState('gentle');
+  const [soundBehaviour, setSoundBehaviour] = useState('');
+  const [soundBusy, setSoundBusy] = useState(false);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -105,6 +113,10 @@ export default function MerchantListingFormPage() {
     }
   }, [existing, user]);
 
+  useEffect(() => {
+    setSounds(soundData || []);
+  }, [soundData]);
+
   const update = (key) => (event) => {
     const value = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     setForm((current) => ({ ...current, [key]: value }));
@@ -132,6 +144,87 @@ export default function MerchantListingFormPage() {
     } finally {
       setUploading(false);
       if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  const generateDigitalDraft = async () => {
+    if (!editing) {
+      toast.info('Save the listing first, then generate the digital self.');
+      return;
+    }
+    setSoundBusy(true);
+    try {
+      const response = await api.post(`/api/merchant/animals/${animalId}/digital/draft`);
+      const draft = response.data.data;
+      setForm((current) => ({
+        ...current,
+        digitalEnabled: true,
+        digitalVoice: draft.voice || current.digitalVoice,
+        digitalEnergy: draft.traits?.energy || current.digitalEnergy,
+        digitalSociability: draft.traits?.sociability || current.digitalSociability,
+        digitalCuriosity: draft.traits?.curiosity || current.digitalCuriosity,
+        digitalAnxiety: draft.traits?.anxiety || current.digitalAnxiety,
+        digitalPlayfulness: draft.traits?.playfulness || current.digitalPlayfulness,
+        digitalNotes: draft.hostNotes || current.digitalNotes,
+        digitalVoiceStyle: draft.voiceStyle || current.digitalVoiceStyle,
+        digitalRoutines: (draft.routines || []).join(', '),
+        digitalFavorites: (draft.favorites || []).join(', '),
+        digitalComforts: (draft.comforts || []).join(', '),
+        digitalBoundaries: (draft.boundaries || []).join(', '),
+      }));
+      toast.success('Draft digital self generated. Review it before saving.');
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not generate a draft.'));
+    } finally {
+      setSoundBusy(false);
+    }
+  };
+
+  const onSoundUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || !animalId) return;
+    if (!['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp4'].includes(file.type)) {
+      toast.error('Use an MP3, OGG, WAV or M4A clip.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Keep each sound under 2 MB.');
+      return;
+    }
+    if (!soundName.trim()) {
+      toast.error('Give the sound a short label.');
+      return;
+    }
+    setSoundBusy(true);
+    try {
+      const signature = await computeAudioSignature(file);
+      await uploadAnimalSound(animalId, file, {
+        label: soundName.trim(),
+        mood: soundMood,
+        behaviour: soundBehaviour.trim(),
+        embedding: signature.embedding,
+      });
+      toast.success(signature.embedding.length ? 'Sound uploaded with acoustic signature.' : 'Sound uploaded.');
+      setSoundName('');
+      setSoundBehaviour('');
+      if (soundRef.current) soundRef.current.value = '';
+      await refetchSounds();
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not upload that sound.'));
+    } finally {
+      setSoundBusy(false);
+    }
+  };
+
+  const deleteSound = async (soundId) => {
+    setSoundBusy(true);
+    try {
+      await api.delete(`/api/merchant/sounds/${soundId}`);
+      await refetchSounds();
+    } catch (err) {
+      toast.error(errorMessage(err, 'Could not remove that sound.'));
+    } finally {
+      setSoundBusy(false);
     }
   };
 
@@ -355,6 +448,63 @@ export default function MerchantListingFormPage() {
                 <input id="digital-boundaries" className="input" value={form.digitalBoundaries} onChange={update('digitalBoundaries')} placeholder="no grabbing, no loud crowds" />
               </div>
             </div>
+            <div className={classes.digitalTools}>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={generateDigitalDraft} disabled={soundBusy}>
+                <Icon name="sparkles" size={14} /> Generate draft from this profile
+              </button>
+              <span className="hint">Creates a reviewable draft from the personality and description. Nothing is published until you save.</span>
+            </div>
+
+            <div className={classes.soundPanel}>
+              <div className={classes.soundHead}>
+                <div>
+                  <h3>Host sound pack</h3>
+                  <p>Optional: upload 3–10 short clips of this animal. If absent, the licensed species library is used.</p>
+                </div>
+                <span className={classes.soundCount}>{sounds.length} / 10</span>
+              </div>
+              <div className="form-grid">
+                <div className="field">
+                  <label className="label" htmlFor="sound-label">Sound label</label>
+                  <input id="sound-label" className="input" maxLength={120} value={soundName} onChange={(event) => setSoundName(event.target.value)} placeholder="Soft hello purr" />
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="sound-mood">Mood</label>
+                  <select id="sound-mood" className="select" value={soundMood} onChange={(event) => setSoundMood(event.target.value)}>
+                    {['calm', 'gentle', 'playful', 'affectionate', 'sleepy', 'shy', 'alert'].map((mood) => <option key={mood} value={mood}>{mood}</option>)}
+                  </select>
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="sound-behaviour">Body / behaviour</label>
+                  <input id="sound-behaviour" className="input" maxLength={80} value={soundBehaviour} onChange={(event) => setSoundBehaviour(event.target.value)} placeholder="settle nearby" />
+                </div>
+                <div className="field">
+                  <label className="label" htmlFor="sound-file">Audio clip</label>
+                  <input ref={soundRef} id="sound-file" className="input" type="file" accept="audio/mpeg,audio/ogg,audio/wav,audio/mp4" onChange={onSoundUpload} disabled={!editing || soundBusy} />
+                  <span className="hint">MP3/OGG/WAV/M4A, ≤2 MB, ≤8 seconds. Acoustic signature computed in the browser.</span>
+                </div>
+              </div>
+              {!editing && <p className="hint">Save this listing first to attach sounds.</p>}
+              {sounds.length > 0 ? (
+                <div className={classes.soundList}>
+                  {sounds.map((sound) => (
+                    <div key={sound.id} className={classes.soundRow}>
+                      <div>
+                        <strong>{sound.label}</strong>
+                        <span>{sound.mood}{sound.behaviour ? ` · ${sound.behaviour}` : ''} · {Math.round((sound.durationMs || 0) / 100) / 10}s</span>
+                      </div>
+                      <audio controls preload="none" src={sound.url} />
+                      <button type="button" className="btn btn-ghost btn-sm" onClick={() => deleteSound(sound.id)} disabled={soundBusy} aria-label={`Delete ${sound.label}`}>
+                        <Icon name="trash" size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="hint">No host sounds yet. The species library is used as a fallback.</p>
+              )}
+            </div>
+
             <div className="notice" style={{ marginTop: 16 }}>
               <Icon name="volume" size={16} />
               <span>The digital companion plays a species-appropriate animal sound and a text translation. It never speaks with a human voice or claims to be the real animal.</span>

@@ -66,7 +66,7 @@ This build has security controls that are real, and demo boundaries that are exp
 
 ## Verification
 
-- `backend npm test` covers auth/session rotation, RBAC, booking conflicts/refunds, check-ins, digital-pet behaviour, safety screening and security regressions (45 tests at the time of writing).
+- `backend npm test` covers auth/session rotation, RBAC, booking conflicts/refunds, check-ins, digital-pet behaviour, safety screening and security regressions (47 tests at the time of writing).
 - `frontend npm run build` builds lazy route chunks with no source maps.
 - CI installs locked dependencies, audits, runs tests and builds the frontend.
 - The test suite uses synthetic accounts and a disposable database; never point it at production data.

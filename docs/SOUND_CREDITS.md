@@ -15,10 +15,14 @@ All files are from [Mixkit Free Sound Effects](https://mixkit.co/free-sound-effe
 | `dog-soft.mp3` | https://mixkit.co/free-sound-effects/dog/ | 60 |
 | `dog-play.mp3` | https://mixkit.co/free-sound-effects/dog/ | 54 |
 
+## Host uploads
+
+Hosts can upload their own clips through the partner listing form. They may do so only if they have the rights to distribute them; the form records a label, mood and behaviour, and the server validates duration/codec before storing the file under `/uploads`. Do not upload third-party commercial recordings without a licence.
+
 ## Production policy
 
-- A host may later upload clips recorded from their own animal only with documented consent.
+- A host may upload clips recorded from their own animal only with documented consent.
 - Each uploaded clip must have a mood/behaviour label, duration, source and license/consent record.
 - Never use a real animal's voice to imply that the digital companion is the animal itself.
-- Audio embeddings, if added, must store the model name, version and dimension, and must not be treated as a biometric identity.
+- Audio embeddings, if added, must store the model name, version and dimension, and must not be treated as a biometric identity. The current browser acoustic signature is `paw-acoustic-v1`; it is not a biometric identity.
 - Replace these generic clips with host-specific or individually licensed clips before a commercial launch.

@@ -1,4 +1,4 @@
-﻿# Case study: PawCompanion
+# Case study: PawCompanion
 
 > A companionship app for pet people. Online AI company between visits, verified in-person visits when being alone is too much. This is a personal product/engineering project, currently a portfolio-ready demo rather than a launched consumer business.
 
@@ -108,11 +108,11 @@ I would instrument these with privacy review; no message content in analytics.
 - Product thinking: a clear user, a non-obvious dual-track thesis, explicit trade-offs and a launch plan.
 - Full-stack execution: domain modelling, atomic booking, auth/session rotation, validation, rate limits, admin/moderation, responsive design.
 - Safety engineering: layered detection, privacy-preserving risk data, operator workflows and honest limitations.
-- Engineering quality: 45 backend tests, browser E2E, CI, Docker, structured logs, graceful shutdown and documentation.
+- Engineering quality: 47 backend tests, browser E2E, CI, Docker, structured logs, graceful shutdown and documentation.
 
 ## Next
 
-Live payments · host-recorded sound packs + audio embeddings · recurring partner schedules · real-time notifications · PWA polish · TypeScript/OpenAPI contracts · production safety operations.
+Live payments · deep audio embeddings · LLM trait extraction · recurring partner schedules · real-time notifications · PWA polish · TypeScript/OpenAPI contracts · production safety operations.
 
 ---
 

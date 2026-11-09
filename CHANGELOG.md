@@ -1,4 +1,4 @@
-﻿# Changelog
+# Changelog
 
 ## 2.0.0 — Companionship, rebuilt
 
@@ -20,7 +20,9 @@ A full product and engineering rewrite that turns the original demo into an onli
 - **API foundation:** Zod validation, consistent response/error envelopes, pagination, rate budgets, request IDs, structured logs, health/readiness, graceful shutdown.
 - **Safety:** English/Chinese self-harm patterns, support mode, crisis resources, derived risk profile, human review queue, data deletion.
 - **Digital pet:** host-authored traits/routines/comforts, per-user state, behaviour planner, licensed animal sounds, translated text and push-to-talk.
-- **Engineering:** 45 backend tests, 10-step browser E2E, CI, Dockerfiles, Docker Compose demo, seeded demo, API/safety/deployment docs.
+- **Host sound packs:** MP3/OGG/WAV/M4A upload with duration/codec validation, browser acoustic signature, mood-based selection and owner-only deletion.
+- **Host onboarding draft:** deterministic trait/routine/favourite/comfort/boundary draft from listing copy, reviewed before save.
+- **Engineering:** 47 backend tests, 10-step browser E2E, CI, Dockerfiles, Docker Compose demo, seeded demo, API/safety/deployment docs.
 - **Design system:** Fraunces/Inter, warm forest/cream/coral identity, accessible components and responsive layouts.
 - **Portfolio materials:** curated README, product case study, public/private publishing strategy and a privacy check for tracked files.
 
