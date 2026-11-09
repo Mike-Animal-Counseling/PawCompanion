@@ -3,6 +3,8 @@
 The strongest version is not one model for everything. It is a small set of
 task-specific providers plus deterministic product invariants.
 
+**Start with the fill-in checklist: [PROVIDER_SETUP.md](PROVIDER_SETUP.md).**
+
 This document is the procurement / wiring plan. The code contracts live in
 [`backend/src/config/providerSlots.js`](../backend/src/config/providerSlots.js)
 and the reserved keys are in
