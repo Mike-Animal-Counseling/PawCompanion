@@ -18,6 +18,7 @@ const { default: Merchant } = await import('../../src/models/Merchant.js');
 const { default: Admin } = await import('../../src/models/Admin.js');
 const { default: Animal } = await import('../../src/models/Animal.js');
 const { default: AnimalAvailability } = await import('../../src/models/AnimalAvailability.js');
+const { default: AnimalSound } = await import('../../src/models/AnimalSound.js');
 const { default: Booking } = await import('../../src/models/Booking.js');
 const { default: Payment } = await import('../../src/models/Payment.js');
 const { default: Review } = await import('../../src/models/Review.js');
@@ -31,7 +32,7 @@ const { default: UserRiskProfile } = await import('../../src/models/UserRiskProf
 const { default: Session } = await import('../../src/models/Session.js');
 const { default: AuditEvent } = await import('../../src/models/AuditEvent.js');
 
-const MODELS = [Customer, Merchant, Admin, Animal, AnimalAvailability, Booking, Payment, Review, Favorite, ChatMemory, Checkin, DigitalPetState, Notification, RiskEvent, UserRiskProfile, Session, AuditEvent];
+const MODELS = [Customer, Merchant, Admin, Animal, AnimalAvailability, AnimalSound, Booking, Payment, Review, Favorite, ChatMemory, Checkin, DigitalPetState, Notification, RiskEvent, UserRiskProfile, Session, AuditEvent];
 let mongoServer;
 let config;
 

@@ -166,10 +166,19 @@ export function createApp({ config, budgets = noopBudgets }) {
     adminRouter,
   );
 
+  const uploadTypes = {
+    '.jpeg': 'image/jpeg',
+    '.mp3': 'audio/mpeg',
+    '.ogg': 'audio/ogg',
+    '.wav': 'audio/wav',
+    '.m4a': 'audio/mp4',
+  };
   app.use(
     '/uploads',
     (req, res, next) => {
-      if (/^[a-f\d]{24}-[a-f\d-]{36}\.jpeg$/i.test(path.basename(req.path))) return next();
+      const filename = path.basename(req.path);
+      const extension = path.extname(filename).toLowerCase();
+      if (uploadTypes[extension] && /^[a-f\d]{24}-[a-f\d-]{36}\.(jpeg|mp3|ogg|wav|m4a)$/i.test(filename)) return next();
       res.sendStatus(404);
     },
     express.static(path.resolve(config.uploadDir), {
@@ -177,8 +186,8 @@ export function createApp({ config, budgets = noopBudgets }) {
       index: false,
       maxAge: '365d',
       immutable: true,
-      setHeaders(res) {
-        res.setHeader('Content-Type', 'image/jpeg');
+      setHeaders(res, filePath) {
+        res.setHeader('Content-Type', uploadTypes[path.extname(filePath).toLowerCase()] || 'application/octet-stream');
         res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
       },
     }),

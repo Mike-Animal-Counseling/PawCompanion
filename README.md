@@ -12,7 +12,7 @@ PawCompanion is a full-stack consumer product, not a pet marketplace. It combine
 
 **Stack:** React 19 · Vite 8 · Express 4 · MongoDB · Zod · JWT sessions · Playwright · Docker · GitHub Actions
 
-**Verified:** 45 backend tests · 10-step Playwright E2E · green CI · Docker Compose smoke test
+**Verified:** 47 backend tests · 10-step Playwright E2E · green CI · Docker Compose smoke test
 
 ---
 
@@ -162,7 +162,7 @@ The same companion appears in discovery, chat, check-in, favourites and visits. 
 ## Engineering
 
 ```bash
-npm test              # 45 backend tests
+npm test              # 47 backend tests
 npm run build         # lazy route chunks, no source maps
 npm run e2e           # 10-step Playwright smoke test (demo running)
 npm run check:privacy # scan tracked files for local paths / key material
@@ -183,9 +183,9 @@ backend/src/
   routers/        auth, me, checkins, animals, favorites, bookings, ai, notifications, merchant, admin
   services/       scheduling, availability, booking, checkin, review, safety, risk, session, AI,
                   digital pet behaviour/state, analytics
-  models/         Customer, Merchant, Admin, Session, Animal, Booking, Payment, Review, Favorite,
-                  Checkin, ChatMemory, DigitalPetState, Notification, RiskEvent, UserRiskProfile,
-                  AuditEvent
+  models/         Customer, Merchant, Admin, Session, Animal, AnimalSound, Booking, Payment, Review,
+                  Favorite, Checkin, ChatMemory, DigitalPetState, Notification, RiskEvent,
+                  UserRiskProfile, AuditEvent
   validators/     Zod request contracts
   serializers/    stable API shapes
   lib/            errors, logger, validation, IDs, time
@@ -202,7 +202,7 @@ frontend/src/
 ## What I would build next
 
 - **Live payments:** Stripe PaymentIntents, webhooks, idempotency keys, real refund reconciliation.
-- **Host sound packs:** host-recorded clips, audio-analysis adapter, and per-animal sound palettes. The current build ships a licensed generic species library.
+- **Deep audio embeddings:** wire a CLAP/YAMNet/PANNs provider to the existing acoustic-signature contract. Host uploads and per-animal palettes are already implemented.
 - **Production safety ops:** on-call escalation, localised helplines, clinician-reviewed copy, consent and retention controls.
 - **Recurring partner schedules:** weekly opening hours, holidays and travel time instead of per-date overrides.
 - **Real-time layer:** WebSocket/SSE notifications and a shared host inbox.

@@ -245,6 +245,93 @@
   color: var(--muted);
 }
 
+.digitalTools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+}
+
+.soundPanel {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 253, 248, 0.65);
+}
+
+.soundHead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.soundHead h3 {
+  font-size: 1rem;
+}
+
+.soundHead p {
+  margin-top: 3px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.soundCount {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--forest-soft);
+  color: var(--forest);
+  font-size: 0.66rem;
+  font-weight: 650;
+}
+
+.soundList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.soundRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+}
+
+.soundRow strong {
+  display: block;
+  font-size: 0.78rem;
+}
+
+.soundRow span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.soundRow audio {
+  width: 100%;
+  height: 32px;
+}
+
+@media (max-width: 680px) {
+  .soundRow {
+    grid-template-columns: 1fr auto;
+  }
+  .soundRow audio {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 1050px) {
   .layout {
     grid-template-columns: 1fr;

@@ -5,6 +5,7 @@ import { connectDB, disconnectDB } from '../config/db.js';
 import Admin from '../models/Admin.js';
 import Animal from '../models/Animal.js';
 import AnimalAvailability from '../models/AnimalAvailability.js';
+import AnimalSound from '../models/AnimalSound.js';
 import AuditEvent from '../models/AuditEvent.js';
 import Booking from '../models/Booking.js';
 import ChatMemory from '../models/ChatMemory.js';
@@ -61,6 +62,7 @@ async function resetData() {
       Admin,
       Animal,
       AnimalAvailability,
+      AnimalSound,
       AuditEvent,
       Booking,
       ChatMemory,

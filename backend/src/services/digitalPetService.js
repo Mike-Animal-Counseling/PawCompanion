@@ -117,7 +117,18 @@ function chooseMood({ animal, profile, state, mode, message, now }) {
   return 'calm';
 }
 
-function pickSound(profile, mood, seed) {
+function pickSound(profile, mood, seed, hostSounds = []) {
+  const hosted = hostSounds.filter((sound) => sound.mood === mood);
+  const pool = hosted.length ? hosted : hostSounds;
+  if (pool.length) {
+    const chosen = pool[Math.abs(seed) % pool.length];
+    return {
+      key: String(chosen._id || chosen.key || 'host-sound'),
+      url: chosen.url,
+      label: chosen.label || 'a familiar sound',
+      rate: 1,
+    };
+  }
   const options = SOUND_LIBRARY[profile.voice]?.[mood] || [];
   if (!options.length) return null;
   const base = options[Math.abs(seed) % options.length];
@@ -130,7 +141,7 @@ function pickSound(profile, mood, seed) {
   };
 }
 
-export function planDigitalTurn({ animal, profile, state, mode = 'play', message = '', now = new Date() }) {
+export function planDigitalTurn({ animal, profile, state, mode = 'play', message = '', now = new Date(), hostSounds = [] }) {
   const safeProfile = profile || getDigitalProfile(animal);
   const mood = chooseMood({ animal, profile: safeProfile, state, mode, message, now });
   const behaviour = MOOD_BEHAVIOUR[mood] || MOOD_BEHAVIOUR.calm;
@@ -138,7 +149,7 @@ export function planDigitalTurn({ animal, profile, state, mode = 'play', message
   return {
     mood,
     ...behaviour,
-    sound: pickSound(safeProfile, mood, seed),
+    sound: pickSound(safeProfile, mood, seed, hostSounds),
   };
 }
 

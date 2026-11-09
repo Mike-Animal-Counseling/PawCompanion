@@ -18,6 +18,8 @@ Each listing can carry a `digital` profile (host-editable in the partner listing
 
 The profile is injected into the LLM system prompt. It is not public profile copy.
 
+![Host digital self editor](screenshots/v2/app-host-digital-self.webp)
+
 ### Per-user state
 
 `DigitalPetState` stores a private relationship state for each guest + companion:
@@ -44,10 +46,12 @@ The LLM receives the mood, body, sound and profile context, and writes short in-
 
 ### Animal sound + text translation
 
-- The app plays a short species sound (cat meow/purr/trill, dog bark/play/soft).
+- The app plays a short species sound (cat meow/purr/trill, dog bark/play/soft) or a host-uploaded clip.
 - Text is shown as the translation, with a `translated · <sound label>` badge.
 - No human TTS and no human voice is used for the animal.
-- Sounds are stored in `frontend/public/sounds`; see [SOUND_CREDITS.md](SOUND_CREDITS.md).
+- The licensed fallback library lives in `frontend/public/sounds`; see [SOUND_CREDITS.md](SOUND_CREDITS.md).
+- Hosts can upload MP3/OGG/WAV/M4A clips (≤2 MB, ≤8 seconds) with a mood/behaviour label. The server validates duration/codec; the browser computes a 24-dimensional acoustic signature (`paw-acoustic-v1`) and stores it with the sound.
+- Host sounds take priority for the matching mood; the species library remains the fallback.
 
 ### Voice input
 
@@ -62,11 +66,12 @@ The chat composer supports push-to-talk in browsers that expose the Web Speech A
 
 ## Not implemented yet
 
-- Host-recorded audio uploads and per-animal sound packs.
-- Audio embeddings / acoustic fingerprinting (the `VocalProfile`/analysis adapter is the next layer).
-- Automatic extraction of traits from host notes (currently host selects the dimensions).
+- Deep semantic audio embeddings (CLAP/YAMNet/PANNs). The current signature is an RMS/zero-crossing acoustic fingerprint, not a provider embedding.
+- LLM-based trait extraction. The current draft is deterministic keyword scoring, explicitly reviewable by the host; a provider can replace it behind the same API.
 - 2D rigged avatar; the current avatar is a portrait with lightweight CSS motion.
 - Real-time voice streaming and video. These are out of scope.
+
+The provider seam is intentionally small: add `AUDIO_EMBEDDING_PROVIDER`, `AUDIO_EMBEDDING_API_KEY` and `AUDIO_EMBEDDING_MODEL` to the environment, then replace the browser signature with the provider vector (same `analysis.embedding` contract).
 
 ## Host onboarding target
 
@@ -80,7 +85,7 @@ host creates listing
   → publish
 ```
 
-The current form supports the profile fields; audio analysis is the next production step, not something this build pretends to have.
+The current form supports profile fields, a deterministic draft, and host sound upload with the acoustic signature. Deep provider embeddings and LLM extraction are the next layer, not something this build pretends to have.
 
 ## API
 
@@ -98,7 +103,16 @@ The current form supports the profile fields; audio analysis is the next product
 }
 ```
 
-`GET /api/ai/conversations/:animalId` returns the profile and current state.
+`GET /api/ai/conversations/:animalId` returns the profile, current state and host sound list.
+
+Partner endpoints:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/api/merchant/animals/:id/digital/draft` | Deterministic profile draft from listing copy |
+| GET | `/api/merchant/animals/:id/sounds` | Host sound pack |
+| POST | `/api/merchant/animals/:id/sounds` | Multipart `audio` + label/mood/behaviour/embedding |
+| DELETE | `/api/merchant/sounds/:soundId` | Owner-only removal |
 
 ## Design rules
 

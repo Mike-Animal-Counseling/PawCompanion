@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import Animal from '../models/Animal.js';
+import AnimalSound from '../models/AnimalSound.js';
 import ChatMemory from '../models/ChatMemory.js';
 import Checkin from '../models/Checkin.js';
 import RiskEvent from '../models/RiskEvent.js';
@@ -88,15 +89,19 @@ router.post(
 
     const animal = await Animal.findOne({ _id: animalId, ...PUBLIC_FILTER }).lean();
     if (!animal) throw notFound('Companion not found');
+    const animalRef = animal._id;
     const digitalProfile = getDigitalProfile(animal);
     if (!digitalProfile.enabled) throw conflict('This companion has not enabled their digital self yet');
-    const digitalState = await getOrCreateDigitalState(userId, animalId);
+    const [digitalState, hostSounds] = await Promise.all([
+      getOrCreateDigitalState(userId, animalRef),
+      AnimalSound.find({ animalId: animalRef, status: 'active' }).sort({ createdAt: 1 }).lean(),
+    ]);
 
-    let memory = await ChatMemory.findOne({ userId, animalId });
+    let memory = await ChatMemory.findOne({ userId, animalId: animalRef });
     if (!memory) {
       memory = new ChatMemory({
         userId,
-        animalId,
+        animalId: animalRef,
         animalName: animal.name,
         messages: [],
         chatMode: 'play',
@@ -180,6 +185,7 @@ router.post(
       state: digitalState,
       mode,
       message,
+      hostSounds,
     });
     const digitalContext = digitalPromptContext(digitalProfile, digitalPlan, digitalState);
 
@@ -287,9 +293,13 @@ router.get(
   asyncHandler(async (req, res) => {
     const animal = await Animal.findOne({ _id: req.params.animalId, ...PUBLIC_FILTER }).lean();
     if (!animal) throw notFound('Companion not found');
-    const memory = await ChatMemory.findOne({ userId: req.auth.sub, animalId: req.params.animalId }).lean();
+    const animalRef = animal._id;
+    const memory = await ChatMemory.findOne({ userId: req.auth.sub, animalId: animalRef }).lean();
     const digitalProfile = getDigitalProfile(animal);
-    const digitalState = await getOrCreateDigitalState(req.auth.sub, req.params.animalId);
+    const [digitalState, hostSounds] = await Promise.all([
+      getOrCreateDigitalState(req.auth.sub, animalRef),
+      AnimalSound.find({ animalId: animalRef, status: 'active' }).sort({ createdAt: 1 }).lean(),
+    ]);
     return ok(res, {
       animal: {
         id: String(animal._id),
@@ -309,6 +319,14 @@ router.get(
         routines: digitalProfile.routines,
         favorites: digitalProfile.favorites,
         state: digitalStateView(digitalState),
+        sounds: hostSounds.map((sound) => ({
+          id: String(sound._id),
+          label: sound.label,
+          mood: sound.mood,
+          behaviour: sound.behaviour,
+          url: sound.url,
+          durationMs: sound.durationMs,
+        })),
       },
       suggestedPrompts: suggestedPrompts(animal),
     });

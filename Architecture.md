@@ -208,6 +208,7 @@ src/
 | `Checkin` | Daily mood/energy/note + companion reply | unique `(customerId, date)` |
 | `ChatMemory` | Conversation per customer + companion | unique `(userId, animalId)`; last 80 messages |
 | `DigitalPetState` | Private mood/energy/attention/trust per user + companion | unique `(userId, animalId)` |
+| `AnimalSound` | Host sound pack: mood/behaviour, duration, acoustic signature | indexed by animal + mood |
 | `Notification` | In-app inbox per role | indexed by recipient + created |
 | `RiskEvent` | Derived safety signal | no raw text; 120-day TTL |
 | `UserRiskProfile` | Decayed 7/30-day profile | unique `userId`; status ok/watch/flagged |

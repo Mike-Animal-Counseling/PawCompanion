@@ -18,7 +18,7 @@ TEST_MONGO_URI=mongodb://127.0.0.1:27018/pawcompanion-test npm test
 | `tests/auth.test.js` | register, duplicate, login, refresh rotation, logout, password change, roles, sessions, preferences |
 | `tests/animals.test.js` | discovery pagination/filter/sort, facets, detail, relationship, favourites, invalid queries |
 | `tests/bookings.test.js` | service pricing, duplicate slots, in-person services, ownership, reschedule, refunds, reviews, merchant decisions, availability |
-| `tests/digital.test.js` | digital-pet state, mood/body/sound contract, support turns, host opt-out |
+| `tests/digital.test.js` | digital-pet state, mood/body/sound contract, host sound upload/signature, profile draft, support turns, host opt-out |
 | `tests/checkins.test.js` | check-in create/update/streak/history, crisis screening, dashboard, bond, deletion, validation |
 | `tests/security.test.js` | headers, origin, auth, forged tokens, payload limits, NoSQL shapes, static paths, budget failure, production config |
 | `tests/safety.test.js` | English/Chinese high/medium/none patterns and crisis resources |

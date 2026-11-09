@@ -21,7 +21,7 @@ COPY backend/src ./src
 COPY backend/scripts/render-start.sh ./render-start.sh
 COPY --from=web /web/dist ./public
 
-RUN chmod +x render-start.sh && mkdir -p uploads && chown -R node:node /app
+RUN sed -i 's/\r$//' render-start.sh && chmod +x render-start.sh && mkdir -p uploads && chown -R node:node /app
 USER node
 EXPOSE 5000
 

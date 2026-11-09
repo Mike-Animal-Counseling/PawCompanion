@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import multer from 'multer';
 import Animal from '../models/Animal.js';
+import AnimalSound from '../models/AnimalSound.js';
 import Booking from '../models/Booking.js';
 import Review from '../models/Review.js';
 import { AppError, asyncHandler, conflict, notFound } from '../lib/errors.js';
@@ -26,6 +28,8 @@ import {
 import { replyToReview } from '../services/reviewService.js';
 import { merchantOverview } from '../services/analyticsService.js';
 import { storeImage, ownsImage } from '../services/secureImage.js';
+import { analyzeAudio, audioExtension, AUDIO_LIMIT_BYTES } from '../services/secureAudio.js';
+import { draftDigitalProfile } from '../services/digitalProfileDraft.js';
 import { recordAudit } from '../services/auditService.js';
 import { localDateString } from '../lib/time.js';
 import {
@@ -75,6 +79,45 @@ function uploadDir(req) {
   return path.resolve(req.app.locals.config.uploadDir);
 }
 
+const AUDIO_TYPES = new Set(['audio/mpeg', 'audio/mp3', 'audio/ogg', 'audio/wav', 'audio/x-wav', 'audio/mp4', 'audio/x-m4a', 'audio/aac']);
+const audio = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: AUDIO_LIMIT_BYTES, files: 1 },
+  fileFilter: (_req, file, callback) => {
+    if (!AUDIO_TYPES.has(file.mimetype)) return callback(new AppError(400, 'UNSUPPORTED_AUDIO', 'Use MP3, OGG, WAV or M4A audio'));
+    callback(null, true);
+  },
+});
+
+function audioMiddleware(req, res, next) {
+  audio.single('audio')(req, res, (error) => {
+    if (error) {
+      return next(
+        error instanceof AppError
+          ? error
+          : new AppError(error.code === 'LIMIT_FILE_SIZE' ? 413 : 400, 'AUDIO_UPLOAD_FAILED', error.message || 'Audio upload failed'),
+      );
+    }
+    next();
+  });
+}
+
+function serializeSound(sound) {
+  return {
+    id: String(sound._id),
+    label: sound.label,
+    mood: sound.mood,
+    behaviour: sound.behaviour,
+    url: sound.url,
+    mimeType: sound.mimeType,
+    durationMs: sound.durationMs,
+    source: sound.source,
+    analysis: sound.analysis,
+    status: sound.status,
+    createdAt: sound.createdAt,
+  };
+}
+
 async function ensureAnimal(animalId, merchantId) {
   const animal = await Animal.findOne({ _id: animalId, merchantId });
   if (!animal) throw notFound('Listing not found');
@@ -121,6 +164,7 @@ router.post(
   asyncHandler(async (req, res) => {
     const animal = await Animal.create({
       ...req.body,
+      digital: req.body.digital || draftDigitalProfile(req.body),
       merchantId: req.auth.sub,
       city: req.body.city || req.account.city || '',
       ratingAverage: 0,
@@ -378,6 +422,100 @@ router.patch(
     await req.account.save();
     await recordAudit(req, { action: 'merchant.profile_updated', targetType: 'merchant', targetId: req.auth.sub });
     return ok(res, { user: serializeAccount(req.account) });
+  }),
+);
+
+router.post(
+  '/animals/:animalId/digital/draft',
+  validate(merchantAnimalParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    const animal = await ensureAnimal(req.params.animalId, req.auth.sub);
+    return ok(res, draftDigitalProfile(animal));
+  }),
+);
+
+router.get(
+  '/animals/:animalId/sounds',
+  validate(merchantAnimalParamsSchema, 'params'),
+  asyncHandler(async (req, res) => {
+    await ensureAnimal(req.params.animalId, req.auth.sub);
+    const sounds = await AnimalSound.find({ animalId: req.params.animalId, status: 'active' }).sort({ createdAt: 1 });
+    return ok(res, sounds.map(serializeSound));
+  }),
+);
+
+router.post(
+  '/animals/:animalId/sounds',
+  validate(merchantAnimalParamsSchema, 'params'),
+  audioMiddleware,
+  asyncHandler(async (req, res) => {
+    await ensureAnimal(req.params.animalId, req.auth.sub);
+    if (!req.file) throw new AppError(400, 'AUDIO_REQUIRED', 'Choose an animal sound to upload');
+    const label = String(req.body.label || '').trim();
+    const mood = String(req.body.mood || '').trim();
+    const behaviour = String(req.body.behaviour || '').trim();
+    const allowedMoods = ['calm', 'gentle', 'playful', 'affectionate', 'sleepy', 'shy', 'alert'];
+    if (label.length < 1 || label.length > 120) throw new AppError(422, 'INVALID_SOUND_LABEL', 'Sound label is required');
+    if (!allowedMoods.includes(mood)) throw new AppError(422, 'INVALID_SOUND_MOOD', 'Choose a valid sound mood');
+
+    let analysis;
+    try {
+      analysis = await analyzeAudio(req.file.buffer, req.file.mimetype);
+    } catch (error) {
+      throw new AppError(422, 'INVALID_AUDIO', error.message);
+    }
+
+    let embedding = [];
+    if (req.body.embedding) {
+      try {
+        const parsed = JSON.parse(req.body.embedding);
+        if (!Array.isArray(parsed) || parsed.length > 256 || parsed.some((value) => !Number.isFinite(Number(value)))) throw new Error();
+        embedding = parsed.map((value) => Number(value));
+      } catch {
+        throw new AppError(422, 'INVALID_AUDIO_EMBEDDING', 'Audio signature must be a numeric array');
+      }
+    }
+
+    const filename = `${req.auth.sub}-${randomUUID()}.${audioExtension(analysis.mimeType)}`;
+    const directory = uploadDir(req);
+    await fs.promises.mkdir(directory, { recursive: true, mode: 0o700 });
+    // The filename is generated locally; the validated audio bytes are the
+    // only network-derived data written. This is the intended upload sink.
+    // codeql[js/http-to-file-access]
+    await fs.promises.writeFile(path.join(directory, filename), req.file.buffer, { flag: 'wx', mode: 0o600 });
+    const sound = await AnimalSound.create({
+      animalId: req.params.animalId,
+      merchantId: req.auth.sub,
+      label,
+      mood,
+      behaviour: behaviour.slice(0, 80),
+      url: `/uploads/${filename}`,
+      mimeType: analysis.mimeType,
+      durationMs: analysis.durationMs,
+      source: 'host',
+      analysis: {
+        model: embedding.length ? 'paw-acoustic-v1' : 'metadata-only',
+        dimensions: embedding.length,
+        embedding,
+        status: embedding.length ? 'signature' : 'metadata-only',
+      },
+    });
+    await recordAudit(req, { action: 'animal.sound_uploaded', targetType: 'animal', targetId: req.params.animalId, metadata: { soundId: String(sound._id) } });
+    return created(res, serializeSound(sound));
+  }),
+);
+
+router.delete(
+  '/sounds/:soundId',
+  asyncHandler(async (req, res) => {
+    if (!/^[a-f\d]{24}$/i.test(req.params.soundId)) throw notFound('Sound not found');
+    const sound = await AnimalSound.findOne({ _id: req.params.soundId, merchantId: req.auth.sub });
+    if (!sound) throw notFound('Sound not found');
+    const filename = path.basename(sound.url);
+    await fs.promises.unlink(path.join(uploadDir(req), filename)).catch(() => {});
+    await AnimalSound.deleteOne({ _id: sound._id });
+    await recordAudit(req, { action: 'animal.sound_deleted', targetType: 'animal', targetId: sound.animalId, metadata: { soundId: String(sound._id) } });
+    return noContent(res);
   }),
 );
 
